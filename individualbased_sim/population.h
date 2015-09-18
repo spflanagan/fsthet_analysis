@@ -23,6 +23,7 @@ public:
 	int num_chrom, num_markers, num_qtls, num_alleles;
 	double recomb_rate, mut_rate, mut_var, env_var;
 	double GaussianPrefMean, gauss_var, migration_rate, viability_sel;
+	string base_file_name;
 
 	void set_parameters()
 	{
@@ -44,11 +45,12 @@ public:
 		env_var = 0;
 		sgenrand(time(0));
 		sample_size = 50;//set sample size here
-		generations = 2000;
+		generations = 200;
 		num_pops = 5;
 		gauss_var = 0; //if 0, it's random mating
 		viability_sel = 0;
 		migration_rate = 0.1;
+		base_file_name = "200reps_";
 	}
 
 };
@@ -98,11 +100,13 @@ public:
 class population
 {
 public:
-	vector<individual> adult, progeny;
-	vector<vector<int>> qtls_locations;
+	bool extinct;
 	int population_size, num_males, num_females, num_progeny, num_not_mated;
 	double mean_mal_trait, mean_fem_trait;
-	bool extinct;
+	vector <int> qtl_per_chrom; 
+	vector<vector<int>> qtls_locations;
+	vector<individual> adult, progeny;
+
 
 public:
 	void initialize(vector <int> &qtls, parameters &p)
@@ -114,14 +118,17 @@ public:
 		for (j = 0; j < p.num_chrom; j++)
 		{
 			qtl_counter = 0;
+			qtl_per_chrom.push_back(0);
 			qtls_locations.push_back(vector<int>());
 			for (jj = 0; jj < p.num_markers; jj++)
 			{
 				if (count == qtls[q])
 				{
-					qtls_locations[j].push_back(qtl_counter);
-					qtl_counter++;
+					qtls_locations[j].push_back(qtl_per_chrom[j]);
+					qtl_per_chrom[j]++;
 					q++;
+					if (q == qtls.size())
+						q = qtls.size() - 1;
 				}
 				else
 					qtls_locations[j].push_back(-1);
@@ -167,7 +174,7 @@ public:
 			for (jj = 0; jj < p.num_chrom; jj++)
 			{
 				//Assign allelic effects
-				for (jjj = 0; jjj < qtls_locations[jj].size(); jjj++)
+				for (jjj = 0; jjj < qtl_per_chrom[jj]; jjj++)
 				{
 					adult[j].maternal[jj].allelic_effects.push_back(temp_allele[j%p.num_alleles]);
 					adult[j].paternal[jj].allelic_effects.push_back(temp_allele[j%p.num_alleles]);
@@ -265,14 +272,14 @@ public:
 			{
 				for (RCi = 0; RCi < p.num_markers; RCi++)
 					RecombinedChr.loci[RCi] = Parent.maternal[WhichChromosome].loci[RCi];
-				for (RCi = 0; RCi < qtls_locations[WhichChromosome].size(); RCi++)
+				for (RCi = 0; RCi < qtl_per_chrom[WhichChromosome]; RCi++)
 					RecombinedChr.allelic_effects[RCi] = Parent.maternal[WhichChromosome].allelic_effects[RCi];
 			}
 			else
 			{
 				for (RCi = 0; RCi < p.num_markers; RCi++)
 					RecombinedChr.loci[RCi] = Parent.paternal[WhichChromosome].loci[RCi];
-				for (RCi = 0; RCi < qtls_locations[WhichChromosome].size(); RCi++)
+				for (RCi = 0; RCi < qtl_per_chrom[WhichChromosome]; RCi++)
 					RecombinedChr.allelic_effects[RCi] = Parent.paternal[WhichChromosome].allelic_effects[RCi];
 			}
 		}//else (no recomb)
@@ -290,7 +297,7 @@ public:
 					if (maternal)
 					{
 						prog.maternal[j].loci[jj] = parent.maternal[j].loci[jj];
-						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						for (jjj = 0; jjj < qtl_per_chrom[j]; jjj++)
 						{
 							prog.maternal[j].allelic_effects[jjj] = parent.maternal[j].allelic_effects[jjj];
 						}
@@ -298,7 +305,7 @@ public:
 					else
 					{
 						prog.maternal[j].loci[jj] = parent.paternal[j].loci[jj];
-						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						for (jjj = 0; jjj < qtl_per_chrom[j]; jjj++)
 						{
 							prog.maternal[j].allelic_effects[jjj] = parent.paternal[j].allelic_effects[jjj];
 						}
@@ -315,7 +322,7 @@ public:
 					if (maternal)
 					{
 						prog.paternal[j].loci[jj] = parent.maternal[j].loci[jj];
-						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						for (jjj = 0; jjj < qtl_per_chrom[j]; jjj++)
 						{
 							prog.paternal[j].allelic_effects[jjj] = parent.maternal[j].allelic_effects[jjj];
 						}
@@ -323,7 +330,7 @@ public:
 					else
 					{
 						prog.paternal[j].loci[jj] = parent.paternal[j].loci[jj];
-						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						for (jjj = 0; jjj < qtl_per_chrom[j]; jjj++)
 						{
 							prog.paternal[j].allelic_effects[jjj] = parent.paternal[j].allelic_effects[jjj];
 						}
@@ -426,7 +433,7 @@ public:
 								progeny[num_prog].maternal[jj].loci.push_back(int());
 								progeny[num_prog].paternal[jj].loci.push_back(int());
 							}
-							for (jjj = 0; jjj < qtls_locations[jj].size(); jjj++)
+							for (jjj = 0; jjj < qtl_per_chrom[jj]; jjj++)
 							{
 								progeny[num_prog].maternal[jj].allelic_effects.push_back(double());
 								progeny[num_prog].paternal[jj].allelic_effects.push_back(double());
@@ -526,7 +533,7 @@ public:
 
 			for (jj = 0; jj < p.num_chrom; jj++)
 			{
-				for (jjj = 0; jjj < p.num_markers; jjj++){
+				for (jjj = 0; jjj < qtl_per_chrom[jj]; jjj++){
 					progeny[j].genotype = progeny[j].genotype +
 						progeny[j].maternal[jj].allelic_effects[jjj] + progeny[j].paternal[jj].allelic_effects[jjj];
 				}
@@ -603,10 +610,29 @@ public:
 				if (prog_left == 0)
 					keep_prob = 0;
 				else
-					keep_prob = car_cap_rem / prog_left;
+					keep_prob = car_cap_rem / prog_left;//keeps it in the carrying capacity
 				drnd = genrand();
 				if (drnd < keep_prob)
-				{//then turn it into an adult
+				{//then add onto the adult vectors
+					if (adult.size() <= num_adults_chosen)
+					{//initialize new
+						adult.push_back(individual());
+						for (jj = 0; jj < p.num_chrom; jj++)
+						{
+							adult[num_adults_chosen].maternal.push_back(chromosome());
+							adult[num_adults_chosen].paternal.push_back(chromosome());
+							for (jjj = 0; jjj < p.num_markers; jjj++)
+							{
+								adult[num_adults_chosen].maternal[jj].loci.push_back(int());
+								adult[num_adults_chosen].paternal[jj].loci.push_back(int());
+							}
+							for (jjj = 0; jjj < qtl_per_chrom[jj]; jjj++)
+							{
+								adult[num_adults_chosen].maternal[jj].allelic_effects.push_back(double());
+								adult[num_adults_chosen].paternal[jj].allelic_effects.push_back(double());
+							}
+						}
+					}
 					adult[num_adults_chosen].alive = true;
 					adult[num_adults_chosen].mate_found = 0;
 					for (jj = 0; jj < p.num_chrom; jj++)
@@ -692,6 +718,132 @@ public:
 		}
 		return sampled_inds;
 	}
+
+	double calc_ld(int chromosome_1, int chromosome_2, int allele_1, int allele_2, parameters &p)
+	{
+		//To do this, need to compare allele frequencies. 
+		//D=x11-p1q1
+		//x11 = observed freq of major allele in locus A and major allele in locus B
+		//p1 = observed freq of major allele in locus A
+		//q1 = observed freq of major allele in locus B
+		//if D > 0, Dmax = min(p1q1, p2q2)
+		//if D < 0, Dmax = min(p1q2, p2q1)
+		//D' = D/Dmax
+		double dNadult = population_size;
+		vector <int> num_allele_1;
+		vector <int> num_allele_2;
+		vector <double> freq_allele_1;
+		vector <double> freq_allele_2;
+		double **joint_alleles = new double *[p.num_alleles];
+		double **D = new double *[p.num_alleles];
+		double **Dmax = new double *[p.num_alleles];
+		int count_a = 0;
+		int f, ff, fff, al, count;
+		double Dprime, d_allele_avgs;
+		int numA1B1 = 0;
+
+		for (al = 0; al < p.num_alleles; al++)
+		{
+			joint_alleles[al] = new double[p.num_alleles];
+			D[al] = new double[p.num_alleles];
+			Dmax[al] = new double[p.num_alleles];
+		}
+		for (al = 0; al < p.num_alleles; al++)
+		{
+			num_allele_1.push_back(0);
+			num_allele_2.push_back(0);
+			freq_allele_1.push_back(0);
+			freq_allele_2.push_back(0);
+		}
+
+		int maternal_1, maternal_2, paternal_1, paternal_2;
+
+		for (fff = 0; fff < population_size; fff++)
+		{
+			maternal_1 = adult[fff].maternal[chromosome_1].loci[allele_1];
+			maternal_2 = adult[fff].maternal[chromosome_2].loci[allele_2];
+			paternal_1 = adult[fff].paternal[chromosome_1].loci [allele_1];
+			paternal_2 = adult[fff].paternal[chromosome_2].loci[allele_2];
+
+			num_allele_1[maternal_1]++;
+			num_allele_1[paternal_1]++;
+			num_allele_2[maternal_2]++;
+			num_allele_2[paternal_2]++;
+			joint_alleles[maternal_1][maternal_2]++;
+			joint_alleles[paternal_1][paternal_2]++;
+		}//end for fff < PopulationSize
+
+		int major_allele_1 = 0;
+		int major_allele_2 = 0;
+		for (al = 0; al < p.num_alleles; al++)
+		{
+			freq_allele_1[al] = (num_allele_1[al]) / (2 * dNadult);
+			freq_allele_2[al] = (num_allele_2[al]) / (2 * dNadult);
+			if (freq_allele_1[al] > freq_allele_1[major_allele_1])
+				major_allele_1 = al;
+			if (freq_allele_2[al] > freq_allele_2[major_allele_2])
+				major_allele_2 = al;
+			for (f = 0; f < p.num_alleles; f++)
+				joint_alleles[al][f] = joint_alleles[al][f] / (2 * dNadult);
+		}
+		
+		if (freq_allele_1[major_allele_1] != 1 && freq_allele_2[major_allele_1] != 1)//if it's polymorphic
+		{
+			d_allele_avgs = 0;
+			count = 0;
+			for (f = 0; f < p.num_alleles; f++)
+			{
+				for (ff = 0; ff < p.num_alleles; ff++)
+				{
+					if (freq_allele_1[f] > 0 && freq_allele_2[ff] > 0)
+					{
+						D[f][ff] = joint_alleles[f][ff] - freq_allele_1[f] * freq_allele_2[ff];
+						d_allele_avgs = d_allele_avgs + fabs(D[f][ff]);
+						count++;
+						if (D[f][ff] < 0)
+							Dmax[f][ff] = min(freq_allele_1[f] * freq_allele_2[ff], (1 - freq_allele_1[f])*(1 - freq_allele_2[ff]));
+						else
+							Dmax[f][ff] = min((1 - freq_allele_1[f])*freq_allele_2[ff], freq_allele_1[f] * (1 - freq_allele_2[ff]));
+					}
+				}
+			}
+			double dcount = count;
+			d_allele_avgs = d_allele_avgs / dcount;
+
+			Dprime = 0;
+			bool decentDmax = true;
+			for (f = 0; f < p.num_alleles; f++)
+			{
+				for (ff = 0; ff < p.num_alleles; ff++)
+				{
+					if (freq_allele_1[f] > 0 && freq_allele_2[ff] > 0)
+					{
+						if (Dmax[f][ff] > 0)
+							Dprime = Dprime + freq_allele_1[f] * freq_allele_2[ff] * fabs(D[f][ff]) / Dmax[f][ff];
+						else
+							decentDmax = false;
+
+					}
+				}
+			}
+			if (!decentDmax)
+				Dprime = -5;
+
+		}
+		
+		for (f = 0; f < p.num_alleles; f++)
+		{
+			delete[] joint_alleles[f];
+			delete[] D[f];
+			delete[] Dmax[f];
+		}
+		delete[] joint_alleles;
+		delete[] D;
+		delete[] Dmax;
+
+		return Dprime;
+	}//end Adult Pop LD
+
 };//population
 
 void migration(population &pop_receiving, population &pop_giving, parameters &p)
@@ -715,9 +867,10 @@ void migration(population &pop_receiving, population &pop_giving, parameters &p)
 void output_genepop(vector<population> &pops, vector<vector<bool>> &sampled, parameters &p, string genepop_name)
 {
 	int j, jj, jjj, k;
+	string name = p.base_file_name + genepop_name;
 	ofstream genepop;
-	genepop.open(genepop_name);
-	cout << "\ngenepop output file " << genepop_name << " open.\n";
+	genepop.open(name);
+	cout << "\ngenepop output file " << name << " open.\n";
 	genepop << "Individual-based simulated data";
 	for (j = 0; j < p.num_chrom; j++)
 	{
