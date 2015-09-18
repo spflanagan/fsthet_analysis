@@ -1,66 +1,10 @@
-﻿Build started 9/16/2015 4:57:16 PM.
+﻿Build started 9/17/2015 11:49:59 AM.
      1>Project "E:\GitHub\fst_outliers\fdist2_annotate\fdist2_annotate.vcxproj" on node 2 (Build target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _CRT_SECURE_NO_WARNINGS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt fdist2_annotate.cpp
-         fdist2_annotate.cpp
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(9): warning C4005: '_CRT_SECURE_NO_WARNINGS' : macro redefinition
-                 command-line arguments :  see previous definition of '_CRT_SECURE_NO_WARNINGS'
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(73): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(91): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(114): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(116): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(120): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(124): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(124): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(140): warning C4244: 'return' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(185): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(186): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(197): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(198): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(200): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(202): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(203): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(204): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(270): warning C4101: 'rfs' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(309): warning C4101: 'p' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(306): warning C4101: 'it' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(307): warning C4101: 'nc2' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(307): warning C4101: 'nc1' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(307): warning C4101: 'c1' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(306): warning C4101: 'ifs' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(307): warning C4101: 'c2' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(306): warning C4101: 'ii' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(306): warning C4101: 'rn' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(306): warning C4101: 'nifs' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(308): warning C4101: 'rr' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(431): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(419): warning C4101: 'pos' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(554): warning C4244: '+=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(614): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(615): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(616): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(661): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(662): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(663): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'it' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(672): warning C4101: 'tcum' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(675): warning C4101: 'i1' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'ic' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'j2' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(675): warning C4101: 'j1' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'seq' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'ik' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'k' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(670): warning C4101: 'next_mu' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(677): warning C4101: 'totall' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(676): warning C4101: 'vhet' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(673): warning C4101: 'll' : unreferenced local variable
-     1>e:\github\fst_outliers\fdist2_annotate\fdist2_annotate.cpp(670): warning C4101: 'mrate' : unreferenced local variable
-       Link:
+     1>Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\GitHub\fst_outliers\fdist2_annotate\Debug\fdist2_annotate.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\GitHub\fst_outliers\fdist2_annotate\Debug\fdist2_annotate.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\GitHub\fst_outliers\fdist2_annotate\Debug\fdist2_annotate.lib" /MACHINE:X86 Debug\fdist2_annotate.obj
          fdist2_annotate.vcxproj -> E:\GitHub\fst_outliers\fdist2_annotate\Debug\fdist2_annotate.exe
      1>Done Building Project "E:\GitHub\fst_outliers\fdist2_annotate\fdist2_annotate.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:00.64
+Time Elapsed 00:00:00.75

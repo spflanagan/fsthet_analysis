@@ -1,12 +1,18 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 #define NOC 100 /* The maximum number of subpopulations possible. Spno - the
 				number of subpopulations in the model - must
 				be less than or equal to this */
 #define PI 3.141592653589793
 #define _CRT_SECURE_NO_WARNINGS
+
+using namespace std;
 
 struct node
 {
@@ -677,86 +683,105 @@ int main()
 	int	totall;
 	char dic[100], str1[10];
 	FILE *inp, *alls;
+	string param_file_name, out_file_name, line;
+	ifstream param_file;
+	ofstream out_file;
+	int param_num;
+	
+	cout << "What is the paramter file name?\n";
+	cin >> param_file_name;
+	param_file.open(param_file_name);
+	getline(param_file, line); //header line
+	while (getline(param_file, line))
+	{
+		stringstream ss;
+		ss << line;
+		ss >> param_num >> Spno >> Subs >> efst >> Smp >> Ms >> itno;
+		cout << "Running Parameter Set # " << param_num << '\n';
 
-
-	opengfsr();
-	inp = fopen("fdist_params2.dat", "r");
-	fscanf(inp, "%d", &Spno);
-	if (Spno > NOC){
+		stringstream name;
+		name << "out_dat" << param_num << ".txt";
+		out_file_name = name.str();
+	//	out_file.open(out_file_name);
+		/*opengfsr();
+		inp = fopen("fdist_params2.dat", "r");
+		fscanf(inp, "%d", &Spno);
+		if (Spno > NOC){
 		printf("error in parameter file - ");
 		printf("number of subpopulation greater than %d\n", NOC);
 		exit(1);
-	}
-	fscanf(inp, "%d", &Subs);
-	fscanf(inp, "%f", &efst);
-	fscanf(inp, "%d", &Smp);
-	fscanf(inp, "%d", &Ms);
-	fscanf(inp, "%d", &itno);
-	fclose(inp);
-	printf("number of demes is %d\n", Spno);
-	printf("number of samples  is %d\n", Subs);
-	printf("expected (infinite allele, infinite island) Fst is %f\n", efst);
-	printf("median sample size is %d - suggest give 50 if >50\n", Smp);
-	if (Ms){
+		}
+		fscanf(inp, "%d", &Subs);
+		fscanf(inp, "%f", &efst);
+		fscanf(inp, "%d", &Smp);
+		fscanf(inp, "%d", &Ms);
+		fscanf(inp, "%d", &itno);
+		fclose(inp);
+		printf("number of demes is %d\n", Spno);
+		printf("number of samples  is %d\n", Subs);
+		printf("expected (infinite allele, infinite island) Fst is %f\n", efst);
+		printf("median sample size is %d - suggest give 50 if >50\n", Smp);
+		if (Ms){
 		printf("stepwise mutation model assumed\n");
-	}
-	else printf("infinite alleles mutation model assumed\n");
-	printf("%d realizations (loci) requested\n", itno);
-	while (1){
+		}
+		else printf("infinite alleles mutation model assumed\n");
+		printf("%d realizations (loci) requested\n", itno);
+		while (1){
 		printf("are these parameters correct? (y/n)  ");
 		scanf("%s", dic);
 		if (dic[0] == 'y')break;
 		else if (dic[0] == 'n')exit(1);
 		else printf("que ???\n\n\n");
-	}
+		}
+		*/
 
-	alls = fopen("out.dat", "w");
-	printf("\nold out.dat has now been lost\n");
+		alls = fopen(out_file_name.c_str(), "w");
+		//printf("\nold out.dat has now been lost\n");
 
-	rm = 0.5*(1.0 / efst - 1);
+		rm = 0.5*(1.0 / efst - 1);
 
-	for (j = 0; j<Subs; ++j){
-		init[j] = Smp;
-	}
-	for (j = Subs; j<Spno; ++j)init[j] = 0;
-	initot = Smp*Subs;
-	val_arr = (int **)malloc(Subs*sizeof(int *));
-	freq_arr = (int **)malloc(Subs*sizeof(int *));
-	for (j = 0; j<Subs; ++j){
-		val_arr[j] = (int *)malloc(Smp*sizeof(int));
-		freq_arr[j] = (int *)malloc(Smp*sizeof(int));
-	}
-	Nmax = Smp;
-	fsum = wsum = 0.0;
-	keepmu = 0;
-	for (kk = 0, i = 0; 1; ++kk){
-		if (!keepmu){
-			rr = gfsr4();
-			if (!Ms)mu = rr / (1 - rr);
-			else{
-				dd = 1 / (1 - rr);
-				dd *= dd;
-				mu = (dd - 1)*0.5;
+		for (j = 0; j < Subs; ++j){
+			init[j] = Smp;
+		}
+		for (j = Subs; j < Spno; ++j)init[j] = 0;
+		initot = Smp*Subs;
+		val_arr = (int **)malloc(Subs*sizeof(int *));
+		freq_arr = (int **)malloc(Subs*sizeof(int *));
+		for (j = 0; j < Subs; ++j){
+			val_arr[j] = (int *)malloc(Smp*sizeof(int));
+			freq_arr[j] = (int *)malloc(Smp*sizeof(int));
+		}
+		Nmax = Smp;
+		fsum = wsum = 0.0;
+		keepmu = 0;
+		for (kk = 0, i = 0; 1; ++kk){
+			if (!keepmu){
+				rr = gfsr4();
+				if (!Ms)mu = rr / (1 - rr);
+				else{
+					dd = 1 / (1 - rr);
+					dd *= dd;
+					mu = (dd - 1)*0.5;
+				}
+				if (mu > 100000)mu = 100000;
 			}
-			if (mu > 100000)mu = 100000;
+			sim1(init, initot, rm, mu, freq_arr, val_arr, &noall);
+			if (noall > 1){
+				my_thetacal(freq_arr, noall, init, Subs, &h0, &h1, &fst);
+				fprintf(alls, "%f %f\n", h1, fst);
+				fsum += fst*h1;
+				wsum += h1;
+				++i;
+				if (i % 10 == 0)fflush(alls);
+				if (i == itno)break;
+				keepmu = 0;
+			}
+			else{ ++keepmu; if (keepmu > 1000)keepmu = 0; }
 		}
-		sim1(init, initot, rm, mu, freq_arr, val_arr, &noall);
-		if (noall > 1){
-			my_thetacal(freq_arr, noall, init, Subs, &h0, &h1, &fst);
-			fprintf(alls, "%f %f\n", h1, fst);
-			fsum += fst*h1;
-			wsum += h1;
-			++i;
-			if (i % 10 == 0)fflush(alls);
-			if (i == itno)break;
-			keepmu = 0;
-		}
-		else{ ++keepmu; if (keepmu > 1000)keepmu = 0; }
+		 cout << "average Fst is %f\n" << fsum / wsum;
+	//	closegfsr();
 	}
-	printf("average Fst is %f\n", fsum / wsum);
-	closegfsr();
-	printf("type in any character and return to close window");
-	scanf("%s", str1);
-
+	cout << "type in any character and return to close window";
+	cin >> str1;
 	return 0;
 }
