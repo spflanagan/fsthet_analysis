@@ -9,28 +9,30 @@
 #include <stdlib.h>
 #include <vector>
 #include <array>
+#include <sstream>
 
 using namespace std;
 
 class parameters
 {
 public:
-	int pop_size, carrying_capacity;
+	int num_reps, carrying_capacity;
 	int max_fecundity, max_encounters, max_progeny;
 	int total_num_loci, num_poly_loci;
 	int sample_size, generations, num_pops;
 	int num_chrom, num_markers, num_qtls, num_alleles;
 	double recomb_rate, mut_rate, mut_var, env_var;
-	double GaussianPrefMean, migration_rate;
+	double GaussianPrefMean, gauss_var, migration_rate, viability_sel;
 
 	void set_parameters()
 	{
 		//Initialize Parameters
-		carrying_capacity = 5000;
+		num_reps = 1;
+		carrying_capacity = 1000;
 		max_fecundity = 4;
 		max_progeny = carrying_capacity*max_fecundity;
-		num_chrom = 4;
-		num_markers = 1000;
+		num_chrom = 2;
+		num_markers = 100;
 		num_qtls = 2;
 		GaussianPrefMean = 4.0;
 		num_alleles = 4;
@@ -41,10 +43,14 @@ public:
 		total_num_loci = num_markers*num_chrom;
 		env_var = 0;
 		sgenrand(time(0));
-		sample_size = 4000;//set sample size here
+		sample_size = 50;//set sample size here
 		generations = 2000;
-		num_pops = 10;
+		num_pops = 5;
+		gauss_var = 0; //if 0, it's random mating
+		viability_sel = 0;
+		migration_rate = 0.1;
 	}
+
 };
 
 class reference_locus_info
@@ -89,33 +95,36 @@ public:
 	}
 };//end Individual
 
-
 class population
 {
 public:
 	vector<individual> adult, progeny;
-	vector<vector<bool>> qtls_locations;
-	int population_size, num_males, num_females, num_progeny;
+	vector<vector<int>> qtls_locations;
+	int population_size, num_males, num_females, num_progeny, num_not_mated;
 	double mean_mal_trait, mean_fem_trait;
+	bool extinct;
 
 public:
 	void initialize(vector <int> &qtls, parameters &p)
 	{
-		int j,jj,jjj, count,q;
+		extinct = false;
+		int j,jj,jjj, count,q, qtl_counter;
 		//set up qtl tracker
-		count = q = 0;
+		count = q = qtl_counter = 0;
 		for (j = 0; j < p.num_chrom; j++)
 		{
-			qtls_locations.push_back(vector<bool>());
+			qtl_counter = 0;
+			qtls_locations.push_back(vector<int>());
 			for (jj = 0; jj < p.num_markers; jj++)
 			{
 				if (count == qtls[q])
 				{
-					qtls_locations[j].push_back(true);
+					qtls_locations[j].push_back(qtl_counter);
+					qtl_counter++;
 					q++;
 				}
 				else
-					qtls_locations[j].push_back(false);
+					qtls_locations[j].push_back(-1);
 				count++;
 			}
 		}
@@ -142,6 +151,7 @@ public:
 				for (jjj = 0; jjj < p.num_markers; jjj++)
 				{
 					adult[j].maternal[jj].loci.push_back(randnum(p.num_alleles));
+					adult[j].paternal[jj].loci.push_back(randnum(p.num_alleles));
 				}
 			}
 		}
@@ -157,10 +167,10 @@ public:
 			for (jj = 0; jj < p.num_chrom; jj++)
 			{
 				//Assign allelic effects
-				for (jjj = 0; jjj < p.num_qtls; jjj++)
+				for (jjj = 0; jjj < qtls_locations[jj].size(); jjj++)
 				{
-					adult[j].maternal[jj].allelic_effects[jjj] = temp_allele[j%p.num_alleles];
-					adult[j].paternal[jj].allelic_effects[jjj] = temp_allele[j%p.num_alleles];
+					adult[j].maternal[jj].allelic_effects.push_back(temp_allele[j%p.num_alleles]);
+					adult[j].paternal[jj].allelic_effects.push_back(temp_allele[j%p.num_alleles]);
 					adult[j].genotype = adult[j].genotype +
 						adult[j].maternal[jj].allelic_effects[jjj] +
 						adult[j].paternal[jj].allelic_effects[jjj];
@@ -175,6 +185,7 @@ public:
 		population_size = p.carrying_capacity;
 		mean_mal_trait = mean_mal_trait / num_males;
 		mean_fem_trait = mean_fem_trait / num_females;
+		
 	}//initialize
 
 	void RecombineChromosome(chromosome &RecombinedChr, individual &Parent, int WhichChromosome, double ExpectedRecombEvents, parameters &p)
@@ -232,8 +243,8 @@ public:
 					for (RCj = SegmentStart[RCi]; RCj < SegmentEnd[RCi]; RCj++)
 					{
 						RecombinedChr.loci[RCj] = Parent.maternal[WhichChromosome].loci[RCj];
-						if (qtls_locations[WhichChromosome][RCj])
-							RecombinedChr.allelic_effects[RCj] = Parent.maternal[WhichChromosome].allelic_effects[RCj];
+						if (qtls_locations[WhichChromosome][RCj] >= 0)
+							RecombinedChr.allelic_effects[qtls_locations[WhichChromosome][RCj]] = Parent.maternal[WhichChromosome].allelic_effects[qtls_locations[WhichChromosome][RCj]];
 					}
 				}
 				else
@@ -241,8 +252,8 @@ public:
 					for (RCj = SegmentStart[RCi]; RCj < SegmentEnd[RCi]; RCj++)
 					{
 						RecombinedChr.loci[RCj] = Parent.paternal[WhichChromosome].loci[RCj];
-						if (qtls_locations[WhichChromosome][RCj])
-							RecombinedChr.allelic_effects[RCj] = Parent.paternal[WhichChromosome].allelic_effects[RCj];
+						if (qtls_locations[WhichChromosome][RCj] >= 0)
+							RecombinedChr.allelic_effects[qtls_locations[WhichChromosome][RCj]] = Parent.paternal[WhichChromosome].allelic_effects[qtls_locations[WhichChromosome][RCj]];
 					}
 				}
 			}//end RCi
@@ -254,335 +265,492 @@ public:
 			{
 				for (RCi = 0; RCi < p.num_markers; RCi++)
 					RecombinedChr.loci[RCi] = Parent.maternal[WhichChromosome].loci[RCi];
-				for (RCi = 0; RCi < p.num_qtls; RCi++)
+				for (RCi = 0; RCi < qtls_locations[WhichChromosome].size(); RCi++)
 					RecombinedChr.allelic_effects[RCi] = Parent.maternal[WhichChromosome].allelic_effects[RCi];
 			}
 			else
 			{
 				for (RCi = 0; RCi < p.num_markers; RCi++)
 					RecombinedChr.loci[RCi] = Parent.paternal[WhichChromosome].loci[RCi];
-				for (RCi = 0; RCi < p.num_qtls; RCi++)
+				for (RCi = 0; RCi < qtls_locations[WhichChromosome].size(); RCi++)
 					RecombinedChr.allelic_effects[RCi] = Parent.paternal[WhichChromosome].allelic_effects[RCi];
 			}
 		}//else (no recomb)
 	}//end RecombineChromosome
 
+	void AssignProgenyGenotypes(individual &prog, individual &parent, bool maternal, parameters &p)
+	{
+		int j, jj, jjj;
+		if (genrand() > 0.5)//goes to offspring maternal
+		{
+			for (j = 0; j < p.num_chrom; j++)
+			{
+				for (jj = 0; jj < p.num_markers; jj++)
+				{
+					if (maternal)
+					{
+						prog.maternal[j].loci[jj] = parent.maternal[j].loci[jj];
+						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						{
+							prog.maternal[j].allelic_effects[jjj] = parent.maternal[j].allelic_effects[jjj];
+						}
+					}
+					else
+					{
+						prog.maternal[j].loci[jj] = parent.paternal[j].loci[jj];
+						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						{
+							prog.maternal[j].allelic_effects[jjj] = parent.paternal[j].allelic_effects[jjj];
+						}
+					}					
+				}//end of num_markers
+			}
+		}
+		else
+		{
+			for (j = 0; j < p.num_chrom; j++)
+			{
+				for (jj = 0; jj < p.num_markers; jj++)
+				{
+					if (maternal)
+					{
+						prog.paternal[j].loci[jj] = parent.maternal[j].loci[jj];
+						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						{
+							prog.paternal[j].allelic_effects[jjj] = parent.maternal[j].allelic_effects[jjj];
+						}
+					}
+					else
+					{
+						prog.paternal[j].loci[jj] = parent.paternal[j].loci[jj];
+						for (jjj = 0; jjj < qtls_locations[j].size(); jjj++)
+						{
+							prog.paternal[j].allelic_effects[jjj] = parent.paternal[j].allelic_effects[jjj];
+						}
+					}
+				}//end of num_markers
+			}
+		}
+	}
+
 	void Mating(parameters &p)
 	{
-		int cc;
-		int NumProg;
+		int j, jj, jjj, k, irndnum;
+		int num_prog, females, males, fem_prog, mal_prog, num_mated;
 		double dubrand;
-		NumProg = 0;
-		//Mate Choice:
-		int mm, nn, males;
-		int Encounters, MaleID, irndnum, Females;
-		double MeanFemaleTrait;
-		bool MateFound, MalesPresent;
-		double MeanMaleTrait, MateProb;
-		int MaleIndex, FemaleID;
-		int Counter3;
-		vector <int> MaleList;
-		NumProg = 0;
-		Mated = 0;
-		Females = 0;
-		ProgFem = 0;
-		ProgMale = 0;
-		NumFemales = 0;
-		MalesPresent = false;
-		NumMales = 0;
-		MeanMaleTrait = 0;
-		double SDMaleTrait = 0;
-		MeanFemaleTrait = 0;
-		Counter1 = 0;
-		Counter2 = 0;
-		Counter3 = 0;
+		double mean_fem_trait, mean_mal_trait, mate_prob;
+		bool mate_found, males_present;
+		int mal_index, fem_id, mal_id, encounters;
+		int counter1, counter2, counter3;
+		vector <int> male_list, fathers, mothers, non_mated;
+		num_prog = females = males = fem_prog = mal_prog = num_mated = 0;
+		males_present = false;
+		mean_mal_trait = mean_fem_trait = 0;
+		double sd_mal_trait = 0;
+		counter1 = counter2 = counter3 = 0;
+
+		UpdateDemographics();
+		progeny.resize(0);
 		//determine mean male trait
-		for (males = 0; males < PopulationSize; males++)
+		for (j = 0; j < population_size; j++)
 		{
-			Adult[males].MateFound = 0;
-			if (!Adult[males].IsFemale)
+			adult[j].mate_found = 0;
+			if (!adult[j].female)
 			{
-				MalesPresent = true;
-				MaleList.push_back(males);
-				NumMales++;
-				MeanMaleTrait = MeanMaleTrait + Adult[males].phenotype;
+				males_present = true;
+				male_list.push_back(j);
+				males++;
+				mean_mal_trait = mean_mal_trait+ adult[j].phenotype;
 			}
 		} // end of males
-		if (NumMales > 0) {
-			MeanMaleTrait = MeanMaleTrait / NumMales;
+		if (males > 0) {
+			mean_mal_trait = mean_mal_trait/ males;
 		}
 		else {
-			MeanMaleTrait = 0;
-			popExtinct = true;
+			mean_mal_trait = 0;
+			extinct = true;
 		}
-		for (males = 0; males < PopulationSize; males++){
-			if (!Adult[males].IsFemale)
-				SDMaleTrait = SDMaleTrait + (Adult[males].phenotype - MeanMaleTrait)*(Adult[males].phenotype - MeanMaleTrait);
+		for (j = 0; j < population_size; j++){
+			if (!adult[j].female)
+				sd_mal_trait = sd_mal_trait + (adult[j].phenotype - mean_mal_trait)*(adult[j].phenotype - mean_mal_trait);
 		}
-		SDMaleTrait = sqrt(SDMaleTrait / NumMales);
-		for (mm = 0; mm < PopulationSize; mm++)
+		sd_mal_trait = sqrt(sd_mal_trait/ males);
+		for (j = 0; j < population_size; j++)
 		{
-			MateFound = false;
-			if (Adult[mm].IsFemale && MalesPresent)
+			mate_found = false;
+			if (adult[j].female && males_present)
 			{
-				FemaleID = mm;
-				MeanFemaleTrait = MeanFemaleTrait + Adult[mm].phenotype;
-				Females++;
-				Encounters = 0;
-				while (!MateFound && Encounters <= MaximumEncounters)
+				fem_id = j;
+				mean_fem_trait = mean_fem_trait + adult[j].phenotype;
+				females++;
+				encounters = 0;
+				while (!mate_found && encounters <= p.max_encounters)
 				{
-					irndnum = randnum(NumMales);
-					MaleIndex = MaleList[irndnum];
-					if (GaussianPrefVariance > 0)
-						MateProb = exp(-0.5 * (Adult[MaleIndex].phenotype - GaussianPrefMean)*
-						(Adult[MaleIndex].phenotype - GaussianPrefMean) / GaussianPrefVariance);
-					else
-						MateProb = 1;
+					irndnum = randnum(males);
+					mal_index = male_list[irndnum];
+					if (p.gauss_var > 0)
+						mate_prob = exp(-0.5 * (adult[mal_index].phenotype - p.GaussianPrefMean)*
+						(adult[mal_index].phenotype - p.GaussianPrefMean) / p.gauss_var);
+					else//it's random mating
+						mate_prob = 1;
 					dubrand = genrand();
-					if (dubrand < MateProb)
+					if (dubrand < mate_prob)
 					{
-						MateFound = true;
-						MaleID = MaleIndex;
-						Fathers[Counter2] = MaleID;
-						Adult[MaleID].MateFound++;
-						Counter2++;
-						Mated++;
+						mate_found = true;
+						mal_id = mal_index;
+						fathers.push_back(mal_id); //counter2
+						adult[mal_id].mate_found++;
+						counter2++;
+						num_mated++;
 					}
-					Encounters++;
+					encounters++;
 				}//while
-				if (MateFound)
+				if (mate_found)//then they mate!
 				{
-					Mothers[Counter1] = mm;
-					Counter1++;
-					Adult[mm].MateFound++;
-					if (NumProg >= MaxNumProg)
-						NumProg = MaxNumProg - 1;
-					//mother is Parent 1, mm
-					//father is parent 2, MateID
-					for (nn = 0; nn < MaximumFecundity; nn++)
+					mothers.push_back(j); //counter1
+					counter1++;
+					adult[j].mate_found++;
+					if (num_prog >= p.max_progeny)
+						num_prog = p.max_progeny - 1;
+					//mother is Parent 1, j
+					//father is parent 2, mal_id
+					for (k = 0; k < p.max_fecundity; k++)
 					{
-						Progeny[NumProg].Alive = true;
-						//calculate phenotype in mutation once the genotype is determined
-						for (cc = 0; cc < NumChrom; cc++)//go through chromosome by chromosome
+						progeny.push_back(individual());
+						for (jj = 0; jj < p.num_chrom; jj++)
 						{
-							RecombineChromosome(Progeny[NumProg].maternal[cc], Adult[FemaleID], cc, RecombRate);
-							RecombineChromosome(Progeny[NumProg].paternal[cc], Adult[MaleID], cc, RecombRate);
+							progeny[num_prog].maternal.push_back(chromosome());
+							progeny[num_prog].paternal.push_back(chromosome());
+							for (jjj = 0; jjj < p.num_markers; jjj++)
+							{
+								progeny[num_prog].maternal[jj].loci.push_back(int());
+								progeny[num_prog].paternal[jj].loci.push_back(int());
+							}
+							for (jjj = 0; jjj < qtls_locations[jj].size(); jjj++)
+							{
+								progeny[num_prog].maternal[jj].allelic_effects.push_back(double());
+								progeny[num_prog].paternal[jj].allelic_effects.push_back(double());
+							}
+						}
+						AssignProgenyGenotypes(progeny[num_prog], adult[fem_id], true, p);
+						AssignProgenyGenotypes(progeny[num_prog], adult[mal_id], false, p);
+						progeny[num_prog].alive = true;
+						//calculate phenotype in mutation once the genotype is determined
+						for (jjj = 0; jjj < p.num_chrom; jjj++)//go through chromosome by chromosome
+						{
+							RecombineChromosome(progeny[num_prog].maternal[jjj], adult[fem_id], jjj, p.recomb_rate, p);
+							RecombineChromosome(progeny[num_prog].paternal[jjj], adult[mal_id], jjj, p.recomb_rate, p);
 						}//end of chromosome
 						if (genrand() < 0.5)
 						{
-							Progeny[NumProg].IsFemale = true;
-							ProgFem++;
+							progeny[num_prog].female = true;
+							fem_prog++;
 						}
 						else
 						{
-							Progeny[NumProg].IsFemale = false;
-							ProgMale++;
+							progeny[num_prog].female = false;
+							mal_prog++;
 						}
-						NumProg++;
-					}//for nn
+						num_prog++;
+					}//for k
 				}
-				if (!MateFound)
+				if (!mate_found)
 				{//Keep track of the females that didn't mate
-					Nonmated[Counter3] = mm;
-					Counter3++;
+					non_mated.push_back(j);//counter3
+					counter3++;
 				}
 			}//if female
 		}//end of mm
-		ProgenyNum = NumProg;
-		NumFemales = Females;
-		NumNotMated = Counter3;
-		MeanFemaleTrait = MeanFemaleTrait / Females;
+		num_progeny = num_prog;
+		num_females = females;
+		num_males = males;
+		num_not_mated = counter3;
+		mean_fem_trait = mean_fem_trait / females;
+		progeny.resize(num_progeny);
 	}//end mating
 
-	void Mutation()
+	void Mutation(parameters &p)
 	{
-		int m, mm, irand, irand2, gg, ggg, irand3, locus;
+		int j, jj, jjj, irand, irand2, irand3, locus;
 		double rnd1, rnd2;
-		double IndMutationRate;
-		double MutSD;
+		double ind_mut_rate, mut_sd;
 		bool mutated;
 
-		MutSD = sqrt(MutationalVariance);
-		IndMutationRate = MutationRate * 2 * TotalLociNo;
+		mut_sd = sqrt(p.mut_var);
+		ind_mut_rate = p.mut_rate * 2 * p.total_num_loci;
 
-		for (m = 0; m < ProgenyNum; m++)
+		for (j = 0; j < num_progeny; j++)
 		{
 			rnd1 = genrand();
-			Progeny[m].phenotype = 0;
-			Progeny[m].Genotype = 0;
+			progeny[j].phenotype = 0;
+			progeny[j].genotype = 0;
 			mutated = false;
-			if (rnd1 < IndMutationRate)
+			if (rnd1 < ind_mut_rate)
 			{
-				irand = randnum(NumChrom);
-				irand2 = randnum(NumMarkers);
-				locus = MarkerLoci[irand].LociOnChrom[irand2];
+				irand = randnum(p.num_chrom);
+				irand2 = randnum(p.num_markers);
 				rnd2 = genrand();//to choose maternal or paternal
 				if (rnd2 < 0.5)//affects maternal chromosome	
 				{
 					while (!mutated){
-						irand3 = randnum(NumAlleles);
-						if (!Progeny[m].maternal[irand].LociArray[locus] == irand3)
+						irand3 = randnum(p.num_alleles);
+						if (!progeny[j].maternal[irand].loci[irand2] == irand3)
 						{
-							Progeny[m].maternal[irand].LociArray[locus] = irand3;
+							progeny[j].maternal[irand].loci[irand2] = irand3;
+							if (qtls_locations[irand][irand2] >= 0)
+							{
+								progeny[j].maternal[irand].allelic_effects[qtls_locations[irand][irand2]] =
+									progeny[j].maternal[irand].allelic_effects[qtls_locations[irand][irand2]] + randnorm(0, mut_sd);
+							}
 							mutated = true;
 						}
-					}
-					for (mm = 0; mm < NumQTLs; mm++)
-					{
-						if (Locations[irand].LociOnChrom[mm] == irand2)
-							Progeny[m].maternal[irand].allelicEffects[mm] =
-							Progeny[m].maternal[irand].allelicEffects[mm] + randnorm(0, MutSD);
 					}
 				}
 				else//affects paternal chromosome
 				{
 					while (!mutated){
-						irand3 = randnum(NumAlleles);
-						if (!Progeny[m].paternal[irand].LociArray[locus] == irand3)
+						irand3 = randnum(p.num_alleles);
+						if (!progeny[j].paternal[irand].loci[irand2] == irand3)
 						{
-							Progeny[m].paternal[irand].LociArray[locus] = irand3;
+							progeny[j].paternal[irand].loci[irand2] = irand3;
+							if (qtls_locations[irand][irand2] >= 0)
+							{
+								progeny[j].maternal[irand].allelic_effects[qtls_locations[irand][irand2]] =
+									progeny[j].maternal[irand].allelic_effects[qtls_locations[irand][irand2]] + randnorm(0, mut_sd);
+							}
 							mutated = true;
 						}
-					}
-					for (mm = 0; mm < NumQTLs; mm++)
-					{
-						if (Locations[irand].LociOnChrom[mm] == irand2)
-							Progeny[m].paternal[irand].allelicEffects[mm] =
-							Progeny[m].paternal[irand].allelicEffects[mm] + randnorm(0, MutSD);
 					}
 				}
 			}//end of if
 
-			for (gg = 0; gg < NumChrom; gg++)
+			for (jj = 0; jj < p.num_chrom; jj++)
 			{
-				for (ggg = 0; ggg < NumQTLs; ggg++){
-					Progeny[m].Genotype = Progeny[m].Genotype +
-						Progeny[m].maternal[gg].allelicEffects[ggg] + Progeny[m].paternal[gg].allelicEffects[ggg];
+				for (jjj = 0; jjj < p.num_markers; jjj++){
+					progeny[j].genotype = progeny[j].genotype +
+						progeny[j].maternal[jj].allelic_effects[jjj] + progeny[j].paternal[jj].allelic_effects[jjj];
 				}
-			}
-			Progeny[m].phenotype = Progeny[m].Genotype + randnorm(0, EnvStdDev);
-		}//end of m
+			}//end of jj
+			progeny[j].phenotype = progeny[j].genotype + randnorm(0, sqrt(p.env_var));
+		}//end of j
 	}//mutation
 
 	void SelectionOnPhenotypes(double dSelectionStrength)
 	{
-		int i, ProgAlive;
-		double dSurvProb;
-		double drnum1;
-		double dOptimum;
-		double phenSD = 0;
-		double phenMean = 0;
-		double num;
-		int malecount = 0;
-		ProgAlive = 0;
+		int j, prog_alive, male_count;
+		double survival_prob, drnum1, optimum, phen_sd, phen_m, num;
+		male_count = prog_alive = 0;
+		phen_sd = phen_m = 0;
 		//calc mean male phenotype & std dev
-		for (i = 0; i < ProgenyNum; i++){
-			if (!Progeny[i].IsFemale){
-				phenMean = phenMean + Progeny[i].phenotype;
-				malecount++;
+		for (j = 0; j < num_progeny; j++){
+			if (!progeny[j].female){
+				phen_m = phen_m + progeny[j].phenotype;
+				male_count++;
 			}
 		}
-		num = malecount;
-		phenMean = phenMean / num;
-		for (i = 0; i < ProgenyNum; i++){
-			if (!Progeny[i].IsFemale)
-				phenSD = phenSD + (Progeny[i].phenotype - phenMean)*(Progeny[i].phenotype - phenMean);
+		num = male_count;
+		phen_m = phen_m / num;
+		for (j = 0; j < num_progeny; j++){
+			if (!progeny[j].female)
+				phen_sd = phen_sd + (progeny[j].phenotype - phen_m)*(progeny[j].phenotype - phen_m);
 		}
-		phenSD = sqrt(phenSD / num);
+		phen_sd = sqrt(phen_sd/ num);
 
-		dOptimum = 0;
-		for (i = 0; i < ProgenyNum; i++) {
-			if (Progeny[i].IsFemale)
+		optimum = 0;
+		for (j = 0; j < num_progeny; j++) {
+			if (progeny[j].female)
 			{
-				Progeny[i].Alive = true;
-				ProgAlive++;
+				progeny[j].alive = true;
+				prog_alive++;
 			}
 			else//selection only on males
 			{
 				if (dSelectionStrength > 0)
-					dSurvProb = exp(-1 * (Progeny[i].phenotype - dOptimum)*(Progeny[i].phenotype - dOptimum)
+					survival_prob = exp(-1 * (progeny[j].phenotype - optimum)*(progeny[j].phenotype - optimum)
 					/ (2 * dSelectionStrength));
 				else
-					dSurvProb = 1;
+					survival_prob = 1;
 				//cout<<dSurvProb<<'\n';
 				drnum1 = genrand();
-				if (drnum1 < dSurvProb)
+				if (drnum1 < survival_prob)
 				{
-					Progeny[i].Alive = true;
-					ProgAlive++;
+					progeny[j].alive = true;
+					prog_alive++;
 				}
 				else
-					Progeny[i].Alive = false;
+					progeny[j].alive = false;
 			}
 		} // end of i
 	}//end selection on phenotypes
 
-	void DensityRegulation()
+	void DensityRegulation(parameters &p)
 	{
-		int p, pp, ppp;
-		int iNumAdultsChosen;
-		double CarCapUnfilled, ProgLeft, KeepProb;
-		double DRrandnum;
-		NumMales = 0;
-		NumFemales = 0;
-		ProgLeft = 0;
+		int j, jj, jjj, num_adults_chosen;
+		double car_cap_rem, prog_left, keep_prob, drnd;
+		num_males = num_females = prog_left = 0;
 		//count the ones that are still alive
-		for (p = 0; p < ProgenyNum; p++)
+		for (j = 0; j < num_progeny; j++)
 		{
-			if (Progeny[p].Alive)
-				ProgLeft++;
+			if (progeny[j].alive)
+				prog_left++;
 		}
-		CarCapUnfilled = CarryingCapacity;
-		iNumAdultsChosen = 0;
-		for (p = 0; p<ProgenyNum; p++)
+		car_cap_rem = p.carrying_capacity;
+		num_adults_chosen = 0;
+		for (j = 0; j < num_progeny; j++)
 		{
-			if (Progeny[p].Alive)
+			if (progeny[j].alive)
 			{
-				if (ProgLeft == 0)
-					KeepProb = 0;
+				if (prog_left == 0)
+					keep_prob = 0;
 				else
-					KeepProb = CarCapUnfilled / ProgLeft;
-				DRrandnum = genrand();
-				if (DRrandnum<KeepProb)
+					keep_prob = car_cap_rem / prog_left;
+				drnd = genrand();
+				if (drnd < keep_prob)
 				{//then turn it into an adult
-					Adult[iNumAdultsChosen].Alive = true;
-					Adult[iNumAdultsChosen].MateFound = 0;
-					for (pp = 0; pp < NumChrom; pp++)
+					adult[num_adults_chosen].alive = true;
+					adult[num_adults_chosen].mate_found = 0;
+					for (jj = 0; jj < p.num_chrom; jj++)
 					{
-						for (ppp = 0; ppp < NumMarkers; ppp++)
+						for (jjj = 0; jjj < p.num_markers; jjj++)
 						{
-							Adult[iNumAdultsChosen].maternal[pp].LociArray[ppp] = Progeny[p].maternal[pp].LociArray[ppp];
-							Adult[iNumAdultsChosen].paternal[pp].LociArray[ppp] = Progeny[p].paternal[pp].LociArray[ppp];
-						}
-						for (ppp = 0; ppp < NumQTLs; ppp++)
-						{
-							Adult[iNumAdultsChosen].maternal[pp].allelicEffects[ppp] = Progeny[p].maternal[pp].allelicEffects[ppp];
-							Adult[iNumAdultsChosen].paternal[pp].allelicEffects[ppp] = Progeny[p].paternal[pp].allelicEffects[ppp];
+							adult[num_adults_chosen].maternal[jj].loci[jjj] = progeny[j].maternal[jj].loci[jjj];
+							adult[num_adults_chosen].paternal[jj].loci[jjj] = progeny[j].paternal[jj].loci[jjj];
+							if (qtls_locations[jj][jjj] >= 0)
+							{
+								adult[num_adults_chosen].maternal[jj].allelic_effects[qtls_locations[jj][jjj]] = progeny[j].maternal[jj].allelic_effects[qtls_locations[jj][jjj]];
+								adult[num_adults_chosen].paternal[jj].allelic_effects[qtls_locations[jj][jjj]] = progeny[j].paternal[jj].allelic_effects[qtls_locations[jj][jjj]];
+							}
 						}
 					}
-					Adult[iNumAdultsChosen].phenotype = Progeny[p].phenotype;
-					Adult[iNumAdultsChosen].Genotype = Progeny[p].Genotype;
-					if (Progeny[p].IsFemale){
-						Adult[iNumAdultsChosen].IsFemale = true;
-						ChosenSexes[iNumAdultsChosen] = 1;
-						NumFemales++;
+					adult[num_adults_chosen].phenotype = progeny[j].phenotype;
+					adult[num_adults_chosen].genotype = progeny[j].genotype;
+					if (progeny[j].female){
+						adult[num_adults_chosen].female = true;
+						num_females++;
 					}
 					else{
-						Adult[iNumAdultsChosen].IsFemale = false;
-						ChosenSexes[iNumAdultsChosen] = 0;
-						NumMales++;
+						adult[num_adults_chosen].female = false;
+						num_males++;
 					}
-					CarCapUnfilled = CarCapUnfilled - 1;
-					iNumAdultsChosen++;
-				}//end of if KeepProb
+					car_cap_rem = car_cap_rem - 1;
+					num_adults_chosen++;
+				}//end of if keep_prob
 				else
-					Progeny[p].Alive = false;
+					progeny[j].alive = false;
 			}//end of if Alive
-			ProgLeft = ProgLeft - 1;
-		}//end of for p
-		PopulationSize = iNumAdultsChosen;
-		if (PopulationSize == 0)
-			popExtinct = true;
+			prog_left = prog_left - 1;
+		}//end of for j
+		population_size = num_adults_chosen;
+		if (population_size == 0)
+			extinct = true;
 	}//end Density Regulation
 
+	void UpdateDemographics()
+	{
+		int j;
+		num_males, num_females, mean_mal_trait = mean_fem_trait = 0;
+		population_size = adult.size();
+		for (j = 0; j < population_size; j++)
+		{
+			if (adult[j].female)
+			{
+				num_females++;
+				mean_fem_trait = mean_fem_trait + adult[j].phenotype;
+			}
+			else
+			{
+				num_males++;
+				mean_mal_trait = mean_mal_trait + adult[j].phenotype;
+			}
+		}
+		mean_mal_trait = mean_mal_trait / num_males;
+		mean_fem_trait = mean_fem_trait / num_females;
+	}
+
+	vector<bool> SamplePop(int sample_size, int pop_size)
+	{
+		//Pull a random sample of adults and a sample of offspring
+		//Sort adults into males and females
+		//Calculate allele frequencies for males, females, and offspring
+		//Compare using Fst approaches
+		if (sample_size == 0 || sample_size > pop_size)
+			sample_size = pop_size;
+		vector<bool> sampled_inds;
+		int j, rand1, num_sampled;
+
+		for (j = 0; j < pop_size; j++)
+			sampled_inds.push_back(false);
+		num_sampled = 0;
+		while (num_sampled < sample_size)
+		{
+			rand1 = randnum(population_size);//need to sample without replacement
+			if (sampled_inds[rand1] == false)
+			{
+				sampled_inds[rand1] = true;
+				num_sampled++;
+			}
+		}
+		return sampled_inds;
+	}
 };//population
+
+void migration(population &pop_receiving, population &pop_giving, parameters &p)
+{
+	int j, jj, jjj, num_migrating;
+	int rand1, rand2, rand3, rand4;
+
+	num_migrating = pop_giving.adult.size() * p.migration_rate;
+
+	while (num_migrating > 0)
+	{
+		rand1 = randnum(pop_giving.adult.size());
+		pop_receiving.adult.push_back(pop_giving.adult[rand1]);
+		pop_giving.adult.erase(pop_giving.adult.begin() + rand1);
+		num_migrating--;
+	}
+	pop_receiving.UpdateDemographics();
+	pop_giving.UpdateDemographics();
+}
+
+void output_genepop(vector<population> &pops, vector<vector<bool>> &sampled, parameters &p, string genepop_name)
+{
+	int j, jj, jjj, k;
+	ofstream genepop;
+	genepop.open(genepop_name);
+	cout << "\ngenepop output file " << genepop_name << " open.\n";
+	genepop << "Individual-based simulated data";
+	for (j = 0; j < p.num_chrom; j++)
+	{
+		for (jj = 0; jj < p.num_markers; jj++)
+		{
+			genepop << "\nChrom" << j << "SNP" << jj;
+		}
+	}
+	for (k = 0; k < p.num_pops; k++)
+	{
+		genepop << "\nPop";
+		for (j = 0; j < pops[k].population_size; j++)
+		{
+			if (sampled[k][j])//check to see if the individual is sampled
+			{
+				genepop << "\nInd" << j << "\t,\t";
+				for (jj = 0; jj < p.num_chrom; jj++)
+				{
+					for (jjj = 0; jjj < p.num_markers; jjj++)
+					{
+						//0101 indicates homozygous for allele 01
+						if (p.num_alleles < 10)
+						{
+							genepop << "\t0" << pops[k].adult[j].maternal[jj].loci[jjj] << "0" << pops[k].adult[j].paternal[jj].loci[jjj];
+						}
+						if (p.num_alleles > 10)
+						{
+							genepop << '\t' << pops[k].adult[j].maternal[jj].loci[jjj] << pops[k].adult[j].paternal[jj].loci[jjj];
+						}
+					}
+				}
+			}
+		}
+	}//end of pops
+	genepop.close();
+}

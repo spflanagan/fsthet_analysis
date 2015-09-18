@@ -17,9 +17,20 @@ using namespace std;
 
 int main()
 {
+
+	//how do we do multiple populations
+	//what is the appropriate output from the simulation?
+	//if they want a specific demographic history, how do you branch off the trees?
+	//how does the expected fst come into it?
+	//do i need to run it with 50,000 reps to get mean datapoints?
+	//need to calculate confidence intervals
+
+
 	struct node *tree;
+	//vector<mod_node> tree;
 	int sample_size, number_samples, in, *spectrum, nmuts, ndes, node;
 	double theta, time, total_muts, time_of_size_change, factor;
+	vector <int> spectrum;
 
 	scanf_s(" %lf", &theta);
 	scanf_s(" %d", &sample_size);
@@ -35,8 +46,8 @@ int main()
 
 	for (in = 0; in < number_samples; in++)
 	{
-		make_tree(tree, sample_size);
-		bottleneck(tree, sample_size, time_of_size_change, factor);
+		make_tree(tree, sample_size);//create the tree
+		bottleneck(tree, sample_size, time_of_size_change, factor);//add a bottleneck event
 		for (node = 0; node < sample_size * 2 - 2; node++)
 		{
 			time = (tree[node].ancestor->time) - tree[node].time;

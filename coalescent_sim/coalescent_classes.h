@@ -63,12 +63,20 @@ public:
 	struct node *ancestor;
 };
 
+class mod_node
+{
+public:
+	double time;
+	int desc1;
+	int desc2;
+	int ancestor;
+};
+
 void make_tree(struct node *tree, int sample_size)
 {
 	int in, pick;
 	double t, rand, x;
 	struct node **list;
-	//vector<node> list;
 
 	//initialize things
 	list = (struct node **)malloc(sample_size*sizeof(struct node *));
@@ -77,7 +85,6 @@ void make_tree(struct node *tree, int sample_size)
 		tree[in].time = 0;
 		tree[in].desc1 = tree[in].desc2 = 0;
 		list[in] = tree + in;
-		//list.push_back(tree[in]);
 	}
 
 	//generate times of the nodes
@@ -92,20 +99,69 @@ void make_tree(struct node *tree, int sample_size)
 	for (in = sample_size; in > 1; in--)
 	{
 		pick = in*genrand();
-		list[pick]->ancestor = tree + 2 * sample_size - in;
-		//list[pick] = tree[2 * sample_size - in];
-		tree[2 * sample_size - in].desc1 = list[pick];
-		list[pick] = list[in - 1];
-		pick = (in - 1)*genrand();
-		list[pick]->ancestor = tree + 2 * sample_size - in;
-		tree[2 * sample_size - in].desc2 = list[pick];
+		list[pick]->ancestor = tree + 2 * sample_size - in;//the ancestor is at tree[2*sample_size-in]
+		tree[2 * sample_size - in].desc1 = list[pick];//so the descendant at the ancestor is list[pick]
+		list[pick] = list[in - 1];//make list[pick] the next individual in the list
+		pick = (in - 1)*genrand();//create a new pick
+		list[pick]->ancestor = tree + 2 * sample_size - in;//same thing with ancestor
+		tree[2 * sample_size - in].desc2 = list[pick];//and the ancestor's second descentant.
 		list[pick] = tree + 2 * sample_size - in;
 	}
 
 	free(list);
 }
 
+void mod_make_tree(vector<mod_node> tree, int sample_size)
+{
+	int in, pick;
+	double t, rand, x;
+	vector<mod_node> list;
+
+	//initialize things
+	for (in = 0; in < sample_size; in++)
+	{
+		tree[in].time = 0;
+		tree[in].desc1 = tree[in].desc2 = 0;
+		list.push_back(tree[in]);
+	}
+
+	//generate times of the nodes
+	t = 0;
+	for (in = sample_size; in > 0; in--)
+	{
+		t += -2 * log(1 - genrand()) / (((double)in)*(in - 1));
+		tree[2 * sample_size - in].time = t;
+	}
+
+	//generate topology of the tree
+	for (in = sample_size; in > 1; in--)
+	{
+		pick = in*genrand();
+		//list[pick]->ancestor = tree + 2 * sample_size - in;//ancestor for pick is the tree at 2*sample_size-in
+		list[pick].ancestor = 2 * sample_size - in;
+	//	tree[2 * sample_size - in].desc1 = pick;//ancestor's tree's descendent is the pick
+		list[pick] = list[in - 1];
+		pick = (in - 1)*genrand();
+		list[pick].ancestor = 2 * sample_size - in;
+		tree[2 * sample_size - in].desc2 = pick;
+		list[pick] = tree[2 * sample_size - in];
+	}
+
+}
+
 void bottleneck(struct node *tree, int sample_size, double time, double factor)
+{
+	/* When the population size prior to a certain "time" differs from the current population size by a certain facctor, 
+	   pass the tree through this routine. */
+	int in;
+	for (in = sample_size; in < 2 * sample_size; in++)
+	{
+		if (tree[in].time > time)
+			tree[in].time = factor*(tree[in].time - time) + time;
+	}
+}
+
+void mod_bottleneck(vector<mod_node> tree, int sample_size, double time, double factor)
 {
 	int in;
 	for (in = sample_size; in < 2 * sample_size; in++)
@@ -122,5 +178,31 @@ int count_desc(struct node *node)
 	if (node->desc1 == NULL) return(1);
 	sum += count_desc(node->desc1);
 	sum += count_desc(node->desc2);
+	return(sum);
+}
+
+int mod_count_desc(vector <mod_node> tree, int node)
+{
+	int sum = 0;
+	int curr_node, next_node;
+
+	if (tree[node].desc1 == NULL) return(1);
+	else
+	{
+		int curr_node = node;
+		while (tree[curr_node].desc1 != NULL)
+		{
+			sum++;
+			next_node = tree[curr_node].desc2;
+			while (tree[next_node].desc2 != NULL)
+			{
+				sum++;
+				next_node = tree[next_node].desc2;
+			}
+			
+			curr_node = tree[curr_node].desc1;
+		}
+	}
+	
 	return(sum);
 }
