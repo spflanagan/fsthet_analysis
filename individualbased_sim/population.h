@@ -46,11 +46,11 @@ public:
 		sgenrand(time(0));
 		sample_size = 50;//set sample size here
 		generations = 200;
-		num_pops = 5;
+		num_pops = 10;
 		gauss_var = 0; //if 0, it's random mating
 		viability_sel = 0;
 		migration_rate = 0.1;
-		base_file_name = "200reps_";
+		base_file_name = "10pops_";
 	}
 
 };
