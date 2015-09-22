@@ -39,18 +39,18 @@ public:
 		num_alleles = 4;
 		max_encounters = 50;
 		recomb_rate = 0.2;
-		mut_rate = 0;
+		mut_rate = 0.1;
 		mut_var = 0;
 		total_num_loci = num_markers*num_chrom;
 		env_var = 0;
 		sgenrand(time(0));
 		sample_size = 50;//set sample size here
-		generations = 200;
+		generations = 2000;
 		num_pops = 10;
 		gauss_var = 0; //if 0, it's random mating
 		viability_sel = 0;
 		migration_rate = 0.1;
-		base_file_name = "10pops_";
+		base_file_name = "2000gens_mur0.1_";
 	}
 
 };
