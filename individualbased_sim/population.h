@@ -39,7 +39,7 @@ public:
 		num_alleles = 4;
 		max_encounters = 50;
 		recomb_rate = 0.2;
-		mut_rate = 0.1;
+		mut_rate = 0.01;
 		mut_var = 0;
 		total_num_loci = num_markers*num_chrom;
 		env_var = 0;
@@ -50,7 +50,7 @@ public:
 		gauss_var = 0; //if 0, it's random mating
 		viability_sel = 0;
 		migration_rate = 0.1;
-		base_file_name = "2000gens_mur0.1_";
+		base_file_name = "2000gens_mut0.01_";
 	}
 
 };
