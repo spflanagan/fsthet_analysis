@@ -23,13 +23,15 @@ int main()
 	int end, time, i;
 	int num_pops;
 	double migration_rate, pbar, qbar, fst, last_fst, ht, hs_sum, last_p;
-	double nc, s2, a, b, c, wc_fst, last_wc_fst;
+	double nc, s2, a, b, c, wc_fst, last_wc_fst, pq, rs;
 	int r, nbar;
 	bool equilibrium = false;
-	default_random_engine generator;
+	random_device rd;
+	default_random_engine generator(rd());
 	vector<population> pops;
 	population total_pop;
-	
+	ofstream allele_freqs;
+	string allele_freqs_name = "num.analysis.allelefreqs.txt";
 
 	//initialize variables
 	num_pops = r = 100;
@@ -58,7 +60,12 @@ int main()
 	total_pop.q = total_pop.q / num_pops;
 	total_pop.het = total_pop.het / num_pops;
 
-	while (!equilibrium)
+	//write to file
+	allele_freqs.open(allele_freqs_name);
+	allele_freqs << "Time\tNumPops\tAvgP\tAvgH\tWrightsFst\tWCFst\tNbar\tnc\ts2\tr";
+	for (i = 0; i < num_pops; i++)
+		allele_freqs << "\tPop" << i << "P\tPop" << i << "Het";
+	while (!equilibrium && time < 10000)
 	{
 		total_pop.p = 0;
 		total_pop.q = 0;
@@ -104,11 +111,10 @@ int main()
 			nc = nc - ((pops[i].pop_size*pops[i].pop_size) / (r*nbar));
 		}
 		nc = nc / (r - 1);
-		a = total_pop.p*(1 - total_pop.p) - (((r - 1) / r)*s2) - 0.25*total_pop.het;
-		a = s2 - ((1 / (nbar - 1))*a);
-		a = a*(nbar / nc);
-		//a = (nbar / nc)*(s2 - ((1 / (nbar - 1))*(total_pop.p*(1 - total_pop.p) - (((r - 1) / r)*s2) - 0.25*total_pop.het)));
-		b = (nbar / (nbar - 1))*(total_pop.p*(1 - total_pop.p) - (((r - 1) / r)*s2) - ((2 * nbar - 1) / 4 * nbar)*total_pop.het);
+		pq = (total_pop.p*(1 - total_pop.p));
+		rs = ((r - 1) / r)*s2;
+		a = (nbar / nc)*(s2 - (1 / (nbar - 1))*(pq - rs - (0.25*total_pop.het))); 
+		b = (nbar / (nbar - 1))*(pq - rs - ((2 * nbar - 1) / (4 * nbar))*total_pop.het);
 		c = 0.5*total_pop.het;
 		wc_fst = a / (a + b + c);
 
@@ -117,10 +123,14 @@ int main()
 	
 		last_fst = fst;
 		last_wc_fst = wc_fst;
+		allele_freqs << '\n' << time << '\t' << num_pops << '\t' << total_pop.p << '\t' << total_pop.het << '\t' << fst << '\t' << wc_fst << '\t' << nbar << '\t' << nc << '\t' << s2 << '\t' << r;
+		for (i = 0; i < num_pops; i++)
+			allele_freqs << '\t' << pops[i].p << '\t' << pops[i].het;
 		time++;
 		if (time % 100 == 0)
 			cout << "\nTime: " << time << '\t' << fst << '\t' << wc_fst;
 	}
+	allele_freqs.close();
 	cout << "\nDone! Input integer to quit.\n";
 	cin >> end;
 	return 0;
