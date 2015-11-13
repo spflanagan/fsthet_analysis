@@ -17,30 +17,60 @@ class population
 public:
 	int pop_size, sampled_p;
 	double p, q, het;
+
+	population()
+	{
+		pop_size = int();
+		sampled_p = int();
+		p = double();
+		q = double();
+		het = double();
+	}
+};
+
+class sampled_inds
+{
+public:
+	vector<int> allele1;
+	vector<int> allele2;
+
+	sampled_inds()
+	{
+		allele1 = vector<int>();
+		allele2 = vector<int>();
+	}
+};
+
+class sampled_pop
+{
+public:
+	vector<sampled_inds> inds;
+
+	sampled_pop()
+	{
+		inds = vector<sampled_inds>();
+	}
 };
 
 int main(int argc, char* argv[])
 {
 	int end, time, i;
-	int t, tt;
-	int num_pops, num_reps, num_per_p, num_gens, num_sampled;
-	double migration_rate, pbar, qbar, fst, ht, last_p;
+	int t, tt, pop_size;
+	int num_pops, num_reps, num_per_p, num_gens, num_sampled, num_sampled_inds;
+	double migration_rate, pbar, qbar, fst, ht, last_p, Nm;
 	double nc, s2, a, b, c, wc_fst, pq, rs, wc_fst8, varp;
 	int r, nbar, pbar_index;
 	bool interactivemode = false;
+	bool random_sample = true;
 	random_device rd;
 	default_random_engine generator(rd());
 	vector<population> pops;
 	population total_pop;
-	ofstream allele_freqs, output, sample_out;
-	string base_name, query, tempstring1, tempstring2, output_name, sample_out_name;
+	ofstream allele_freqs, output, sample_out, genepop_out;
+	string base_name, query, tempstring1, tempstring2;
+	stringstream output_name, sample_out_name, genepop_out_name;
 
-	base_name = "num.analysis.";
-	total_pop.pop_size = 10000;
-	migration_rate = 0.01;
-	num_reps = 10000;
-	num_pops = 10;
-	num_sampled = num_pops;
+	base_name = "default";	
 
 	if (argc == 1)
 	{
@@ -51,10 +81,9 @@ int main(int argc, char* argv[])
 			cout << "\nnumerical_analysis:\n";
 			cout << "Runs numerical analysis to generate Fst-Het patterns\n";
 			cout << "-o:\tbase file name (include path). Example: N1000_s10_\n";
-			cout << "-n:\toverall population size\n";
-			cout << "-p:\tnumber of subpopulations/demes\n";
-			cout << "-r:\tnumber of reps\n";
-			cout << "-m:\tmigration rate\n";
+			cout << "-n:\tNm\n";
+			cout << "-d:\tnumber of demes\n";
+			cout << "-r:\trandom sample? y to turn random sampling on or n to turn random sampling off\n";
 			cout << "-s:\tnumber of populations to sample\n";
 			cout << "-h:\tdisplay this message\n";
 			cout << "no arguments:\tinteractive mode\n";
@@ -73,10 +102,9 @@ int main(int argc, char* argv[])
 			cout << "\nnumerical_analysis:\n";
 			cout << "Runs numerical analysis to generate Fst-Het patterns\n";
 			cout << "-o:\tbase file name (include path). Example: N1000_s10_\n";
-			cout << "-n:\toverall population size\n";
-			cout << "-s:\tnumber of subpopulations/demes\n";
-			cout << "-r:\tnumber of reps\n";
-			cout << "-m:\tmigration rate\n";
+			cout << "-n:\tNm\n";
+			cout << "-d:\tnumber of subpopulations/demes\n";
+			cout << "-r:\trandom sample? y to turn random sampling on or n to turn random sampling off\n";
 			cout << "-s:\tnumber of populations to sample\n";
 			cout << "-h:\tdisplay this message\n";
 			cout << "no arguments:\tinteractive mode\n";
@@ -91,13 +119,16 @@ int main(int argc, char* argv[])
 		if (tempstring1 == "-o")
 			base_name = tempstring2;
 		if (tempstring1 == "-n")
-			total_pop.pop_size = atoi(tempstring2.c_str());
-		if (tempstring1 == "-m")
-			migration_rate = atof(tempstring2.c_str());
-		if (tempstring1 == "-s")
+			Nm = atof(tempstring2.c_str());
+		if (tempstring1 == "-d")
 			num_pops = atoi(tempstring2.c_str());
 		if (tempstring1 == "-r")
-			num_reps = atoi(tempstring2.c_str());
+		{
+			if (tempstring2 == "Y" || tempstring2 == "y")
+				random_sample = true;
+			else
+				random_sample = false;
+		}
 		if (tempstring1 == "-s")
 			num_sampled = atoi(tempstring2.c_str());
 	}
@@ -106,51 +137,65 @@ int main(int argc, char* argv[])
 	{
 		cout << "\nProvide base file name (include path). Example: N1000_s10_\n";
 		cin >> base_name;
-		cout << "\nProvide overall population size\n";
-		cin >> total_pop.pop_size;
+		cout << "\nProvide Nm\n";
+		cin >> Nm;
 		cout << "\nProvide the number of subpopulations/demes\n";
 		cin >> num_pops;
-		cout << "\nProvide the number of reps\n";
-		cin >> num_reps;
-		cout << "\nProvide migration rate\n";
-		cin >> migration_rate;
 		cout << "\nProvide the number of populations to sample\n";
+		cin >> num_sampled;
+		cout << "\nTurn on random sampling? Y or N\n";
+		cin >> tempstring2;
+		if (tempstring2 == "Y" || tempstring2 == "y")
+			random_sample = true;
+		else
+			random_sample = false;
 	}
-	else
-	{
-		if (base_name == "num.analysis.")
-			cout << "\nWARNING: base file name is set to default: num.analysis.";
-		if (total_pop.pop_size == 10000)
-			cout << "\nWARNING: overall population size is set to default: 10000";
-		if (migration_rate == 0.01)
-			cout << "\nWARNING: migration rate is set to default: 0.01";
-		if (num_reps == 10000)
-			cout << "\nWARNING: number of reps is set to default: 10000";
-		if (num_pops == 10)
-			cout << "\nWARNING: number of subpopulations is set to default: 10";
-	}
+	
+	pop_size = 1000;
+	total_pop.pop_size = pop_size * num_pops;
 
+	num_reps = 2000;
+	num_gens = 5000;
+	num_sampled_inds = 50;
+	migration_rate = Nm / pop_size;
+	cout << "\nRunning with " << num_pops << " pops, " << " sampling " << num_sampled << " of them, with migration rate "
+		<< migration_rate << " and a total population size of " << total_pop.pop_size << ".\nRunning " << num_reps 
+		<< " number of reps with " << num_gens << " generations.\n";
 	//initialize variables
 	for (i = 0; i < num_pops; i++)
 	{
 		pops.push_back(population());
 	}
-	sample_out_name = base_name + "sampledpops.txt";
-	sample_out.open(sample_out_name);
+	sample_out_name << base_name << "sampledpops.txt";
+	sample_out.open(sample_out_name.str());
 	sample_out << "pbar\tHt\tHs\tWrightsFst\tWCFst\tWCFstSimple\tavgp";
-	output_name = base_name + "output.txt";
-	output.open(output_name);
+	output_name << base_name << "output.txt";
+	output.open(output_name.str());
 	output << "pbar\tHt\tHs\tWrightsFst\tWCFst\tWCFstSimple\tavgp";
 	stringstream allele_freqs_name;
 	allele_freqs_name << base_name << "freqs.txt";
 	allele_freqs.open(allele_freqs_name.str());
-	r = num_pops;
-	num_gens = 5000;
+	
 	vector<population> sampled_pops;
-	int num_sampled_inds = 50;
+	vector<sampled_pop> samp_pops_genepop;
 	double allele1, allele2, total_p, total_het;
 	int n_samp_per_pop = (double)num_sampled / (double)num_pops;
 	int samp_index = 0;
+	for (i = 0; i < num_sampled; i++)
+	{
+		samp_pops_genepop.push_back(sampled_pop());
+		sampled_pops.push_back(population());
+		for (int ii = 0; ii < num_sampled_inds; ii++)
+		{
+			samp_pops_genepop[i].inds.push_back(sampled_inds());
+			for (t = 0; t < num_reps; t++)
+			{
+				samp_pops_genepop[i].inds[ii].allele1.push_back(int());
+				samp_pops_genepop[i].inds[ii].allele2.push_back(int());
+			}
+		}
+
+	}
 	for (t = 0; t < num_reps; t++)
 	{
 		//set migtrant p-value
@@ -215,13 +260,14 @@ int main(int argc, char* argv[])
 				fst = (ht - total_pop.het) / ht;
 			else
 				fst = 0;
-			fst = (roundf(fst * 1000000) / 1000000);//keep 6 decimal points
+			//fst = (roundf(fst * 1000000) / 1000000);//keep 6 decimal points
 			//Weir and Cockerham: Fst = (f0-f1)/(1-f1) where 1-f1 is heterozygosity
 			//Fst=a/(a+b+c)
 			//a=(nbar/nc)(s2-(1/(nbar-1))(pbar(1-pbar)-((r-1)/r)*s2-0.25hbar))
 			//b=(nbar/(nbar-1))*(pbar*(1-pbar)-((r-1)/r)*s2-((2nbar-1)/4nbar)*hbar)
 			//c=0.25hbar
 			//nc=(rnbar-sum(n2/rnbar))/(r-1)
+			r = num_pops;
 			nc = r*nbar;
 			s2 = varp = 0;
 			for (i = 0; i < num_pops; i++)
@@ -248,40 +294,99 @@ int main(int argc, char* argv[])
 				allele_freqs << "Time\tNumPops\tPbar\tAvgP\tAvgH\tWrightsFst\tWCFst\tWCFstSimple\tNbar\tnc\ts2\tr";
 				for (i = 0; i < num_pops; i++)
 					allele_freqs << "\tPop" << i << "P\tPop" << i << "Het";
-				allele_freqs << '\n' << tt << '\t' << num_pops << '\t' << total_pop.p << '\t' << total_pop.het << '\t'
-					<< fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << nbar << '\t' << nc << '\t' << s2 << '\t' << r;
-				for (i = 0; i < num_pops; i++)
-					allele_freqs << '\t' << pops[i].p << '\t' << pops[i].het;
 			}
-			
+			allele_freqs << '\n' << tt << '\t' << num_pops << '\t' << total_pop.p << '\t' << total_pop.het << '\t'
+				<< fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << nbar << '\t' << nc << '\t' << s2 << '\t' << r;
+			for (i = 0; i < num_pops; i++)
+				allele_freqs << '\t' << pops[i].p << '\t' << pops[i].het;
 		}//gens
 		output << '\n' << pbar << '\t' << ht << '\t' << total_pop.het << '\t' << fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << total_pop.p;
 		
 		//sample populations
-		total_pop.het = total_pop.p = total_pop.q = 0;
-		for (i = 0; i < num_pops; i++)
+		nbar = 0;
+		if (random_sample == false)
 		{
-			for (int ii = 0; ii < n_samp_per_pop; ii++)
+			total_pop.het = total_pop.p = total_pop.q = 0;
+			samp_index = 0;
+			for (i = 0; i < num_pops; i++)
 			{
-				sampled_pops.push_back(population()); 
-				sampled_pops[samp_index].p = 0;
+				for (int ii = 0; ii < n_samp_per_pop; ii++)
+				{
+					sampled_pops[samp_index].pop_size = pops[i].pop_size;
+					nbar = nbar + sampled_pops[samp_index].pop_size;
+					sampled_pops[samp_index].p = 0;
+					for (tt = 0; tt < num_sampled_inds; tt++)
+					{
+						uniform_real_distribution <double> unidist(0, 1);
+						allele1 = unidist(generator);
+						allele2 = unidist(generator);
+						if (allele1 <= pops[i].p)
+						{
+							sampled_pops[samp_index].p++;
+							samp_pops_genepop[samp_index].inds[tt].allele1[t] = 1;
+						}
+						else
+							samp_pops_genepop[samp_index].inds[tt].allele1[t] = 2;
+						if (allele2 <= pops[i].p)
+						{
+							sampled_pops[samp_index].p++;
+							samp_pops_genepop[samp_index].inds[tt].allele2[t] = 1;
+						}
+						else
+							samp_pops_genepop[samp_index].inds[tt].allele2[t] = 2;
+					}
+					sampled_pops[samp_index].p = sampled_pops[samp_index].p / (2 * num_sampled_inds);
+					sampled_pops[samp_index].q = 1 - sampled_pops[samp_index].p;
+					sampled_pops[samp_index].het = 2 * sampled_pops[samp_index].p * sampled_pops[samp_index].q;
+					total_pop.p = total_pop.p + sampled_pops[samp_index].p;
+					total_pop.q = total_pop.q + sampled_pops[samp_index].q;
+					total_pop.het = total_pop.het + sampled_pops[samp_index].het;
+					samp_index++;
+				}
+			}
+		}
+		if (random_sample == true)
+		{
+			//establish which pops to sample
+			vector<int> samp_indices;
+			for (i = 0; i < num_sampled; i++)
+			{
+				uniform_real_distribution <double> unidist(0, num_pops);
+				samp_indices.push_back(int(unidist(generator)));
+			}
+			total_pop.p = total_pop.q = total_pop.het = 0;
+			samp_index = 0;
+			for (i = 0; i < num_sampled; i++)
+			{
+				sampled_pops[i].pop_size = pops[samp_indices[i]].pop_size;
+				nbar = nbar + sampled_pops[i].pop_size;
+				sampled_pops[i].p = sampled_pops[i].q = sampled_pops[i].het = 0;
 				for (tt = 0; tt < num_sampled_inds; tt++)
 				{
 					uniform_real_distribution <double> unidist(0, 1);
 					allele1 = unidist(generator);
 					allele2 = unidist(generator);
-					if (allele1 <= pops[i].p)
-						sampled_pops[samp_index].p++;
-					if (allele2 <= pops[i].p)
-						sampled_pops[samp_index].p++;
+					if (allele1 <= pops[samp_indices[i]].p)
+					{
+						sampled_pops[i].p++;
+						samp_pops_genepop[i].inds[tt].allele1[t] = 1;
+					}
+					else
+						samp_pops_genepop[i].inds[tt].allele1[t] = 2;
+					if (allele2 <= pops[samp_indices[i]].p)
+					{
+						sampled_pops[i].p++;
+						samp_pops_genepop[i].inds[tt].allele2[t] = 1;
+					}
+					else
+						samp_pops_genepop[i].inds[tt].allele2[t] = 2;
 				}
-				sampled_pops[samp_index].p = sampled_pops[samp_index].p / (2 * num_sampled_inds);
-				sampled_pops[samp_index].q = 1 - sampled_pops[samp_index].p;
-				sampled_pops[samp_index].het = 2 * sampled_pops[samp_index].p * sampled_pops[samp_index].q;
-				total_pop.p = total_pop.p + sampled_pops[samp_index].p;
-				total_pop.q = total_pop.q + sampled_pops[samp_index].q;
-				total_pop.het = total_pop.het + sampled_pops[samp_index].het;
-				samp_index++;
+				sampled_pops[i].p = sampled_pops[i].p / (2 * num_sampled_inds);
+				sampled_pops[i].q = 1 - sampled_pops[i].p;
+				sampled_pops[i].het = 2 * sampled_pops[i].p * sampled_pops[i].q;
+				total_pop.p = total_pop.p + sampled_pops[i].p;
+				total_pop.q = total_pop.q + sampled_pops[i].q;
+				total_pop.het = total_pop.het + sampled_pops[i].het;
 			}
 		}
 		total_pop.p = total_pop.p / num_sampled;
@@ -292,22 +397,24 @@ int main(int argc, char* argv[])
 			fst = (ht - total_pop.het) / ht;
 		else
 			fst = 0;
-		fst = (roundf(fst * 1000000) / 1000000);//keep 6 decimal points
+		//fst = (roundf(fst * 1000000) / 1000000);//keep 6 decimal points
 		//Weir and Cockerham: Fst = (f0-f1)/(1-f1) where 1-f1 is heterozygosity
 		//Fst=a/(a+b+c)
 		//a=(nbar/nc)(s2-(1/(nbar-1))(pbar(1-pbar)-((r-1)/r)*s2-0.25hbar))
 		//b=(nbar/(nbar-1))*(pbar*(1-pbar)-((r-1)/r)*s2-((2nbar-1)/4nbar)*hbar)
 		//c=0.25hbar
 		//nc=(rnbar-sum(n2/rnbar))/(r-1)
+		r = num_sampled;
+		nbar = nbar / num_sampled;
 		nc = r*nbar;
 		s2 = varp = 0;
-		for (i = 0; i < num_pops; i++)
+		for (i = 0; i < num_sampled; i++)
 		{
-			s2 = s2 + pops[i].pop_size*(pops[i].p - total_pop.p)*(pops[i].p - total_pop.p) / ((r - 1)*nbar);
-			nc = nc - ((pops[i].pop_size*pops[i].pop_size) / (r*nbar));
-			varp = varp + (total_pop.p - pops[i].p)*(total_pop.p - pops[i].p);
+			s2 = s2 + sampled_pops[i].pop_size*(sampled_pops[i].p - total_pop.p)*(sampled_pops[i].p - total_pop.p) / ((r - 1)*nbar);
+			nc = nc - ((sampled_pops[i].pop_size*sampled_pops[i].pop_size) / (r*nbar));
+			varp = varp + (total_pop.p - sampled_pops[i].p)*(total_pop.p - sampled_pops[i].p);
 		}
-		varp = varp / num_pops;
+		varp = varp / r;
 		wc_fst8 = varp / (pbar*(1 - pbar));
 		nc = nc / (r - 1);
 		pq = (total_pop.p*(1 - total_pop.p));
@@ -324,10 +431,35 @@ int main(int argc, char* argv[])
 	output.close();
 	allele_freqs.close();
 	sample_out.close();
-	
-	
-	
 
+	genepop_out_name << base_name << "genepop";
+	genepop_out.open(genepop_out_name.str());
+	genepop_out << "Numerical Analysis with Nm=" << Nm << ", N=" << pop_size << ", " << num_pops << " Demes, sampling " << num_sampled << " populations.\nloc0";
+	for (t = 1; t < num_reps; t++)
+		genepop_out << "\nloc" << t;
+	for (t = 0; t < num_sampled; t++)
+	{
+		genepop_out << "\nPOP"; 
+		for (tt = 0; tt < num_sampled_inds; tt++)
+		{
+			genepop_out << "\nInd" << tt << ",";
+			for (i = 0; i < num_reps; i++)
+			{
+				genepop_out << "\t";
+				if (samp_pops_genepop[t].inds[tt].allele1[i] == 1)
+					genepop_out << "01";
+				else
+					genepop_out << "02";
+				if (samp_pops_genepop[t].inds[tt].allele2[i] == 1)
+					genepop_out << "01";
+				else
+					genepop_out << "02";
+			}
+		}
+	}
+	genepop_out.close();
+
+	
 	if (interactivemode)
 	{
 		cout << "\nDone! Input integer to quit.\n";

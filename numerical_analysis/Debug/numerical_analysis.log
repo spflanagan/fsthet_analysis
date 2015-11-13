@@ -1,16 +1,14 @@
-﻿Build started 10/5/2015 11:13:26 AM.
+﻿Build started 11/6/2015 2:25:02 PM.
      1>Project "E:\GitHub\fst_outliers\numerical_analysis\numerical_analysis.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _LIB /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt numerical_analysis.cpp
          numerical_analysis.cpp
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(152): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(218): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(295): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(26): warning C4101: 'num_per_p' : unreferenced local variable
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(24): warning C4101: 'time' : unreferenced local variable
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(29): warning C4101: 'pbar_index' : unreferenced local variable
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(151): warning C4101: 'total_het' : unreferenced local variable
-     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(151): warning C4101: 'total_p' : unreferenced local variable
+     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(201): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(59): warning C4101: 'num_per_p' : unreferenced local variable
+     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(57): warning C4101: 'time' : unreferenced local variable
+     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(62): warning C4101: 'pbar_index' : unreferenced local variable
+     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(200): warning C4101: 'total_het' : unreferenced local variable
+     1>e:\github\fst_outliers\numerical_analysis\numerical_analysis.cpp(200): warning C4101: 'total_p' : unreferenced local variable
        Link:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\GitHub\fst_outliers\numerical_analysis\Debug\numerical_analysis.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"E:\GitHub\fst_outliers\numerical_analysis\Debug\numerical_analysis.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\GitHub\fst_outliers\numerical_analysis\Debug\numerical_analysis.lib" /MACHINE:X86 Debug\numerical_analysis.obj
          numerical_analysis.vcxproj -> E:\GitHub\fst_outliers\numerical_analysis\Debug\numerical_analysis.exe
@@ -18,4 +16,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.40
+Time Elapsed 00:00:01.46
