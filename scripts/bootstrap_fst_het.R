@@ -91,12 +91,7 @@ calc.fst<-function(df,i){
 	return(c(ht,fst))
 }
 
-bin.cis<-function(ht.fst){
-	ht.fst<-as.data.frame(ht.fst[order(ht.fst[,1]),])
-	
-}
-
-fst.onerow<-function(df){
+fst.boot.onerow<-function(df){
 	row<-sample(3:ncol(df),1)
 	ht.fst<-calc.fst(df,row)
 	return(ht.fst)
@@ -104,68 +99,188 @@ fst.onerow<-function(df){
 
 fst.boot<-function(df){	
 	nloci<-(ncol(df)-2)
-	boot.out<-as.data.frame(t(replicate(nloci, fst.boot(gpop))))
+	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onerow(df))))
 	colnames(boot.out)<-c("Ht","Fst")
+	print("Bootstrapping done. Now Calculating CIs")
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
-	breaks<-hist(boot.out$Ht,breaks=20)$breaks
+	breaks<-hist(boot.out$Ht,breaks=20,plot=F)$breaks
 	br.rate<-breaks[2]-breaks[1]
 	newbreaks<-breaks-(br.rate/2)
-	bins<-rbind(cbind(breaks[seq(1,length(breaks),2)],
-		breaks[seq(2,length(breaks),2)]),
-		cbind(newbreaks[seq(1,length(newbreaks),2)],
-		newbreaks[seq(2,length(newbreaks),2)]))
+	if((length(breaks) %% 2)==0){ #if it's even
+		bins<-rbind(cbind(breaks[seq(1,length(breaks),2)],
+			breaks[seq(2,length(breaks),2)]),
+			cbind(newbreaks[seq(1,length(newbreaks),2)],
+			newbreaks[seq(2,length(newbreaks),2)]))
+	} else {
+		bins<-rbind(cbind(breaks[seq(1,length(breaks)+1,2)],
+			breaks[seq(2,length(breaks)+1,2)]),
+			cbind(newbreaks[seq(1,length(newbreaks)+1,2)],
+			newbreaks[seq(2,length(newbreaks)+1,2)]))
+	}
 	bins<-bins[order(bins[,1]),]
 	mids<-apply(bins,1,mean)
 	#bin fsts
 	bin.fst<-apply(bins, 1, function(x){ #this returns a list of Fst vectors
 		out<-boot.out[boot.out$Ht > x[1] &	boot.out$Ht < x[2],"Fst"] })
 	names(bin.fst)<-mids
+	#merge those with too few with the next bin up
+	rmvec<-NULL
 	for(i in 1:(length(bin.fst)-1)){
 		if(length(bin.fst[[i]]) < 20){	
 			bin.fst[[(i+1)]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
-			bin.fst<-bin.fst[-i]
+			rmvec<-c(rmvec,i)
 		}
 		if((i+1)==length(bin.fst)){
 			if(length(bin.fst[[i+1]]) < 20){	
 				bin.fst[[i]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
-				bin.fst<-bin.fst[-(i+1)]
+				rmvec<-c(rmvec,(i+1))
 			}
 		}
 	}
+	#remove bins with too few
+	bin.fst<-bin.fst[-rmvec]
 	bin.fst<-lapply(bin.fst,sort)	
 	#find 95% quantile
 	fst95<-lapply(bin.fst, function(x){
 		keep.fst<-x[round(length(x)*0.025):round(length(x)*0.975)]
-		fst.thresh<-c(min(keep.fst),max(keep.fst))
-		names(fst.thresh)<-c("Low95","Upp95")
+		if(length(keep.fst)>0){
+			fst.thresh<-c(min(keep.fst),max(keep.fst))
+			names(fst.thresh)<-c("Low95","Upp95")
+		} else{
+			fst.thresh<-c("","")
+			names(fst.thresh)<-c("Low95","Upp95")
+		}
 		return(fst.thresh)
 	})
 	fst.95<-do.call(rbind,fst95)
 	#find 99% quantile
 	fst.99<-lapply(bin.fst, function(x){
 		keep.fst<-x[round(length(x)*0.005):round(length(x)*0.995)]
-		fst.thresh<-c(min(keep.fst),max(keep.fst))
+		if(length(keep.fst)>0){
+			fst.thresh<-c(min(keep.fst),max(keep.fst))
+		} else {
+			fst.thresh<-c("","")
+		}
 		names(fst.thresh)<-c("Low99","Upp99")
 		return(fst.thresh)
 	})
-	fst.99<-do.call(rbind,fst99)
+	fst.99<-do.call(rbind,fst.99)
 	return(list(Fsts=boot.out,CI95=fst.95,CI99=fst.99))
 }
-setwd("E:/ubuntushare/fst-het/data_from_literature")
-gpop<-my.read.genepop("Hess_2013_data_Genepop.gen") #this worked.
 
-fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),stringsAsFactors=F)
-for(i in 3:ncol(gpop)){
-	fsts[i-2,]<-c(colnames(gpop)[i],calc.fst(gpop,i))
+
+mean.cis<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
+	boot.ci<-as.data.frame(do.call(rbind,boot.out.list))
+	boot.ci$Ht<-rownames(boot.ci)
+	avg.cil<-tapply(boot.ci[,1],boot.ci$Ht,mean)
+	avg.ciu<-tapply(boot.ci[,2],boot.ci$Ht,mean)
+	return(list(avg.cil,avg.ciu))
 }
 
-boot.out<-as.data.frame(t(replicate(10000, fst.boot(gpop))))
-colnames(boot.out)<-c("Ht","Fst")
-boot.out<-boot.out[order(boot.out$Ht),]
+plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
+	ci.col=c("red","gold"), pt.pch=1,file.name="OutlierLoci.png",
+	make.file=TRUE) {
+#This function takes a dataframe with empirical Fst and Ht measurements
+#It must have at least two columns, one named "Ht" and one named "Fst"
+#Or you must pass the column names to the function
+#You must give it bootstrap output or a list of confidence interval values.
+	if(is.null(boot.out) & is.null(ci.list)){
+		 stop("Must provide bootstrap output or a list of CI values") 
+	} else if(is.null(ci.list)){
+		avg.ci95<-mean.cis(boot.out[[2]])
+		avg.ci99<-mean.cis(boot.out[[3]])
+	}
+	if(make.file==TRUE) png("OutlierLoci.png",height=8,width=9,units="in",res=300)
+	plot(df[,Ht.name],df[,Fst.name],xlab="",ylab="",las=1,pch=pt.pch)
+	mtext(expression("F"["ST"]),2,line=2.5)
+	mtext(expression("H"["T"]),1,line=2.5)
+	if(is.null(ci.list)){
+		points(names(avg.ci95[[1]]),avg.ci95[[1]],type="l",col=ci.col[1])
+		points(names(avg.ci95[[2]]),avg.ci95[[2]],type="l",col=ci.col[1])
+		points(names(avg.ci99[[1]]),avg.ci99[[1]],type="l",col=ci.col[2])
+		points(names(avg.ci99[[2]]),avg.ci99[[2]],type="l",col=ci.col[2])
+	} else {
+		points(names(ci.list[[1]]),ci.list[[1]],type="l",col=ci.col[1])
+		points(names(ci.list[[2]]),ci.list[[2]],type="l",col=ci.col[1])
+		points(names(ci.list[[3]]),ci.list[[3]],type="l",col=ci.col[2])
+		points(names(ci.list[[4]]),ci.list[[4]],type="l",col=ci.col[2])
+	}
+	legend("topright",c("95% CI","99% CI"),col=ci.col,lty=1,bty='n')
+	if(make.file==TRUE) dev.off()
+	
+}
 
-boot.sub<-boot.out[1:400,]
-johns.dist<-FitJohnsonDistribution(mean(boot.sub$Fst),var(boot.sub$Fst),
-	skewness(boot.sub$Fst),kurtosis(boot.sub$Fst))
+find.outliers<-function(df,ci.df=NULL,boot.out=NULL,write.files=TRUE){
+#Need to either give this function bootstrap output or a list of CIs
+	if(is.null(boot.out) & is.null(ci.df)){
+		stop("Must provide bootstrap output or a list of CI values") 
+	} else if(is.null(ci.df)){
+		avg.ci95<-mean.cis(boot.out[[2]])
+		avg.ci99<-mean.cis(boot.out[[3]])
+		ci.df<-as.data.frame(t(do.call(rbind,c(avg.ci95,avg.ci99))))
+		colnames(ci.df)<-c("low95","upp95","low99","upp99")
+		ci.df$Ht<-as.numeric(rownames(ci.df))
+	}
+	diff<-0
+	for(i in 2:nrow(ci.df)){
+		diff<-c(diff,ci.df$Ht[i]-ci.df$Ht[(i-1)])
+	}
+	bin<-cbind(ci.df$Ht-(diff/2),ci.df$Ht+(diff/2))
+	actual.bin<-apply(bin, 1, function(x){ #this returns a list of Fst vectors
+		out<-df[df$Ht > x[1] &	df$Ht < x[2],] })
+	out95<-NULL
+	out99<-NULL
+	for(i in 1:nrow(ci.df)){
+		out95<-rbind(out95,actual.bin[[i]][
+			actual.bin[[i]]$Fst< ci.df[i,"low95"] | 
+			actual.bin[[i]]$Fst> ci.df[i,"upp95"],])
+		out99<-rbind(out99,actual.bin[[i]][
+			actual.bin[[i]]$Fst< ci.df[i,"low99"] | 
+			actual.bin[[i]]$Fst> ci.df[i,"upp99"],])
+	}
+	write.csv(out95,"Bootstrap_Out95.csv")
+	write.csv(out99,"Bootstrap_Out99.csv")
+	return(list(out95,out99))
+}
 
+calc.actual.fst<-function(df){
+	fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),
+		stringsAsFactors=F)
+	for(i in 3:ncol(df)){
+		fsts[i-2,]<-c(colnames(df)[i],calc.fst(df,i))
+	}
+	return(fsts)
+}
+
+setwd("E:/ubuntushare/fst-het/data_from_literature")
+gpop<-my.read.genepop("Hess_2013_data_Genepop.gen") #this worked.
+fsts<-calc.actual.fst(gpop)
+
+
+#example with many replicates
+boot.out<-as.data.frame(t(replicate(100, fst.boot(gpop))))
+plot.cis(fsts,boot.out)
+boot1000.ci95<-mean.cis(boot.out[[2]])
+boot1000.ci99<-mean.cis(boot.out[[3]])
+cis<-as.data.frame(t(do.call(rbind,c(boot1000.ci95,boot1000.ci99))))
+colnames(cis)<-c("low95","upp95","low99","upp99")
+cis$Ht<-as.numeric(rownames(cis))
+write.csv(cis,"Bootstrapping1000CIs.csv")
+#recalculate bins
+outliers1000<-find.outliers(fsts,boot.out=boot.out)
+outliers100<-find.outliers(fsts,boot.out=bootres)
+plot.cis(fsts,bootres)
+#example with just one bootstrap rep
+test<-fst.boot(gpop)
+plot.cis(fsts,
+	ci.list=list(test$CI95[,1],test$CI95[,2],test$CI99[,1],test$CI99[,2]))
+ci.df<-data.frame(low95=test$CI95[,1],upp95=test$CI95[,2],
+	low99=test$CI99[,1],upp99=test$CI99[,2])
+ci.df$Ht<-as.numeric(rownames(ci.df))
+write.csv(ci.df,"Bootstrap1_CIs.csv")
+out1<-find.outliers(fsts,ci.df=ci.df)
+
+
+ bootres<-as.data.frame(t(replicate(100,fst.boot(gpop))))
