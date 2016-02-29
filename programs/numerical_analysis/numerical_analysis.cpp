@@ -59,9 +59,12 @@ int main(int argc, char* argv[])
 	int num_pops, num_reps, num_per_p, num_gens, num_sampled, num_sampled_inds;
 	double migration_rate, pbar, qbar, fst, ht, last_p, Nm;
 	double nc, s2, a, b, c, wc_fst, pq, rs, wc_fst8, varp;
+	double w11, w12, w22;
 	int r, nbar, pbar_index;
 	bool interactivemode = false;
 	bool random_sample = true;
+	bool overdominance = false;
+	bool directional_selection = false;
 	random_device rd;
 	default_random_engine generator(rd());
 	vector<population> pops;
@@ -85,6 +88,8 @@ int main(int argc, char* argv[])
 			cout << "-d:\tnumber of demes\n";
 			cout << "-r:\trandom sample? y to turn random sampling on or n to turn random sampling off\n";
 			cout << "-s:\tnumber of populations to sample\n";
+			cout << "-v:\tOverdominance? Y to turn on or N to turn off\n";
+			cout << "-ds:\tDirectional Selection? Y to turn on or N to turn off\n";
 			cout << "-h:\tdisplay this message\n";
 			cout << "no arguments:\tinteractive mode\n";
 			cout << "Input integer to quit.\n";
@@ -106,6 +111,8 @@ int main(int argc, char* argv[])
 			cout << "-d:\tnumber of subpopulations/demes\n";
 			cout << "-r:\trandom sample? y to turn random sampling on or n to turn random sampling off\n";
 			cout << "-s:\tnumber of populations to sample\n";
+			cout << "-v:\tOverdominance? Y to turn on or N to turn off\n";
+			cout << "-ds:\tDirectional Selection? Y to turn on or N to turn off\n";
 			cout << "-h:\tdisplay this message\n";
 			cout << "no arguments:\tinteractive mode\n";
 			return 0;
@@ -131,6 +138,20 @@ int main(int argc, char* argv[])
 		}
 		if (tempstring1 == "-s")
 			num_sampled = atoi(tempstring2.c_str());
+		if (tempstring1 == "-v")
+		{
+			if (tempstring2 == "Y" || tempstring2 == "y")
+				overdominance = true;
+			else
+				overdominance = false;
+		}
+		if (tempstring1 == "-ds")
+		{
+			if (tempstring2 == "Y" || tempstring2 == "y")
+				directional_selection = true;
+			else
+				directional_selection = false;
+		}
 	}
 
 	if (interactivemode)
@@ -149,6 +170,18 @@ int main(int argc, char* argv[])
 			random_sample = true;
 		else
 			random_sample = false;
+		cout << "\nInclude Overdominance? Y or N\n";
+		cin >> tempstring2;
+		if (tempstring2 == "Y" || tempstring2 == "y")
+			overdominance = true;
+		else
+			overdominance = false;
+		cout << "\nDirectional Selection? Y or N\n";
+		cin >> tempstring2;
+		if (tempstring2 == "Y" || tempstring2 == "y")
+			directional_selection = true;
+		else
+			directional_selection = false;
 	}
 	
 	pop_size = 1000;

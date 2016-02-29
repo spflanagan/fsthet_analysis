@@ -4,8 +4,8 @@
 #and then use Johnson distribution to generate confidence intervals.
 
 #install.packages("SuppDists")
-library(SuppDists)
-library(boot)
+#library(SuppDists)
+#library(boot)
 
 remove.spaces<-function (charvec) 
 {#adapted from adegenet
@@ -22,7 +22,7 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 	txt <- scan(file, sep = "\n", what = "character", quiet = TRUE)
 	if (!quiet) 
 		cat("\nFile description: ", txt[1], "\n")
-	txt <- txt[-1]
+	txt <- txt[-1] #remove the file desription
 	txt <- gsub("\t", " ", txt)
 	#extract the locus info
 	locinfo.idx <- 1:(min(grep("POP", toupper(txt))) - 1)
@@ -48,7 +48,13 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 	txt[length(txt) + 1] <- "POP"
 	pops<-txt[pop.idx]
 	nind<-diff(c(pop.idx,length(txt)))-1
-	popinfo<-unlist(apply(cbind(pops,nind),1,function(x){ rep(x[1],x[2])}))	
+	if(pops[1] == "POP"){
+		for(i in 1:length(pops)){ #if there aren't pop names they're given
+			pops[i]<-paste("POP ",i,sep="") } #numbers
+	}
+	popinfo<-as.vector(unlist(apply(cbind(
+		as.character(pops),as.numeric(nind)),
+		1,function(x){ rep(x[1],x[2])})))	
 	#Now keep just the genotype info
 	txt <- txt[-c(pop.idx, length(txt))]
 	temp <- sapply(1:length(txt), function(i) strsplit(txt[i], ","))
@@ -105,21 +111,22 @@ fst.boot<-function(df){
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
-	breaks<-hist(boot.out$Ht,breaks=20,plot=F)$breaks
-	br.rate<-breaks[2]-breaks[1]
+	breaks<-hist(boot.out$Ht,breaks=25,plot=F)$breaks
+	br.rate<-0.1
 	newbreaks<-breaks-(br.rate/2)
-	if((length(breaks) %% 2)==0){ #if it's even
-		bins<-rbind(cbind(breaks[seq(1,length(breaks),2)],
-			breaks[seq(2,length(breaks),2)]),
-			cbind(newbreaks[seq(1,length(newbreaks),2)],
-			newbreaks[seq(2,length(newbreaks),2)]))
-	} else {
-		bins<-rbind(cbind(breaks[seq(1,length(breaks)+1,2)],
-			breaks[seq(2,length(breaks)+1,2)]),
-			cbind(newbreaks[seq(1,length(newbreaks)+1,2)],
-			newbreaks[seq(2,length(newbreaks)+1,2)]))
-	}
-	bins<-bins[order(bins[,1]),]
+#	if((length(breaks) %% 2)==0){ #if it's even
+#		bins<-rbind(cbind(breaks[seq(1,length(breaks),2)],
+#			breaks[seq(2,length(breaks),2)]),
+#			cbind(newbreaks[seq(1,length(newbreaks),2)],
+#			newbreaks[seq(2,length(newbreaks),2)]))
+#	} else {
+#		bins<-rbind(cbind(breaks[seq(1,length(breaks)+1,2)],
+#			breaks[seq(2,length(breaks)+1,2)]),
+#			cbind(newbreaks[seq(1,length(newbreaks)+1,2)],
+#			newbreaks[seq(2,length(newbreaks)+1,2)]))
+#	}
+#	bins<-bins[order(bins[,1]),]
+	bins<-cbind(newbreaks,breaks)
 	mids<-apply(bins,1,mean)
 	#bin fsts
 	bin.fst<-apply(bins, 1, function(x){ #this returns a list of Fst vectors
@@ -207,7 +214,7 @@ plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
 		points(names(ci.list[[3]]),ci.list[[3]],type="l",col=ci.col[2])
 		points(names(ci.list[[4]]),ci.list[[4]],type="l",col=ci.col[2])
 	}
-	legend("topright",c("95% CI","99% CI"),col=ci.col,lty=1,bty='n')
+	legend("topleft",c("95% CI","99% CI"),col=ci.col,lty=1,bty='n')
 	if(make.file==TRUE) dev.off()
 	
 }
@@ -253,34 +260,3 @@ calc.actual.fst<-function(df){
 	}
 	return(fsts)
 }
-
-setwd("E:/ubuntushare/fst-het/data_from_literature")
-gpop<-my.read.genepop("Hess_2013_data_Genepop.gen") #this worked.
-fsts<-calc.actual.fst(gpop)
-
-
-#example with many replicates
-boot.out<-as.data.frame(t(replicate(100, fst.boot(gpop))))
-plot.cis(fsts,boot.out)
-boot1000.ci95<-mean.cis(boot.out[[2]])
-boot1000.ci99<-mean.cis(boot.out[[3]])
-cis<-as.data.frame(t(do.call(rbind,c(boot1000.ci95,boot1000.ci99))))
-colnames(cis)<-c("low95","upp95","low99","upp99")
-cis$Ht<-as.numeric(rownames(cis))
-write.csv(cis,"Bootstrapping1000CIs.csv")
-#recalculate bins
-outliers1000<-find.outliers(fsts,boot.out=boot.out)
-outliers100<-find.outliers(fsts,boot.out=bootres)
-plot.cis(fsts,bootres)
-#example with just one bootstrap rep
-test<-fst.boot(gpop)
-plot.cis(fsts,
-	ci.list=list(test$CI95[,1],test$CI95[,2],test$CI99[,1],test$CI99[,2]))
-ci.df<-data.frame(low95=test$CI95[,1],upp95=test$CI95[,2],
-	low99=test$CI99[,1],upp99=test$CI99[,2])
-ci.df$Ht<-as.numeric(rownames(ci.df))
-write.csv(ci.df,"Bootstrap1_CIs.csv")
-out1<-find.outliers(fsts,ci.df=ci.df)
-
-
- bootres<-as.data.frame(t(replicate(100,fst.boot(gpop))))
