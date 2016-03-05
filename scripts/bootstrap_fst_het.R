@@ -3,9 +3,6 @@
 #Purpose: bootstrap over a genepop file to generate a null distribution
 #and then use Johnson distribution to generate confidence intervals.
 
-#install.packages("SuppDists")
-#library(SuppDists)
-#library(boot)
 
 remove.spaces<-function (charvec) 
 {#adapted from adegenet
@@ -126,12 +123,12 @@ fst.boot<-function(df){
 #			newbreaks[seq(2,length(newbreaks)+1,2)]))
 #	}
 #	bins<-bins[order(bins[,1]),]
-	bins<-cbind(newbreaks,breaks)
+	bins<-as.data.frame(cbind(newbreaks,breaks))
 	mids<-apply(bins,1,mean)
 	#bin fsts
 	bin.fst<-apply(bins, 1, function(x){ #this returns a list of Fst vectors
 		out<-boot.out[boot.out$Ht > x[1] &	boot.out$Ht < x[2],"Fst"] })
-	names(bin.fst)<-mids
+	names(bin.fst)<-bins$breaks
 	#merge those with too few with the next bin up
 	rmvec<-NULL
 	for(i in 1:(length(bin.fst)-1)){
@@ -187,7 +184,7 @@ mean.cis<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
 }
 
 plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
-	ci.col=c("red","gold"), pt.pch=1,file.name="OutlierLoci.png",
+	ci.col=c("red","gold"), pt.pch=1,file.name=NULL,
 	make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
 #It must have at least two columns, one named "Ht" and one named "Fst"
@@ -199,8 +196,26 @@ plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
 		avg.ci95<-mean.cis(boot.out[[2]])
 		avg.ci99<-mean.cis(boot.out[[3]])
 	}
-	if(make.file==TRUE) png("OutlierLoci.png",height=8,width=9,units="in",res=300)
-	plot(df[,Ht.name],df[,Fst.name],xlab="",ylab="",las=1,pch=pt.pch)
+	if(names(avg.ci95[[1]])[1] != "0"){
+		avg.ci95[[1]]<-c(0,avg.ci95[[1]])
+		avg.ci95[[2]]<-c(0,avg.ci95[[2]])
+		avg.ci99[[1]]<-c(0,avg.ci99[[1]])
+		avg.ci99[[2]]<-c(0,avg.ci99[[2]])
+		names(avg.ci95[[1]])[1]<-0
+		names(avg.ci95[[2]])[1]<-0
+		names(avg.ci99[[1]])[1]<-0
+		names(avg.ci99[[2]])[1]<-0
+	}
+	if(make.file==TRUE){
+		if(!is.null(file.name)) {
+			png(file.name,height=8,width=9,units="in",res=300) }
+		else {
+			png("OutlierLoci.png",height=8,width=9,units="in",res=300) }
+	}
+	plot(df[,Ht.name],df[,Fst.name],xlab="",ylab="",las=1,pch=pt.pch,axes=F,
+		xlim=c(0,0.5))
+	axis(1,pos=0,at=seq(0,0.5,0.1))
+	axis(2,pos=0,las=1)
 	mtext(expression("F"["ST"]),2,line=2.5)
 	mtext(expression("H"["T"]),1,line=2.5)
 	if(is.null(ci.list)){
@@ -214,12 +229,13 @@ plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
 		points(names(ci.list[[3]]),ci.list[[3]],type="l",col=ci.col[2])
 		points(names(ci.list[[4]]),ci.list[[4]],type="l",col=ci.col[2])
 	}
-	legend("topleft",c("95% CI","99% CI"),col=ci.col,lty=1,bty='n')
+	legend(x=0.01,y=max(df[,Fst.name]),c("95% CI","99% CI"),
+		col=ci.col,lty=1,bty='n')
 	if(make.file==TRUE) dev.off()
 	
 }
 
-find.outliers<-function(df,ci.df=NULL,boot.out=NULL,write.files=TRUE){
+find.outliers<-function(df,ci.df=NULL,boot.out=NULL,file.name=NULL){
 #Need to either give this function bootstrap output or a list of CIs
 	if(is.null(boot.out) & is.null(ci.df)){
 		stop("Must provide bootstrap output or a list of CI values") 
@@ -247,8 +263,10 @@ find.outliers<-function(df,ci.df=NULL,boot.out=NULL,write.files=TRUE){
 			actual.bin[[i]]$Fst< ci.df[i,"low99"] | 
 			actual.bin[[i]]$Fst> ci.df[i,"upp99"],])
 	}
-	write.csv(out95,"Bootstrap_Out95.csv")
-	write.csv(out99,"Bootstrap_Out99.csv")
+	if(!is.null(file.name)){
+		write.csv(out95,paste(file.name,"95.csv",sep=""))
+		write.csv(out99,paste(file.name,"99.csv",sep=""))
+	}
 	return(list(out95,out99))
 }
 

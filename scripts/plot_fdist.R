@@ -289,7 +289,7 @@ dev.off()
 ############################################################################
 #EXPLORING PARAMETER SPACE
 ############################################################################
-setwd("E://ubuntushare//numerical_analysis_genepop")
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
 
 ci.files<-list.files(pattern="genepop.ci")
 loci.files<-list.files(pattern="genepop.loci")

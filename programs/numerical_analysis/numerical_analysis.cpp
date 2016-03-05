@@ -9,6 +9,7 @@
 #include <vector>
 #include <random>
 #include <sstream>
+#include "random_numbers.h"
 
 using namespace std;
 
@@ -55,22 +56,23 @@ public:
 int main(int argc, char* argv[])
 {
 	int end, time, i;
-	int t, tt, pop_size;
+	int t, tt, pop_size, sig_count, num_sig;
 	int num_pops, num_reps, num_per_p, num_gens, num_sampled, num_sampled_inds;
 	double migration_rate, pbar, qbar, fst, ht, last_p, Nm;
 	double nc, s2, a, b, c, wc_fst, pq, rs, wc_fst8, varp;
-	double w11, w12, w22;
+	double w11, w12, w22, s, h;
 	int r, nbar, pbar_index;
 	bool interactivemode = false;
 	bool random_sample = true;
 	bool overdominance = false;
 	bool directional_selection = false;
+	bool sig = false;
 	random_device rd;
 	default_random_engine generator(rd());
 	vector<population> pops;
 	population total_pop;
-	ofstream allele_freqs, output, sample_out, genepop_out;
-	string base_name, query, tempstring1, tempstring2;
+	ofstream allele_freqs, output, sample_out, genepop_out,sig_out;
+	string base_name, query, tempstring1, tempstring2,sig_name;
 	stringstream output_name, sample_out_name, genepop_out_name;
 
 	base_name = "default";	
@@ -188,16 +190,49 @@ int main(int argc, char* argv[])
 	total_pop.pop_size = pop_size * num_pops;
 
 	num_reps = 2000;
+	num_sig = 10;
+	sig_count = 0;
 	num_gens = 5000;
 	num_sampled_inds = 50;
 	migration_rate = Nm / pop_size;
 	cout << "\nRunning with " << num_pops << " pops, " << " sampling " << num_sampled << " of them, with migration rate "
 		<< migration_rate << " and a total population size of " << total_pop.pop_size << ".\nRunning " << num_reps 
 		<< " number of reps with " << num_gens << " generations.\n";
+	if (directional_selection)
+		cout << "\nDirectional Selection is imposed on " << num_sig << " loci.\n";
+	if (overdominance)
+		cout << "\nOverdominance is imposed on " << num_sig << " loci.\n";
+	s = 0.005;
+	h = 0.5;
 	//initialize variables
+	if (directional_selection)
+	{
+		if (genrand() < 0.5)
+		{
+			w11 = 1;
+			w12 = 1-h*s;
+			w22 = 1-s;
+		}
+		else
+		{
+			w11 = 1-s;
+			w12 = 1-h*s;
+			w22 = 1;
+		}
+	}
+	if (overdominance)
+	{
+		w12 = 1;
+		w11 = w22 = 1-s;
+	}
 	for (i = 0; i < num_pops; i++)
 	{
 		pops.push_back(population());
+	}
+	if (overdominance || directional_selection)
+	{
+		sig_name = base_name + "sigloci.txt";
+		sig_out.open(sig_name);
 	}
 	sample_out_name << base_name << "sampledpops.txt";
 	sample_out.open(sample_out_name.str());
@@ -229,8 +264,24 @@ int main(int argc, char* argv[])
 		}
 
 	}
-	for (t = 0; t < num_reps; t++)
+	for (t = 0; t < num_reps; t++)//each one is a locus
 	{
+		if (overdominance || directional_selection)
+		{
+			if (genrand() < 0.5 && sig_count < num_sig)
+			{
+				sig = true;
+				if (sig_count == 0)
+					sig_out << "loc" << t;
+				else
+					sig_out << "\nloc" << t;
+				sig_count++;
+			}
+			else
+				sig = false;
+		}
+		else
+			sig = false;
 		//set migtrant p-value
 		uniform_real_distribution <double> unidist(0.05, 0.95);
 		pbar = unidist(generator);
@@ -268,9 +319,20 @@ int main(int argc, char* argv[])
 				//Island model determines p
 				//pt = pt-1(1-m)+pbarm
 				pops[i].p = pops[i].p*(1 - migration_rate) + (pbar*migration_rate);
-				// don't allow wild changes in allele frequencies of 0.8 or higher
+				// don't allow wild changes in allele frequencies of 0.8 or higher due todrift
 				if (pops[i].p - last_p > 0.8 || pops[i].p - last_p < -0.8)
 					pops[i].p = last_p;
+				pops[i].q = 1 - pops[i].p;
+				//add selection
+				if (sig)
+				{
+					//selection.
+					//cout << "\nSelection...p: " << pops[i].p << ", q: " << pops[i].q;
+					double wbar = pops[i].p*pops[i].p*w11 + 2 * pops[i].p*pops[i].q*w12 + pops[i].q*pops[i].q*w22;
+					pops[i].p = (pops[i].p*pops[i].p*w11 + pops[i].p*pops[i].q*w12) / wbar;
+					pops[i].q = (pops[i].q*pops[i].q*w22 + pops[i].p*pops[i].q*w12) / wbar;
+					//cout << ", p': " << pops[i].p << ", q': " << pops[i].q;
+				}
 				if (pops[i].p < 0)
 					pops[i].p = 0;
 				if (pops[i].p > 1)
@@ -464,6 +526,8 @@ int main(int argc, char* argv[])
 	output.close();
 	allele_freqs.close();
 	sample_out.close();
+	if (overdominance || directional_selection)
+		sig_out.close();
 
 	genepop_out_name << base_name << "genepop";
 	genepop_out.open(genepop_out_name.str());

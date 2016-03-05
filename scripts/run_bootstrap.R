@@ -1,8 +1,10 @@
 
+source("E:/ubuntushare/fst_outliers/scripts/bootstrap_fst_het.R")
+setwd("E:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
+gpop<-my.read.genepop("Nm0.1.d2.s20.ds.genepop")
 
-setwd("E:/ubuntushare/fst_outliers/results/data_from_literature")
-gpop<-my.read.genepop("E:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/Nm0.1.d2.s20.genepop")
-gpop<-my.read.genepop("Hess_2013_data_Genepop.gen") #this worked.
+#gpop<-my.read.genepop("E:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/Nm0.1.d2.s20.genepop")
+#gpop<-my.read.genepop("Hess_2013_data_Genepop.gen") #this worked.
 fsts<-calc.actual.fst(gpop)
 
 boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
