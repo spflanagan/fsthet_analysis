@@ -132,28 +132,19 @@ int main(int argc, char* argv[])
 		if (tempstring1 == "-d")
 			num_pops = atoi(tempstring2.c_str());
 		if (tempstring1 == "-r")
-		{
-			if (tempstring2 == "Y" || tempstring2 == "y")
-				random_sample = true;
-			else
-				random_sample = false;
-		}
+			random_sample = true;
+		else
+			random_sample = false;
 		if (tempstring1 == "-s")
 			num_sampled = atoi(tempstring2.c_str());
 		if (tempstring1 == "-v")
-		{
-			if (tempstring2 == "Y" || tempstring2 == "y")
-				overdominance = true;
-			else
-				overdominance = false;
-		}
+			overdominance = true;
+		else
+			overdominance = false;
 		if (tempstring1 == "-ds")
-		{
-			if (tempstring2 == "Y" || tempstring2 == "y")
-				directional_selection = true;
-			else
-				directional_selection = false;
-		}
+			directional_selection = true;
+		else
+			directional_selection = false;
 	}
 
 	if (interactivemode)
