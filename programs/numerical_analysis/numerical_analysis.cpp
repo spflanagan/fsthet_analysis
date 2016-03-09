@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
 	stringstream output_name, sample_out_name, genepop_out_name;
 
 	base_name = "default";	
+	s = 0.005;
 
 	if (argc == 1)
 	{
@@ -88,10 +89,10 @@ int main(int argc, char* argv[])
 			cout << "-o:\tbase file name (include path). Example: N1000_s10_\n";
 			cout << "-n:\tNm\n";
 			cout << "-d:\tnumber of demes\n";
-			cout << "-r:\trandom sample? y to turn random sampling on or n to turn random sampling off\n";
+			cout << "-r:\trandom sample? In interactive mode, use Y to turn on and N to turn off. In command-line mode, use 1 to turn on.\n";
 			cout << "-s:\tnumber of populations to sample\n";
-			cout << "-v:\tOverdominance? Y to turn on or N to turn off\n";
-			cout << "-ds:\tDirectional Selection? Y to turn on or N to turn off\n";
+			cout << "-v:\tOverdominance? Follow -v with the selection coefficient (s)\n";
+			cout << "-ds:\tDirectional Selection?  Follow -ds with the selection coefficient (s)\n";
 			cout << "-h:\tdisplay this message\n";
 			cout << "no arguments:\tinteractive mode\n";
 			cout << "Input integer to quit.\n";
@@ -111,10 +112,10 @@ int main(int argc, char* argv[])
 			cout << "-o:\tbase file name (include path). Example: N1000_s10_\n";
 			cout << "-n:\tNm\n";
 			cout << "-d:\tnumber of subpopulations/demes\n";
-			cout << "-r:\trandom sample? y to turn random sampling on or n to turn random sampling off\n";
+			cout << "-r:\trandom sample? In interactive mode, use Y to turn on and N to turn off. In command-line mode, use 1 to turn on.\n";
 			cout << "-s:\tnumber of populations to sample\n";
-			cout << "-v:\tOverdominance? Y to turn on or N to turn off\n";
-			cout << "-ds:\tDirectional Selection? Y to turn on or N to turn off\n";
+			cout << "-v:\tOverdominance? Follow -v with the selection coefficient (s)\n";
+			cout << "-ds:\tDirectional Selection?  Follow -ds with the selection coefficient (s)\n";
 			cout << "-h:\tdisplay this message\n";
 			cout << "no arguments:\tinteractive mode\n";
 			return 0;
@@ -132,19 +133,34 @@ int main(int argc, char* argv[])
 		if (tempstring1 == "-d")
 			num_pops = atoi(tempstring2.c_str());
 		if (tempstring1 == "-r")
-			random_sample = true;
-		else
-			random_sample = false;
+		{
+			if (tempstring2 == "1")
+				random_sample = true;
+			else
+				random_sample = false;
+		}
 		if (tempstring1 == "-s")
 			num_sampled = atoi(tempstring2.c_str());
 		if (tempstring1 == "-v")
+		{
 			overdominance = true;
+			s = atof(tempstring2.c_str());
+		}
 		else
+		{
 			overdominance = false;
+			s = 0;
+		}
 		if (tempstring1 == "-ds")
+		{
 			directional_selection = true;
+			s = atof(tempstring2.c_str());
+		}
 		else
+		{
 			directional_selection = false;
+			s = 0;
+		}
 	}
 
 	if (interactivemode)
@@ -166,13 +182,21 @@ int main(int argc, char* argv[])
 		cout << "\nInclude Overdominance? Y or N\n";
 		cin >> tempstring2;
 		if (tempstring2 == "Y" || tempstring2 == "y")
+		{
 			overdominance = true;
+			cout << "\nWhat is the selection coefficient (s)? Suggested is 0.005.\n";
+			cin >> s;
+		}
 		else
 			overdominance = false;
 		cout << "\nDirectional Selection? Y or N\n";
 		cin >> tempstring2;
 		if (tempstring2 == "Y" || tempstring2 == "y")
+		{
 			directional_selection = true;
+			cout << "\nWhat is the selection coefficient (s)? Suggested is 0.005.\n";
+			cin >> s;
+		}
 		else
 			directional_selection = false;
 	}
@@ -193,7 +217,6 @@ int main(int argc, char* argv[])
 		cout << "\nDirectional Selection is imposed on " << num_sig << " loci.\n";
 	if (overdominance)
 		cout << "\nOverdominance is imposed on " << num_sig << " loci.\n";
-	s = 0.005;
 	h = 0.5;
 	//initialize variables
 	if (directional_selection)
