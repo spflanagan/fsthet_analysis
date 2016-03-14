@@ -102,7 +102,7 @@ fst.boot.onecol<-function(df){
 
 fst.boot<-function(df){	
 	nloci<-(ncol(df)-2)
-	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onerow(df))))
+	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df))))
 	colnames(boot.out)<-c("Ht","Fst")
 	print("Bootstrapping done. Now Calculating CIs")
 	#order by het
