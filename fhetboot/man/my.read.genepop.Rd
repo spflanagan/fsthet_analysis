@@ -1,5 +1,5 @@
 \name{my.read.genepop}
-\alias{read.genepop}
+\alias{my.read.genepop}
 \title{This reads a genepop file into R}
 \description{
   This reads a genepop file into R. 

@@ -1,0 +1,293 @@
+Wrote the .Rd files and then checked the with R CMD Rd2txt
+
+Then converted the manual files to html with Rdconv:
+
+	for file in *.Rd
+	do
+		base=${file%.Rd}
+		R CMD Rdconv --type=html --output=$base.html $base.Rd 
+	done
+	
+R CMD check fhetboot
+* using log directory ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck’
+* using R version 3.0.2 (2013-09-25)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘fhetboot/DESCRIPTION’ ... NO
+
+R CMD build fhetboot
+* checking for file ‘fhetboot/DESCRIPTION’ ... NO
+
+I had to change DESCRIPTION.txt to DESCRIPTION
+
+R CMD check fhetboot
+* using log directory ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck’
+* using R version 3.0.2 (2013-09-25)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘fhetboot/DESCRIPTION’ ... OK
+* this is package ‘fhetboot’ version ‘1.0’
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... ERROR
+All packages need a namespace as from R 3.0.0.
+R CMD build will produce a suitable starting point, but it is better to
+handcraft a NAMESPACE file.
+
+I guess I need a NAMESPACE file.
+It'll all be exports.
+
+Now:
+R CMD check fhetboot
+* using log directory ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck’
+* using R version 3.0.2 (2013-09-25)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘fhetboot/DESCRIPTION’ ... OK
+* this is package ‘fhetboot’ version ‘1.0’
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘fhetboot’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... WARNING
+mean:
+  function(x, ...)
+mean.cis:
+  function(boot.out.list)
+
+plot:
+  function(x, ...)
+plot.cis:
+  function(df, boot.out, ci.list, Ht.name, Fst.name, ci.col, pt.pch,
+           file.name, make.file)
+
+See section ‘Generic functions and methods’ of the ‘Writing R
+Extensions’ manual.
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  ‘my.read.genepop’
+Undocumented data sets:
+  ‘boot.out’ ‘gpop’
+All user-level objects in a package should have documentation entries.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... WARNING
+Codoc mismatches from documentation object 'calc.actual.fst':
+calc.actual.fst
+  Code: function(df)
+  Docs: function(gpop)
+  Argument names in code not in docs:
+    df
+  Argument names in docs not in code:
+    gpop
+  Mismatches in argument names:
+    Position: 1 Code: df Docs: gpop
+
+Codoc mismatches from documentation object 'find.outliers':
+find.outliers
+  Code: function(df, ci.df = NULL, boot.out = NULL, file.name = NULL)
+  Docs: function(df, boot.out, file.name = "Test")
+  Argument names in code not in docs:
+    ci.df
+  Mismatches in argument names:
+    Position: 2 Code: ci.df Docs: boot.out
+    Position: 3 Code: boot.out Docs: file.name
+  Mismatches in argument default values:
+    Name: 'boot.out' Code: NULL Docs: 
+    Name: 'file.name' Code: NULL Docs: "Test"
+
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'calc.actual.fst'
+  ‘gpop’
+Documented arguments not in \usage in documentation object 'calc.actual.fst':
+  ‘df’
+
+Documented arguments not in \usage in documentation object 'find.outliers':
+  ‘ci.list’
+
+Objects in \usage without \alias in documentation object 'my.read.genepop':
+  ‘my.read.genepop’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+S3 methods shown with full name in documentation object 'mean.cis':
+  ‘mean.cis’
+
+S3 methods shown with full name in documentation object 'plot.cis':
+  ‘plot.cis’
+
+The \usage entries for S3 methods should use the \method markup and not
+their full name.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... WARNING
+Files not of a type allowed in a ‘data’ directory:
+  ‘Nm10.d75.s5.genepop’
+Please use e.g. ‘inst/extdata’ for non-R data files
+* checking data for non-ASCII characters ... OK
+* checking data for ASCII and uncompressed saves ... WARNING
+  
+  Note: significantly better compression could be obtained
+        by using R CMD build --resave-data
+                       old_size new_size compress
+  bootstrap.out.ex.rda    176Kb     73Kb       xz
+  genepop.example.rda     269Kb    137Kb    bzip2
+* checking examples ... ERROR
+Running examples in ‘fhetboot-Ex.R’ failed
+The error most likely occurred in:
+
+> ### Name: calc.fst
+> ### Title: This calculates Fst.
+> ### Aliases: calc.fst
+> 
+> ### ** Examples
+> 
+> 	load("data/genepop.example.rda")
+Warning in readChar(con, 5L, useBytes = TRUE) :
+  cannot open compressed file 'data/genepop.example.rda', probable reason 'No such file or directory'
+Error in readChar(con, 5L, useBytes = TRUE) : cannot open the connection
+Calls: load -> readChar
+Execution halted
+**************************************************************************
+R CMD check fhetboot
+* using log directory ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck’
+* using R version 3.0.2 (2013-09-25)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘fhetboot/DESCRIPTION’ ... OK
+* this is package ‘fhetboot’ version ‘1.0’
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘fhetboot’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... WARNING
+mean:
+  function(x, ...)
+mean.cis:
+  function(boot.out.list)
+
+plot:
+  function(x, ...)
+plot.cis:
+  function(df, boot.out, ci.list, Ht.name, Fst.name, ci.col, pt.pch,
+           file.name, make.file)
+
+See section ‘Generic functions and methods’ of the ‘Writing R
+Extensions’ manual.
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented code objects:
+  ‘my.read.genepop’
+Undocumented data sets:
+  ‘boot.out’ ‘gpop’
+All user-level objects in a package should have documentation entries.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... WARNING
+Functions or methods with usage in documentation object 'my.read.genepop' but not in code:
+  read.genepop
+
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'find.outliers'
+  ‘ci.df’
+Documented arguments not in \usage in documentation object 'find.outliers':
+  ‘ci.list’
+
+Objects in \usage without \alias in documentation object 'my.read.genepop':
+  ‘my.read.genepop’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+S3 methods shown with full name in documentation object 'mean.cis':
+  ‘mean.cis’
+
+S3 methods shown with full name in documentation object 'plot.cis':
+  ‘plot.cis’
+
+The \usage entries for S3 methods should use the \method markup and not
+their full name.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking data for ASCII and uncompressed saves ... WARNING
+  
+  Note: significantly better compression could be obtained
+        by using R CMD build --resave-data
+                       old_size new_size compress
+  bootstrap.out.ex.rda    176Kb     73Kb       xz
+  genepop.example.rda     269Kb    137Kb    bzip2
+* checking examples ... NONE
+* checking PDF version of manual ... WARNING
+LaTeX errors when creating PDF version.
+This typically indicates Rd problems.
+* checking PDF version of manual without hyperrefs or index ... ERROR
+Re-running with no redirection of stdout/stderr.
+Hmm ... looks like a package
+Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
+  pdflatex is not available
+Error in running tools::texi2pdf()
+You may want to clean up by 'rm -rf /tmp/RtmpArU6RE/Rd2pdf264553d837c1'

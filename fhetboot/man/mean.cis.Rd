@@ -8,7 +8,7 @@
 mean.cis(boot.out.list)
 }
 \arguments{
-  \item{boot.out.list}{A list of matrices. Each matrix is either the 95% or 99% CIs from fst.boot.}
+  \item{boot.out.list}{A list of matrices. Each matrix is either the 95 or 99 percent CIs from fst.boot.}
 }
 \value{
 	\item{avg.cil}{A list of the average lower CI values}

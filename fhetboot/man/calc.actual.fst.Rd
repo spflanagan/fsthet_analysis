@@ -6,7 +6,7 @@
 	This does not include bootstrapping.
 }
 \usage{
-calc.actual.fst(gpop)
+calc.actual.fst(df)
 }
 \arguments{
   \item{df}{Provide the genepop dataframe (from my.read.genepop).}

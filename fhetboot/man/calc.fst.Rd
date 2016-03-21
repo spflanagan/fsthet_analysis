@@ -19,7 +19,3 @@ calc.fst(df, i)
 	\item{ht}{The expected heterozygosity under Hardy-Weinberg expectations. This is a single numerical value.}
 	\item{fst}{The calculated Fst value for this locus.}
 }
-\examples{
-	gpop<-read.my.genepop(example)
-	fst<-calc.fst(gpop,3)
-}
