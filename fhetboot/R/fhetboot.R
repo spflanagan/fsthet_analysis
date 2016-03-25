@@ -175,7 +175,7 @@ fst.boot<-function(df){
 }
 
 
-mean.cis<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
+ci.means<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
 	boot.ci<-as.data.frame(do.call(rbind,boot.out.list))
 	boot.ci$Ht<-rownames(boot.ci)
 	avg.cil<-tapply(boot.ci[,1],boot.ci$Ht,mean)
@@ -183,7 +183,7 @@ mean.cis<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
 	return(list(avg.cil,avg.ciu))
 }
 
-plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
+plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
 	ci.col=c("red","gold"), pt.pch=1,file.name=NULL,
 	make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
@@ -193,8 +193,8 @@ plot.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
 	if(is.null(boot.out) & is.null(ci.list)){
 		 stop("Must provide bootstrap output or a list of CI values") 
 	} else if(is.null(ci.list)){
-		avg.ci95<-mean.cis(boot.out[[2]])
-		avg.ci99<-mean.cis(boot.out[[3]])
+		avg.ci95<-ci.means(boot.out[[2]])
+		avg.ci99<-ci.means(boot.out[[3]])
 	}
 	if(names(avg.ci95[[1]])[1] != "0"){
 		avg.ci95[[1]]<-c(0,avg.ci95[[1]])
@@ -240,8 +240,8 @@ find.outliers<-function(df,ci.df=NULL,boot.out=NULL,file.name=NULL){
 	if(is.null(boot.out) & is.null(ci.df)){
 		stop("Must provide bootstrap output or a list of CI values") 
 	} else if(is.null(ci.df)){
-		avg.ci95<-mean.cis(boot.out[[2]])
-		avg.ci99<-mean.cis(boot.out[[3]])
+		avg.ci95<-ci.means(boot.out[[2]])
+		avg.ci99<-ci.means(boot.out[[3]])
 		ci.df<-as.data.frame(t(do.call(rbind,c(avg.ci95,avg.ci99))))
 		colnames(ci.df)<-c("low95","upp95","low99","upp99")
 		ci.df$Ht<-as.numeric(rownames(ci.df))

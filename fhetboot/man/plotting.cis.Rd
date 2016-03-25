@@ -1,11 +1,11 @@
-\name{plot.cis}
-\alias{plot.cis}
+\name{plotting.cis}
+\alias{plotting.cis}
 \title{This plots a dataframe of fsts with bootstrapped confidence intervals.}
 \description{
 	This plots a dataframe of fsts with bootstrapped confidence intervals.
 }
 \usage{
-plot.cis(df, boot.out, ci.list, Ht.name, Fst.name, ci.col, pt.pch,file.name,make.file)
+plotting.cis(df, boot.out, ci.list, Ht.name, Fst.name, ci.col, pt.pch,file.name,make.file)
 }
 \arguments{
   \item{df}{A dataframe of Fst and Ht values. It must have at least two columns, one named "Ht" and one named "Fst". Or you must pass the column names to the function}

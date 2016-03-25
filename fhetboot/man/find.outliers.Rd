@@ -5,12 +5,12 @@
 	This identifies all of the SNPs outside of the confidence intervals in the dataset.
 }
 \usage{
-find.outliers(df, ci.list = NULL, boot.out = NULL, file.name = NULL)
+find.outliers(df, ci.df = NULL, boot.out = NULL, file.name = NULL)
 }
 \arguments{
   \item{df}{Provide the dataframe with Ht and Fst values.}
   \item{boot.out}{Bootstrap output. You must either provide this or a list of confidence interval values.}
-  \item{ci.list}{List of confidence intervals. You must either provide this or bootstrap output.}
+  \item{ci.df}{List of confidence intervals. You must either provide this or bootstrap output.}
   \item{file.name}{You may provide a file name to output the outliers to a csv file. Otherwise, the function will only return the 95 and 99 percent outliers.}
 }
 \value{

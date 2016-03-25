@@ -1,0 +1,8 @@
+Package: fhetboot
+Version: 1.0
+Title: fhetboot: Fst-heterozygosity bootstrapping
+Description: A program to generate bootstrapped confidence intervals for the Fst-heterozygosity distribution
+Author: Sarah P. Flanagan and Adam G. Jones
+Maintainer: Sarah P. Flanagan <sflanagan19@gmail.com>
+License: GPL-2
+Built: R 3.0.2; ; 2016-03-25 21:46:37 UTC; unix

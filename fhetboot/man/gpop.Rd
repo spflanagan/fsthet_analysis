@@ -1,6 +1,6 @@
-\name{genepop.example}
+\name{gpop}
 \docType{data}
-\alias{genepop.example}
+\alias{gpop}
 \title{Example genepop file from numerical simulations}
 \description{
    Example genepop file from numerical simulations.

@@ -1,6 +1,6 @@
-\name{bootstrap.out.ex}
+\name{boot.out}
 \docType{data}
-\alias{bootstrap.out.ex}
+\alias{boot.out}
 \title{Example bootstrap output from numerical simulations}
 \description{
    Example bootstrap output from numerical simulations
@@ -8,7 +8,7 @@
    Ten bootstrap replicates were run on the example.genepop dataframe.
    This is a data.frame of lists. The first list is Fsts, which is a list of dataframes, each dataframe containing two columns: Ht and Fst. The second list is the the 95% confidence intervals, which are lists of the lower and upper 95% confidence interval lists. The second list is the 99% confidence intervals, which is basically the same as the 95% CI list.
 }
-\usage{bootstrap.out.ex}
+\usage{boot.out}
 \format{data.frame}
 \source{From bootstrapping 10 reps over the dataframe gpop.}
 \references{
