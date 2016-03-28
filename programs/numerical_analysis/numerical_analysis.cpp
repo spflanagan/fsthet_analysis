@@ -71,9 +71,10 @@ int main(int argc, char* argv[])
 	default_random_engine generator(rd());
 	vector<population> pops;
 	population total_pop;
-	ofstream allele_freqs, output, sample_out, genepop_out,sig_out;
-	string base_name, query, tempstring1, tempstring2,sig_name;
+	ofstream allele_freqs, output, sample_out, genepop_out,sig_out, deltaq;
+	string base_name, query, tempstring1, tempstring2,sig_name,deltaq_name;
 	stringstream output_name, sample_out_name, genepop_out_name;
+	vector <bool> pos;
 
 	base_name = "default";	
 	s = 0.005;
@@ -218,35 +219,25 @@ int main(int argc, char* argv[])
 	if (overdominance)
 		cout << "\nOverdominance is imposed on " << num_sig << " loci.\n";
 	h = 0.5;
-	//initialize variables
-	if (directional_selection)
-	{
-		if (genrand() < 0.5)
-		{
-			w11 = 1;
-			w12 = 1-h*s;
-			w22 = 1-s;
-		}
-		else
-		{
-			w11 = 1-s;
-			w12 = 1-h*s;
-			w22 = 1;
-		}
-	}
-	if (overdominance)
-	{
-		w12 = 1;
-		w11 = w22 = 1-s;
-	}
+	
 	for (i = 0; i < num_pops; i++)
 	{
 		pops.push_back(population());
+		if (directional_selection)
+			pos.push_back(false);
 	}
 	if (overdominance || directional_selection)
 	{
 		sig_name = base_name + "sigloci.txt";
 		sig_out.open(sig_name);
+		deltaq_name = base_name + "delatq.txt";
+		deltaq.open(deltaq_name);
+		deltaq << "Pop\tGen\tLocus\tObsDeltaq\tDeltaq\tq\tQbar";
+	}
+	if (overdominance)
+	{
+		w12 = 1;
+		w11 = w22 = 1 - s;
 	}
 	sample_out_name << base_name << "sampledpops.txt";
 	sample_out.open(sample_out_name.str());
@@ -284,11 +275,23 @@ int main(int argc, char* argv[])
 		{
 			if (genrand() < 0.5 && sig_count < num_sig)
 			{
-				sig = true;
 				if (sig_count == 0)
 					sig_out << "loc" << t;
 				else
 					sig_out << "\nloc" << t;
+				//initialize 
+				if (directional_selection)
+				{
+					for (i = 0; i < num_pops; i++)
+					{
+						if (genrand() < 0.5)
+							pos[i] = true;
+						else
+							pos[i] = false;
+						
+					}
+				}
+				sig = true;
 				sig_count++;
 			}
 			else
@@ -301,6 +304,23 @@ int main(int argc, char* argv[])
 		pbar = unidist(generator);
 		qbar = 1 - pbar;
 		
+		if (sig)
+		{
+			double a,b,c,fourac,qhat1,qhat2, qhat;
+			a = (-1*s) / 2;
+			b = (s / 2) - migration_rate;
+			c = migration_rate*qbar;
+			fourac = 4 * a*c;
+			qhat1 = ((-1*b) + sqrt(b*b - fourac) )/ (2*a);
+			qhat2 = ((-1 * b) -sqrt(b*b - fourac)) / (2 * a);;
+			if (qhat1 <= 1 && qhat1 >= 0)
+				qhat = qhat1;
+			if (qhat2 <= 1 && qhat2 >= 0)
+				qhat = qhat2;
+			sig_out << '\t' << qbar << '\t' << qhat;
+		}
+
+		vector<double>lastps;
 		for (tt = 0; tt < num_gens; tt++)
 		{
 			total_pop.p = 0;
@@ -342,11 +362,29 @@ int main(int argc, char* argv[])
 				{
 					//selection.
 					//cout << "\nSelection...p: " << pops[i].p << ", q: " << pops[i].q;
-					double wbar = pops[i].p*pops[i].p*w11 + 2 * pops[i].p*pops[i].q*w12 + pops[i].q*pops[i].q*w22;
-					pops[i].p = (pops[i].p*pops[i].p*w11 + pops[i].p*pops[i].q*w12) / wbar;
-					pops[i].q = (pops[i].q*pops[i].q*w22 + pops[i].p*pops[i].q*w12) / wbar;
-					//cout << ", p': " << pops[i].p << ", q': " << pops[i].q;
-				}
+					if (pos[i] == true)
+					{
+						w11 = 1;
+						w12 = 1 - (h*s);
+						w22 = 1 - s;
+
+						double qstart = 1 - last_p;
+						double wbar = (pops[i].p*pops[i].p*w11) + (2 * pops[i].p*pops[i].q*w12) + (pops[i].q*pops[i].q*w22);
+						pops[i].p = ((pops[i].p*pops[i].p*w11) + (pops[i].p*pops[i].q*w12)) / wbar;
+						pops[i].q = ((pops[i].q*pops[i].q*w22) + (pops[i].p*pops[i].q*w12)) / wbar;
+						double expdq;
+						expdq = (s*pops[i].q*pops[i].q)*(1 - pops[i].q)*(1 - pops[i].q + (h*(2 * pops[i].q - 1))) - (migration_rate*(pops[i].q - qbar));
+						deltaq << '\n' << i << '\t' << tt << '\t' << "loc" << t << '\t' << qstart - pops[i].q << '\t' << expdq << '\t' << pops[i].q << '\t' << qbar;							
+					}
+					if (tt == (num_gens - 1))
+					{
+						lastps.push_back(last_p);
+						if (pos[i])
+							sig_out << '\t' << pops[i].q;
+						else
+							sig_out << '\t';
+					}
+				}//end selection
 				if (pops[i].p < 0)
 					pops[i].p = 0;
 				if (pops[i].p > 1)
@@ -357,7 +395,7 @@ int main(int argc, char* argv[])
 				total_pop.q = total_pop.q + pops[i].q;
 				total_pop.het = total_pop.het + pops[i].het;
 				nbar = nbar + pops[i].pop_size;
-			}
+			}//end pops
 			total_pop.p = total_pop.p / num_pops;
 			total_pop.q = total_pop.q / num_pops;
 			total_pop.het = total_pop.het / num_pops;
@@ -410,8 +448,19 @@ int main(int argc, char* argv[])
 				allele_freqs << '\t' << pops[i].p << '\t' << pops[i].het;
 		}//gens
 		output << '\n' << pbar << '\t' << ht << '\t' << total_pop.het << '\t' << fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << total_pop.p;
+		/*if (sig)
+		{
+			double qhat;
+			for (i = 0; i < num_pops; i++)
+			{
+				qhat = (s*pops[i].q*pops[i].q)-((migration_rate+s)*pops[i].q)+(migration_rate*qbar);
+				deltaq << "\nloc" << t << "\tPop" << i << '\t' << pops[i].q << '\t' << qhat << '\t' << pops[i].p << '\t' << qbar << '\t' << migration_rate << '\t' << s;
+			}
+		}*/
 		
 		//sample populations
+
+		
 		nbar = 0;
 		if (random_sample == false)
 		{
@@ -540,8 +589,12 @@ int main(int argc, char* argv[])
 	output.close();
 	allele_freqs.close();
 	sample_out.close();
+	
 	if (overdominance || directional_selection)
+	{
 		sig_out.close();
+		deltaq.close();
+	}
 
 	genepop_out_name << base_name << "genepop";
 	genepop_out.open(genepop_out_name.str());

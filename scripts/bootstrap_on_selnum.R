@@ -24,3 +24,69 @@ proportions<-do.call(rbind,lapply(all.files, function(x) {
 rownames(proportions)<-all.files
 write.table(proportions,"ProportionOutliers.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
+
+
+###########TESTING
+gpop<-my.read.genepop("Nm20_d20_s20_ds01_test.genepop")
+sig<-read.table("Nm20_d20_s20_ds01_test.sigloci.txt",sep='\t')
+fsts<-calc.actual.fst(gpop)
+plot(fsts$Ht,fsts$Fst)
+points(fsts[fsts$Locus %in% sig$V1,"Ht"],fsts[fsts$Locus %in% sig$V1,"Fst"],pch=8,col="red")
+deltaq<-read.table("Nm20_d20_s20_ds01_test.delatq.txt",header=T)
+head(deltaq) 
+dqcalc<-function(x){
+	m<-0.02
+	s<-0.01
+	h<-0.5
+	dq<-((s*x$q)*(1-x$q)*(1-x$q+(h*((2*x$q)-1))))-(m*(x$q-x$Qbar))
+}
+rdq<-dqcalc(deltaq)
+  colnames(deltaq)<-c("locus","pop","q","qhat","p","qbar","m","s")
+
+deltas<-data.frame(dq=c(deltaq$Deltaq,deltaq$ObsDeltaq),
+	qtype=c(rep("Exp",nrow(deltaq)),rep("Obs",nrow(deltaq))),
+	locus=c(as.factor(as.character(deltaq$Locus)),
+		as.factor(as.character(deltaq$Locus))))
+
+qhat<-function(s,qbar,m){
+	a<-s*-1*0.5
+	b<-(s/2)-m
+	c<-m*qbar
+	q1<-((-1*b)+sqrt((b^2)-(4*a*c)))/(2*a)
+	q2<-((-1*b)-sqrt((b^2)-(4*a*c)))/(2*a)
+	return(cbind(q1,q2))
+}
+
+require(ggplot2)
+png("exp_obs_dq.png",height=7,width=8,units="in",res=300)
+par(lwd=1.3,cex=1.3)
+p<-ggplot(data = deltas, aes(x=as.factor(locus), y=dq)) + 
+	geom_boxplot(aes(fill=qtype))
+p <- p + xlab("Locus") + ylab("Change in q")
+p <- p + guides(fill=guide_legend(title="Type of delta-q"))
+p
+dev.off()
+
+dq.split<-split(deltaq,deltaq$Locus)
+png("checking_q.png",height=11,width=8,units="in",res=300)
+par(mfrow=c(5,2),oma=c(2,2,2,2),mar=c(2,2,2,2),lwd=1.3,cex=0.5)
+for(i in 1:length(dq.split)){
+	qhat<-sig[sig$V1 %in% factor(dq.split[[i]]$Locus),"V3"]
+	meanobs<-rowMeans(sig[sig$V1 %in% factor(dq.split[[i]]$Locus),4:23],
+		na.rm=T)
+	plot(dq.split[[i]]$Gen,dq.split[[i]]$q,xlab="",ylab="",type="l",las=1,
+		ylim=c(0,1))
+	mtext(dq.split[[i]]$Locus[1],3)
+	if(meanobs>0.5){
+		legend("bottom",c(paste("qbar=",dq.split[[i]]$Qbar[1]),
+			paste("qhat=",qhat),paste("Mean q at gen 5000=",meanobs)),
+			bty="n")
+	} else {
+		legend("top",c(paste("qbar=",dq.split[[i]]$Qbar[1]),
+			paste("qhat=",qhat),paste("Mean q at gen 5000=",meanobs)),
+			bty="n")
+	} 
+}
+mtext("Generation",1,outer=T)
+mtext("q",2,outer=T)
+dev.off()
