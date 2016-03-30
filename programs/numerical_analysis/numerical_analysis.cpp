@@ -230,9 +230,9 @@ int main(int argc, char* argv[])
 	{
 		sig_name = base_name + "sigloci.txt";
 		sig_out.open(sig_name);
-		deltaq_name = base_name + "delatq.txt";
+		/*deltaq_name = base_name + "delatq.txt";
 		deltaq.open(deltaq_name);
-		deltaq << "Pop\tGen\tLocus\tObsDeltaq\tDeltaq\tq\tQbar";
+		deltaq << "Pop\tGen\tLocus\tObsDeltaq\tDeltaq\tq\tQbar";*/
 	}
 	if (overdominance)
 	{
@@ -246,9 +246,9 @@ int main(int argc, char* argv[])
 	output.open(output_name.str());
 	output << "pbar\tHt\tHs\tWrightsFst\tWCFst\tWCFstSimple\tavgp";
 	stringstream allele_freqs_name;
-	allele_freqs_name << base_name << "freqs.txt";
+	/*allele_freqs_name << base_name << "freqs.txt";
 	allele_freqs.open(allele_freqs_name.str());
-	
+	*/
 	vector<population> sampled_pops;
 	vector<sampled_pop> samp_pops_genepop;
 	double allele1, allele2, total_p, total_het;
@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
 							pos[i] = true;
 						else
 							pos[i] = false;
-						
+						sig_out << '\t' << pos[i];
 					}
 				}
 				sig = true;
@@ -343,6 +343,10 @@ int main(int argc, char* argv[])
 				total_pop.het = total_pop.het / num_pops;
 			}
 			nbar = 0;
+			double mean_sig_q, mean_null_q, null_count, sig_count;
+			mean_sig_q = mean_null_q = null_count = sig_count = 0;
+			if (tt == (num_gens - 1) && sig)
+				sig_out << "\nloc" << t;
 			for (i = 0; i < num_pops; i++)
 			{
 				last_p = pops[i].p;
@@ -374,15 +378,22 @@ int main(int argc, char* argv[])
 						pops[i].q = ((pops[i].q*pops[i].q*w22) + (pops[i].p*pops[i].q*w12)) / wbar;
 						double expdq;
 						expdq = (s*pops[i].q*pops[i].q)*(1 - pops[i].q)*(1 - pops[i].q + (h*(2 * pops[i].q - 1))) - (migration_rate*(pops[i].q - qbar));
-						deltaq << '\n' << i << '\t' << tt << '\t' << "loc" << t << '\t' << qstart - pops[i].q << '\t' << expdq << '\t' << pops[i].q << '\t' << qbar;							
+						//deltaq << '\n' << i << '\t' << tt << '\t' << "loc" << t << '\t' << qstart - pops[i].q << '\t' << expdq << '\t' << pops[i].q << '\t' << qbar;							
 					}
 					if (tt == (num_gens - 1))
 					{
 						lastps.push_back(last_p);
+						sig_out << '\t' << pops[i].q;
 						if (pos[i])
-							sig_out << '\t' << pops[i].q;
+						{
+							mean_sig_q = mean_sig_q + pops[i].q;
+							sig_count++;
+						}
 						else
-							sig_out << '\t';
+						{
+							mean_null_q = mean_null_q + pops[i].q;
+							null_count++;
+						}
 					}
 				}//end selection
 				if (pops[i].p < 0)
@@ -396,6 +407,8 @@ int main(int argc, char* argv[])
 				total_pop.het = total_pop.het + pops[i].het;
 				nbar = nbar + pops[i].pop_size;
 			}//end pops
+			if (tt == (num_gens - 1) && sig)
+				sig_out << '\t' << mean_sig_q / sig_count << '\t' << mean_null_q / null_count;
 			total_pop.p = total_pop.p / num_pops;
 			total_pop.q = total_pop.q / num_pops;
 			total_pop.het = total_pop.het / num_pops;
@@ -436,7 +449,7 @@ int main(int argc, char* argv[])
 			else
 				wc_fst = 0;
 
-			if (t == 0)
+		/*	if (t == 0)
 			{
 				allele_freqs << "Time\tNumPops\tPbar\tAvgP\tAvgH\tWrightsFst\tWCFst\tWCFstSimple\tNbar\tnc\ts2\tr";
 				for (i = 0; i < num_pops; i++)
@@ -445,7 +458,7 @@ int main(int argc, char* argv[])
 			allele_freqs << '\n' << tt << '\t' << num_pops << '\t' << total_pop.p << '\t' << total_pop.het << '\t'
 				<< fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << nbar << '\t' << nc << '\t' << s2 << '\t' << r;
 			for (i = 0; i < num_pops; i++)
-				allele_freqs << '\t' << pops[i].p << '\t' << pops[i].het;
+				allele_freqs << '\t' << pops[i].p << '\t' << pops[i].het;*/
 		}//gens
 		output << '\n' << pbar << '\t' << ht << '\t' << total_pop.het << '\t' << fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << total_pop.p;
 		/*if (sig)
@@ -587,13 +600,13 @@ int main(int argc, char* argv[])
 		sample_out << '\n' << pbar << '\t' << ht << '\t' << total_pop.het << '\t' << fst << '\t' << wc_fst << '\t' << wc_fst8 << '\t' << total_pop.p;
 	}//reps
 	output.close();
-	allele_freqs.close();
+//	allele_freqs.close();
 	sample_out.close();
 	
 	if (overdominance || directional_selection)
 	{
 		sig_out.close();
-		deltaq.close();
+	//	deltaq.close();
 	}
 
 	genepop_out_name << base_name << "genepop";
