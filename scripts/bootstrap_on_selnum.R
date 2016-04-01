@@ -1,4 +1,4 @@
-source("E:/ubuntushare/fst_outliers/scripts/bootstrap_fst_het.R")
+source("E:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
 setwd("E:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
 
 all.files<-list.files(pattern=".genepop$")
@@ -25,7 +25,34 @@ rownames(proportions)<-all.files
 write.table(proportions,"ProportionOutliers.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
+####If you already made the files:
+all.files<-list.files(pattern=".genepop95")
 
+proportions<-do.call(rbind,lapply(all.files, function(x) {
+	prop95.dat<-read.csv(x,row.names=1)
+	prop99.dat<-read.csv(gsub("95","99",x),row.names=1)
+	prop95<-nrow(prop95.dat)/2000
+	prop99<-nrow(prop99.dat)/2000
+	sig<-read.table(gsub("genepop95.csv","sigloci.txt",x))
+	propSig95<-length(sig$V1[sig$V1 %in% prop95.dat$Locus])/nrow(sig)
+	propSig99<-length(sig$V1[sig$V1 %in% prop99.dat$Locus])/nrow(sig)
+	return(cbind(prop95,prop99,propSig95,propSig99))
+}))
+rownames(proportions)<-all.files
+write.table(proportions,"ProportionOutliers.txt",sep="\t",quote=F,row.names=T,
+	col.names=T)
+proportions$Nm<-as.vector(gsub("Nm(.*).d\\d+.*","\\1",rownames(proportions)))
+proportions$d<-as.vector(gsub(".*.d(\\d+).*","\\1",rownames(proportions)))
+proportions$s<-as.vector(gsub("Nm.*d.*.s(\\d+)[:punct:]ds.*","\\1",rownames(proportions)))
+proportions$ds<-as.vector(gsub(".*.ds(.*\\d).genepop95.csv","\\1",rownames(proportions)))
+proportions$ds[props$ds=="Nm20_d20_s20_ds01_test.genepop95.csv"]<-"0.01"
+props$s[props$d=="Nm20_d20_s20_ds01_test.genepop95.csv"]<-"0.01"
+proportions$Nm<-factor(proportions$Nm)
+proportions$d<-factor(proportions$d)
+proportions$s<-factor(proportions$d)
+proportions$ds<-factor(proportions$ds)
+
+gsub("Nm.*s(\\d+)[ds.*","\\1",rownames(proportions))
 ###########TESTING
 gpop<-my.read.genepop("Nm20_d20_s20_ds01_test.genepop")
 sig<-read.table("Nm20_d20_s20_ds01_test.sigloci.txt",sep='\t')
