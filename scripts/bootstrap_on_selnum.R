@@ -10,7 +10,7 @@ proportions<-do.call(rbind,lapply(all.files, function(x) {
 	fsts<-calc.actual.fst(gpop)
 	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
 	png(paste(x,".png",sep=""),height=7,width=7,units="in",res=300)
-	plot.cis(fsts,boot.out,make.file=F)
+	plotting.cis(fsts,boot.out,make.file=F)
 	points(fsts[fsts$Locus %in% sig$V1,c("Ht","Fst")],col="red",pch=8)
 	dev.off()
 	outliers<-find.outliers(fsts,boot.out=boot.out, 
