@@ -8,8 +8,8 @@ rm(list=ls())
 ###############################################################################
 #FDIST2
 ###############################################################################
-
-setwd("E://ubuntushare//fst-het")
+#PLOT ALL THE PARAMETER COMBINATIONS
+setwd("E://ubuntushare//fst_outliers//results//fdist2")
 
 file.list<-list.files(pattern="out.dat[2-5]\\d{2}.txt")
 for(i in 1:length(file.list)){
@@ -22,6 +22,26 @@ for(i in 1:length(file.list)){
 	}
 }
 
+#####MAKE FIG 2
+tl<-read.delim("out.dat21.txt",header=F,sep=' ')
+bl<-read.delim("out.dat6.txt",header=F,sep=' ')
+tr<-read.delim("out.dat171.txt",header=F,sep=' ')
+br<-read.delim("out.dat156.txt",header=F,sep=' ')
+
+pdf("../Figure2_FDISTresults.pdf")
+par(mfrow=c(2,2),oma=c(2,6,2,2),mar=c(2,2,2,2))
+plot(tl$V1, tl$V2, pch=19, ylab="",xlab="",las=1)
+mtext(expression(Estimated~italic(F)[ST]:~0.2),outer=F)
+mtext("Number of\nSampled\nDemes:",2,outer=F,line=3,las=1,at=0.6)
+mtext("10",2,outer=F,line=4,las=1)
+plot(tr$V1, tr$V2, pch=19, ylab="",xlab="",las=1)
+mtext(expression(Estimated~italic(F)[ST]:~0.8),outer=F)
+plot(bl$V1, bl$V2, pch=19, ylab="",xlab="",las=1)
+mtext(expression(italic(F)[ST]),2,outer=T)
+mtext("75",2,outer=F,line=4,las=1)
+plot(br$V1, br$V2, pch=19, ylab="",xlab="",las=1)
+mtext("Expected Heterozygosity",1,outer=T)
+dev.off()
 ###############################################################################
 ################NUMERICAL ANALYSIS
 ###############################################################################
@@ -136,7 +156,7 @@ for(i in 1:length(samp.files)){
 ############################################################################
 #PLOT FIG 3
 ############################################################################
-setwd("E://Docs//fst-het//results")
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
 
 
 dat.list<-list(
@@ -189,7 +209,7 @@ dev.off()
 ############################################################################
 #PLOT FIG 4
 ############################################################################
-setwd("E://Docs//fst-het//results")
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
 
 dat.list<-list(
 	read.delim("Nm1.2pops.1sample.n100.output.txt"),
@@ -238,7 +258,7 @@ dev.off()
 ############################################################################
 #PLOT FIG 5
 ############################################################################
-setwd("E://Docs//fst-het//results")
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
 
 dat.list<-list(
 	read.delim("Nm1.2pops.1sample.n1000.sampledpops.txt"),
