@@ -154,41 +154,49 @@ for(i in 1:length(samp.files)){
 }
 
 ############################################################################
-#PLOT FIG 3
+#PLOT FIG 3-REVISIONS
 ############################################################################
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
 
 
-dat.list<-list(
-	read.delim("Nm0.1.2pops.1sample.output.txt"),
-	read.delim("Nm1.2pops.1sample.output.txt"),
-	read.delim("Nm10.2pops.1sample.output.txt"),
-	read.delim("Nm0.1.5pops.1sample.output.txt"),
-	read.delim("Nm1.5pops.1sample.output.txt"),
-	read.delim("Nm10.5pops.1sample.output.txt"))
-names(dat.list)<-c("Nm0.1.2pops.1sample",
-	"Nm1.2pops.1sample","Nm10.2pops.1sample",
-	"Nm0.1.5pops.1sample","Nm1.5pops.1sample",
-	"Nm10.5pops.1sample")
+nm.list<-list(
+	read.delim("Nm0.1.d2.s2.fig.output.txt"),
+	read.delim("Nm1.d2.s2.fig.output.txt"),
+	read.delim("Nm10.d2.s2.fig.output.txt"),
+	read.delim("Nm0.1.d5.s5.fig.output.txt"),
+	read.delim("Nm1.d5.s5.fig.output.txt"),
+	read.delim("Nm10.d5.s5.fig.output.txt"))
+names(nm.list)<-c("Nm0.1.d2.s2","Nm1.d2.s2","Nm10.d2.s2",
+	"Nm0.1.d5.s5","Nm1.d5.s5","Nm10.d5.s5")
 Nms<-c(0.1,1,10,0.1,1,10)
-
+nm.cis<-list(
+	read.delim("Nm0.1.d2.s2.fig.genepop.ci"),
+	read.delim("Nm1.d2.s2.fig.genepop.ci"),
+	read.delim("Nm10.d2.s2.fig.genepop.ci"),
+	read.delim("Nm0.1.d5.s5.fig.genepop.ci"),
+	read.delim("Nm1.d5.s5.fig.genepop.ci"),
+	read.delim("Nm10.d5.s5.fig.genepop.ci"))
 
 png("fig3.png",width=169,height=169,units="mm",res=300)
+pdf("../Fig3_NmDemes.pdf")
 par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
-	oma = c(4, 4, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
-for (i in 1:length(dat.list)) {
+	oma = c(4, 4.5,1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
+for (i in 1:length(nm.list)) {
 	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
-	
-	y.max<-(max(dat.list[[i]]$WrightsFst)+2*sd(dat.list[[i]]$WrightsFst))
+	y.min<-min(min(nm.cis[[i]][,2]),min(nm.list[[i]]$WrightsFst))
+	y.max<-(max(nm.list[[i]]$WrightsFst)+2*sd(nm.list[[i]]$WrightsFst))
 	if(y.max>1)
 		y.max<-1
-	plot(dat.list[[i]]$Ht,dat.list[[i]]$WrightsFst,las=1,
-		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
+	plot(nm.list[[i]]$Ht,nm.list[[i]]$WrightsFst,las=1,ylab="",xlab="",
+		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(y.min,y.max))
+	points(nm.cis[[i]]$Het,nm.cis[[i]][,2],col="yellow",type="l")
+	points(nm.cis[[i]]$Het, nm.cis[[i]][,4],col="red",type="l")
 	Nm<-Nms[i]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=3)
-	avg.fst<-round(mean(dat.list[[i]]$WrightsFst),digits=3)
-	legend("topleft",c(paste("Exp. Fst = ",exp.fst),
-		paste("Mean Fst = ",avg.fst)),bty="n")
+	avg.fst<-round(mean(nm.list[[i]]$WrightsFst),digits=3)
+	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
+		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
+	legend("topleft",legend=as.expression(leg.nms),bty="n")
 	if (i %in% c(4,5,6))
 		axis(1, at = seq(0,0.6,0.1))
 	if(i==1){
@@ -202,12 +210,279 @@ for (i in 1:length(dat.list)) {
 	if(i==4)
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
-mtext("Ht",1,outer=T,line=2,cex=.75)
-mtext("Wright's Fst",2,outer=T,line=3,cex=.75)
+mtext(expression(italic(H)[italic(T)]),1,outer=T,line=2,cex=.75)
+mtext(expression(Wright~"'"~s~italic(F)[ST]),2,outer=T,line=3,cex=.75)
 dev.off()
 
 ############################################################################
-#PLOT FIG 4
+#PLOT FIG 4-REVISIONS (FORMER FIG 5)
+############################################################################
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
+
+smp.list<-list(
+	read.delim("Nm1.d2.s2.fig.sampledpops.txt"),
+	read.delim("Nm1.d2.s4.fig.sampledpops.txt"),
+	read.delim("Nm1.d2.s8.fig.sampledpops.txt"),
+	read.delim("Nm1.d5.s5.fig.sampledpops.txt"),
+	read.delim("Nm1.d5.s10.fig.sampledpops.txt"),
+	read.delim("Nm1.d5.s20.figs.sampledpops.txt"))
+names(smp.list)<-c("Nm1.d2.s2.fig","Nm1.d2.s4.fig","Nm1.d2.s8.fig",
+	"Nm1.d5.s5.fig","Nm1.d5.s10.fig","Nm1.d5.s20.fig")
+smp.cis<-list(
+	read.delim("Nm1.d2.s2.fig.genepop.ci"),
+	read.delim("Nm1.d2.s4.fig.genepop.ci"),
+	read.delim("Nm1.d2.s8.fig.genepop.ci"),
+	read.delim("Nm1.d5.s5.fig.genepop.ci"),
+	read.delim("Nm1.d5.s10.fig.genepop.ci"),
+	read.delim("Nm1.d5.s20.figs.genepop.ci"))
+
+#png("fig5.png",width=169,height=169,units="mm",res=300)
+pdf("../Fig4_samplesize.pdf")
+par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
+	oma = c(4, 4.5, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
+for (i in 1:length(smp.list)) {
+	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
+	y.min<-min(min(smp.cis[[i]][,2]),min(smp.list[[i]]$WrightsFst))
+	y.max<-(max(smp.list[[i]]$WrightsFst)+2*sd(smp.list[[i]]$WrightsFst))
+	if(y.max>1)
+		y.max<-1
+	plot(smp.list[[i]]$Ht,smp.list[[i]]$WrightsFst,las=1,xlab="",ylab="",
+		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
+	points(smp.cis[[i]]$Het,smp.cis[[i]][,2],col="yellow",type="l")
+	points(smp.cis[[i]]$Het, smp.cis[[i]][,4],col="red",type="l")
+	Nm<-strsplit(strsplit(names(smp.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
+	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
+	avg.fst<-round(mean(smp.list[[i]]$WrightsFst),digits=4)
+	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
+		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
+	legend("topleft",legend=as.expression(leg.nms),bty="n")
+
+	if (i %in% c(4,5,6))
+		axis(1, at = seq(0,0.6,0.1))
+	if(i==1){
+		mtext("1 Sample Per Deme", 3,cex=.75)
+		mtext("2 Demes",2,line=1.75,cex=.75)}
+	if(i==2)
+		mtext("2 Samples Per Deme",3,cex=.75)
+	if(i==3){
+		mtext("4 Samples Per Deme",3,cex=.75)
+	}
+	if(i==4)
+		mtext("5 Demes",2,line=1.75,cex=.75)
+}
+mtext(expression(italic(H)[italic(T)]),1,outer=T,line=2,cex=.75)
+mtext(expression(Wright~"'"~s~italic(F)[ST]),2,outer=T,line=3,cex=.75)
+
+dev.off()
+
+############################################################################
+#PLOT FIG 5-REVISIONS (FORMERLY PART OF S1-4)
+############################################################################
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
+
+find.los.sig<-function(ci.dat,loci.dat){
+	bal<-NULL
+	pos<-NULL
+	loci.dat<-loci.dat[loci.dat$Het>0,]
+	for(ii in 1:(nrow(ci.dat)-1)){
+		fst.het<-loci.dat[loci.dat$Het >= ci.dat[ii,"Het"] & 
+			loci.dat$Het <= ci.dat[(ii+1),"Het"],]
+		max.bound<-min(ci.dat[ii:(ii+1),4])
+		min.bound<-max(ci.dat[ii:(ii+1),2])
+		bal<-rbind(bal, fst.het[fst.het$Fst <= min.bound,]) 
+		pos<-rbind(pos, fst.het[fst.het$Fst >= max.bound,])
+	}
+	props<-c((nrow(bal)/nrow(loci.dat)), (nrow(pos)/nrow(loci.dat)),
+		((nrow(bal)+nrow(pos))/nrow(loci.dat)))	
+	return(props)
+}
+
+ci.files<-list.files(pattern="genepop.ci")
+loci.files<-list.files(pattern="genepop.loci")
+plot.ci.files<-ci.files[c(grep(".d2.",ci.files,fixed=T),
+	grep(".d5.",ci.files,fixed=T), grep(".d10.",ci.files,fixed=T),
+	grep(".d50.",ci.files,fixed=T))]
+plot.loci.files<-loci.files[c(grep(".d2.",loci.files,fixed=T),
+	grep(".d5.",loci.files,fixed=T), grep(".d10.",loci.files,fixed=T),
+	grep(".d50.",loci.files,fixed=T))]
+
+
+s2.ci<-plot.ci.files[grep(".s2.",plot.ci.files,fixed=T)]
+s5.ci<-plot.ci.files[grep(".s5.",plot.ci.files,fixed=T)]
+s10.ci<-plot.ci.files[grep(".s10.",plot.ci.files,fixed=T)]
+s20.ci<-plot.ci.files[grep(".s20.",plot.ci.files,fixed=T)]
+s2.loci<-plot.loci.files[grep(".s2.",plot.loci.files,fixed=T)]
+s5.loci<-plot.loci.files[grep(".s5.",plot.loci.files,fixed=T)]
+s10.loci<-plot.loci.files[grep(".s10.",plot.loci.files,fixed=T)]
+s20.loci<-plot.loci.files[grep(".s20.",plot.loci.files,fixed=T)]
+
+ci.list<-c(s2.ci[grep("Nm0.1",s2.ci,fixed=T)],
+	s5.ci[grep("Nm0.1",s5.ci,fixed=T)],
+	s10.ci[grep("Nm0.1",s10.ci,fixed=T)],
+	s20.ci[grep("Nm0.1",s20.ci,fixed=T)])
+loci.list<-c(s2.loci[grep("Nm0.1",s2.loci,fixed=T)],
+	s5.loci[grep("Nm0.1",s5.loci,fixed=T)],
+	s10.loci[grep("Nm0.1",s10.loci,fixed=T)],
+	s20.loci[grep("Nm0.1",s20.loci,fixed=T)])
+
+ss<-c(".s2.",".s5.",".s10.",".s20")
+ds<-c(".d2.",".d5.",".d10.",".d50.")
+
+
+#png(out.name,height=225,width=169,units="mm",res=300)
+pdf("../Fig5_jaggedPattern.pdf")
+par(mfrow=c(4,4), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
+for(i in 1:length(ds)){
+	for(j in 1:length(ss)){
+		ci.dat<-read.delim(ci.list[grep(ds[i], ci.list,fixed=T)[
+			grep(ds[i], ci.list,fixed=T) %in% 
+			grep(ss[j],ci.list,fixed=T)]])
+		sig.dat<-read.delim(loci.list[grep(ds[i],loci.list,fixed=T)[
+			grep(ds[i], loci.list,fixed=T) %in% 
+			grep(ss[j],loci.list,fixed=T)]])
+		plot(sig.dat$Het, sig.dat$Fst,las=1,ylim=c(0,1),
+			xlab="",ylab="",pch=19, xaxt="n",yaxt="n")
+		points(ci.dat$Het,ci.dat[,2],col="yellow",type="l")
+		points(ci.dat$Het, ci.dat[,4],col="red",type="l")
+
+		axis(1)
+		props<-find.los.sig(ci.dat,sig.dat)
+		legend("topleft",bty="n",
+			c(paste(round(props[1],3)," balancing"),
+			paste(round(props[2],3)," positive"),
+			paste(round(props[3],3)," total")))
+		if(i == 1 & j == 1){
+			mtext("2 Demes",2,cex=0.5,line=2)
+			mtext("2 Samples",3,cex=0.5)
+		}
+		if(i == 1 & j == 2){
+			mtext("5 Samples",3,cex=0.5)
+		}
+		if(i == 1 & j == 3){
+			mtext("10 Samples",3,cex=0.5)
+		}
+		if(i == 1 & j == 4){
+			mtext("20 Samples",3,cex=0.5)
+		}
+		if(i == 2 & j == 1){
+			mtext("5 Demes",2,cex=0.5,line=2)
+		}
+		if(i == 3 & j == 1){
+			mtext("10 Demes",2,cex=0.5,line=2)
+		}
+		if(i == 4 & j == 1){
+			mtext ("50 Demes",2,cex=0.5,line=2)
+		}
+		#if(i == 4){
+		#	axis(1)}
+		if(j == 1)
+			axis(2,las=1)
+	}
+}
+mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=0.5)
+mtext(expression(italic(F)[ST]),2,outer=T,line=2,cex=0.5)
+dev.off()
+
+############################################################################
+#PLOT FIG 6-REVISIONS
+############################################################################
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_selection")
+sel.list<-list(
+	read.delim("Nm1.d2.s20.ds0.output.txt"),
+	read.delim("Nm1.d2.s20.ds0.01.output.txt"),
+	read.delim("Nm1.d2.s20.ds0.1.output.txt"),
+	read.delim("Nm1.d2.s20.ds0.5.output.txt"),
+	read.delim("Nm1.d5.s20.ds0.output.txt"),
+	read.delim("Nm1.d5.s20.ds0.01.output.txt"),
+	read.delim("Nm1.d5.s20.ds0.1.output.txt"),
+	read.delim("Nm1.d5.s20.ds0.5.output.txt"))
+names(sel.list)<-c("d2.ds0","d2.ds0.01","d2.ds0.1","d2.ds0.5",
+	"d5.ds0","d5.ds0.01","d5.ds0.1","d5.ds0.5")
+sel.gpop.cis<-list(
+	read.delim("Nm1.d2.s20.ds0.genepop.ci"),
+	read.delim("Nm1.d2.s20.ds0.01.genepop.ci"),
+	read.delim("Nm1.d2.s20.ds0.1.genepop.ci"),
+	read.delim("Nm1.d2.s20.ds0.5.genepop.ci"),
+	read.delim("Nm1.d5.s20.ds0.genepop.ci"),
+	read.delim("Nm1.d5.s20.ds0.01.genepop.ci"),
+	read.delim("Nm1.d5.s20.ds0.1.genepop.ci"),
+	read.delim("Nm1.d5.s20.ds0.5.genepop.ci"))
+sel.gpop<-c("Nm1.d2.s20.ds0.genepop","Nm1.d2.s20.ds0.01.genepop",
+	"Nm1.d2.s20.ds0.1.genepop","Nm1.d2.s20.ds0.5.genepop",
+	"Nm1.d5.s20.ds0.genepop","Nm1.d5.s20.ds0.01.genepop",
+	"Nm1.d5.s20.ds0.1.genepop","Nm1.d5.s20.ds0.5.genepop")
+
+sels<-c(".ds0.",".ds0.01.",".ds0.1.",".ds0.5")
+ds<-c(".d2.",".d5.")
+
+#calculate cis from fhetboot
+sel.ci<-list()
+for(i in 1:length(sel.gpop)){
+	gpop<-my.read.genepop(sel.gpop[i])
+	fsts<-calc.actual.fst(gpop)
+	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
+	avg.ci95<-ci.means(boot.out[[2]])
+	write.csv(paste(sel.gpop[i],"fhetboot.95ci.csv",sep="."))
+	sel.ci[i]<-avg.ci95
+}
+
+#png(out.name,height=225,width=169,units="mm",res=300)
+pdf("../Fig6_fhetboot.pdf")
+par(mfrow=c(2,4), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
+for(i in 1:length(ds)){
+	for(j in 1:length(sels)){
+		ci.dat<-read.delim(ci.list[grep(ds[i], ci.list,fixed=T)[
+			grep(ds[i], ci.list,fixed=T) %in% 
+			grep(sels[j],ci.list,fixed=T)]])
+		sig.dat<-read.delim(loci.list[grep(ds[i],loci.list,fixed=T)[
+			grep(ds[i], loci.list,fixed=T) %in% 
+			grep(sels[j],loci.list,fixed=T)]])
+		plot(sig.dat$Het, sig.dat$Fst,las=1,ylim=c(0,1),
+			xlab="",ylab="",pch=19, xaxt="n",yaxt="n")
+		points(ci.dat$Het,ci.dat[,2],col="yellow",type="l")
+		points(ci.dat$Het, ci.dat[,4],col="red",type="l")
+
+		axis(1)
+		props<-find.los.sig(ci.dat,sig.dat)
+		legend("topleft",bty="n",
+			c(paste(round(props[1],3)," balancing"),
+			paste(round(props[2],3)," positive"),
+			paste(round(props[3],3)," total")))
+		if(i == 1 & j == 1){
+			mtext("2 Demes",2,cex=0.5,line=2)
+			mtext(expression(italic(s)"2 Samples",3,cex=0.5)
+		}
+		if(i == 1 & j == 2){
+			mtext("5 Samples",3,cex=0.5)
+		}
+		if(i == 1 & j == 3){
+			mtext("10 Samples",3,cex=0.5)
+		}
+		if(i == 1 & j == 4){
+			mtext("20 Samples",3,cex=0.5)
+		}
+		if(i == 2 & j == 1){
+			mtext("5 Demes",2,cex=0.5,line=2)
+		}
+		if(i == 3 & j == 1){
+			mtext("10 Demes",2,cex=0.5,line=2)
+		}
+		if(i == 4 & j == 1){
+			mtext ("50 Demes",2,cex=0.5,line=2)
+		}
+		#if(i == 4){
+		#	axis(1)}
+		if(j == 1)
+			axis(2,las=1)
+	}
+}
+mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=0.5)
+mtext(expression(italic(F)[ST]),2,outer=T,line=2,cex=0.5)
+dev.off()
+
+
+############################################################################
+#PLOT FIG S2-REVISIONS (FORMER FIG 4)
 ############################################################################
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
 
@@ -222,6 +497,14 @@ names(dat.list)<-c("Nm1.2pops.1sample.n100",
 	"Nm1.2pops.1sample.n500","Nm1.2pops.1sample.n1000",
 	"Nm1.5pops.1sample.n100","Nm1.5pops.1sample.n500",
 	"Nm1.5pops.1sample.n1000")
+nm.cis<-list(
+	read.delim("Nm0.1.d2.s2.fig.genepop.ci"),
+	read.delim("Nm1.d2.s2.fig.genepop.ci"),
+	read.delim("Nm10.d2.s2.fig.genepop.ci"),
+	read.delim("Nm0.1.d5.s5.fig.genepop.ci"),
+	read.delim("Nm1.d5.s5.fig.genepop.ci"),
+	read.delim("Nm10.d5.s5.fig.genepop.ci"))
+
 png("fig4.png",width=169,height=169,units="mm",res=300)
 par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
 	oma = c(4, 4, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
@@ -231,13 +514,18 @@ for (i in 1:length(dat.list)) {
 	y.max<-(max(dat.list[[i]]$WrightsFst)+2*sd(dat.list[[i]]$WrightsFst))
 	if(y.max>1)
 		y.max<-1
-	plot(dat.list[[i]]$Ht,dat.list[[i]]$WrightsFst,las=1,
+	plot(dat.list[[i]]$Ht,dat.list[[i]]$WrightsFst,las=1,,xlab="",ylab="",
 		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
+	points(nm.cis[[i]]$Het,nm.cis[[i]][,2],col="yellow",type="l")
+	points(nm.cis[[i]]$Het, nm.cis[[i]][,4],col="red",type="l")
+
 	Nm<-strsplit(strsplit(names(dat.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
 	avg.fst<-round(mean(dat.list[[i]]$WrightsFst),digits=4)
-	legend("topleft",c(paste("Exp. Fst = ",exp.fst),
-		paste("Mean Fst = ",avg.fst)),bty="n")
+	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
+		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
+	legend("topleft",legend=as.expression(leg.nms),bty="n")
+
 	if (i %in% c(4,5,6))
 		axis(1, at = seq(0,0.6,0.1))
 	if(i==1){
@@ -251,63 +539,123 @@ for (i in 1:length(dat.list)) {
 	if(i==4)
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
-mtext("Ht",1,outer=T,line=2,cex=.75)
-mtext("Wright's Fst",2,outer=T,line=3,cex=.75)
+mtext(expression(italic(H)[italic(T)]),1,outer=T,line=2,cex=.75)
+mtext(expression(Wright~"'"~s~italic(F)[ST]),2,outer=T,line=3,cex=.75)
 dev.off()
 
 ############################################################################
-#PLOT FIG 5
+#PLOT FIGS S3-S6-REVISIONS (FORMER S1-S4)
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
+setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
+ci.files<-list.files(pattern="genepop.ci")
+loci.files<-list.files(pattern="genepop.loci")
+plot.ci.files<-ci.files[c(grep(".d2.",ci.files,fixed=T),
+	grep(".d5.",ci.files,fixed=T), grep(".d10.",ci.files,fixed=T),
+	grep(".d50.",ci.files,fixed=T))]
+plot.loci.files<-loci.files[c(grep(".d2.",loci.files,fixed=T),
+	grep(".d5.",loci.files,fixed=T), grep(".d10.",loci.files,fixed=T),
+	grep(".d50.",loci.files,fixed=T))]
 
-dat.list<-list(
-	read.delim("Nm1.2pops.1sample.n1000.sampledpops.txt"),
-	read.delim("Nm1.2pops.2sample.n1000.sampledpops.txt"),
-	read.delim("Nm1.2pops.4sample.n1000.sampledpops.txt"),
-	read.delim("Nm1.5pops.1sample.n1000.sampledpops.txt"),
-	read.delim("Nm1.5pops.2sample.n1000.sampledpops.txt"),
-	read.delim("Nm1.5pops.4sample.n1000.sampledpops.txt"))
-names(dat.list)<-c("Nm1.2pops.1sample.n1000",
-	"Nm1.2pops.2sample.n1000","Nm1.2pops.4sample.n1000",
-	"Nm1.5pops.1sample.n1000","Nm1.5pops.2sample.n1000",
-	"Nm1.5pops.4sample.n1000")
 
-png("fig5.png",width=169,height=169,units="mm",res=300)
-par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
-	oma = c(4, 4, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
-for (i in 1:length(dat.list)) {
-	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
-	
-	y.max<-(max(dat.list[[i]]$WrightsFst)+2*sd(dat.list[[i]]$WrightsFst))
-	if(y.max>1)
-		y.max<-1
-	plot(dat.list[[i]]$Ht,dat.list[[i]]$WrightsFst,las=1,
-		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
-	Nm<-strsplit(strsplit(names(dat.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
-	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
-	avg.fst<-round(mean(dat.list[[i]]$WrightsFst),digits=4)
-	legend("topleft",c(paste("Exp. Fst = ",exp.fst),
-		paste("Mean Fst = ",avg.fst)),bty="n")
-	if (i %in% c(4,5,6))
-		axis(1, at = seq(0,0.6,0.1))
-	if(i==1){
-		mtext("1 Sample Per Deme", 3,cex=.75)
-		mtext("2 Demes",2,line=1.75,cex=.75)}
-	if(i==2)
-		mtext("2 Samples Per Deme",3,cex=.75)
-	if(i==3){
-		mtext("4 Samples Per Deme",3,cex=.75)
+s2.ci<-plot.ci.files[grep(".s2.",plot.ci.files,fixed=T)]
+s5.ci<-plot.ci.files[grep(".s5.",plot.ci.files,fixed=T)]
+s10.ci<-plot.ci.files[grep(".s10.",plot.ci.files,fixed=T)]
+s20.ci<-plot.ci.files[grep(".s20.",plot.ci.files,fixed=T)]
+s2.loci<-plot.loci.files[grep(".s2.",plot.loci.files,fixed=T)]
+s5.loci<-plot.loci.files[grep(".s5.",plot.loci.files,fixed=T)]
+s10.loci<-plot.loci.files[grep(".s10.",plot.loci.files,fixed=T)]
+s20.loci<-plot.loci.files[grep(".s20.",plot.loci.files,fixed=T)]
+
+nms<-c("Nm1.","Nm10.")
+ds<-c(".d2.",".d5.",".d10.",".d50.")
+
+find.los.sig<-function(ci.dat,loci.dat){
+	bal<-NULL
+	pos<-NULL
+	loci.dat<-loci.dat[loci.dat$Het>0,]
+	for(ii in 1:(nrow(ci.dat)-1)){
+		fst.het<-loci.dat[loci.dat$Het >= ci.dat[ii,"Het"] & 
+			loci.dat$Het <= ci.dat[(ii+1),"Het"],]
+		max.bound<-min(ci.dat[ii:(ii+1),4])
+		min.bound<-max(ci.dat[ii:(ii+1),2])
+		bal<-rbind(bal, fst.het[fst.het$Fst <= min.bound,]) 
+		pos<-rbind(pos, fst.het[fst.het$Fst >= max.bound,])
 	}
-	if(i==4)
-		mtext("5 Demes",2,line=1.75,cex=.75)
+	props<-c((nrow(bal)/nrow(loci.dat)), (nrow(pos)/nrow(loci.dat)),
+		((nrow(bal)+nrow(pos))/nrow(loci.dat)))	
+	return(props)
 }
-mtext("Ht",1,outer=T,line=2,cex=.75)
-mtext("Wright's Fst",2,outer=T,line=3,cex=.75)
-dev.off()
+
+plot.lositan<-function(ci.list,loci.list,out.name,colgroups,rowgroups,pdf=F){
+	if(pdf==FALSE){
+		png(paste(out.name,"png",sep="."),height=225,width=169,
+			units="mm",res=300)
+	} else{
+		pdf(paste(out.name,"pdf",sep="."))
+	}
+	numcol<-length(colgroups)
+	numrow<-length(rowgroups)
+	par(mfrow=c(numrow,numcol), oma=c(2,3,1,1),mar=c(1,1,1,0),
+		mgp=c(3,0.65,0),cex=0.5)
+	for(i in 1:length(rowgroups)){
+		for(j in 1:length(colgroups)){
+			ci.dat<-read.delim(ci.list[grep(rowgroups[i], ci.list,fixed=T)[
+				grep(rowgroups[i], ci.list,fixed=T) %in% 
+				grep(colgroups[j],ci.list,fixed=T)]])
+			sig.dat<-read.delim(loci.list[grep(rowgroups[i],loci.list,fixed=T)[
+				grep(rowgroups[i], loci.list,fixed=T) %in% 
+				grep(colgroups[j],loci.list,fixed=T)]])
+			plot(sig.dat$Het, sig.dat$Fst,las=1,ylim=c(0,1),
+				xlab="",ylab="",pch=19, xaxt="n",yaxt="n")
+			points(ci.dat$Het,ci.dat[,2],col="yellow",type="l")
+			points(ci.dat$Het, ci.dat[,4],col="red",type="l")
+			axis(1)
+			props<-find.los.sig(ci.dat,sig.dat)
+			legend("topleft",bty="n",
+				c(paste(round(props[1],3)," balancing"),
+				paste(round(props[2],3)," positive"),
+				paste(round(props[3],3)," total")))
+			cnames<-gsub("Nm(\\d+).","\\1",nms)
+			rnames<-gsub(".d(\\d+).","\\1",ds)
+			if(i == 1 & j == 1){
+				mtext(bquote(.(rnames[i])~Demes),2,cex=0.5,line=2)
+				mtext(bquote(Nm~"="~.(cnames[j])),3,cex=0.5)
+			}
+			if(i == 1 & j == 2){
+				mtext(bquote(Nm~"="~.(cnames[j])),3,cex=0.5)
+			}
+			if(i == 1 & j == 3){
+				mtext(bquote(Nm~"="~.(cnames[j])),3,cex=0.5)
+			}
+			if(i == 2 & j == 1){
+				mtext(bquote(.(rnames[i])~Demes),2,cex=0.5,line=2)
+			}
+			if(i == 3 & j == 1){
+				mtext(bquote(.(rnames[i])~Demes),2,cex=0.5,line=2)
+			}
+			if(i == 4 & j == 1){
+				mtext(bquote(.(rnames[i])~Demes),2,cex=0.5,line=2)
+			}
+			#if(i == 4){
+			#	axis(1)}
+			if(j == 1)
+				axis(2,las=1)
+		}
+	}
+	mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=0.5)
+	mtext(expression(italic(F)[ST]),2,outer=T,line=2,cex=0.5)
+	dev.off()
+}
+
+plot.lositan(s2.ci,s2.loci,"../S3.s2",nms,ds,pdf=TRUE)
+plot.lositan(s5.ci,s5.loci,"../S5.s5",nms,ds,pdf=TRUE)
+plot.lositan(s10.ci,s10.loci,"../S10.s10",nms,ds,pdf=TRUE)
+plot.lositan(s20.ci,s20.loci,"../S20.s20",nms,ds,pdf=TRUE)
+
 
 
 ############################################################################
-#EXPLORING PARAMETER SPACE
+#EXPLORING LOSITAN PARAMETER SPACE
 ############################################################################
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
 
@@ -385,105 +733,69 @@ mtext("Heterozygosity",1,line=0.5,outer=T,cex=0.5)
 mtext("Fst",2,outer=T,line=1,cex=0.5)
 dev.off()
 
-############################################################################
-#FIGS 6
-############################################################################
-#samples.ci<-lapply(strsplit(ci.files,".s"),function(x){
-#	strsplit(x[2],".",fixed=TRUE)[[1]][1]})
-ci.files<-list.files(pattern="genepop.ci")
-loci.files<-list.files(pattern="genepop.loci")
-plot.ci.files<-ci.files[c(grep(".d2.",ci.files,fixed=T),
-	grep(".d5.",ci.files,fixed=T), grep(".d10.",ci.files,fixed=T),
-	grep(".d50.",ci.files,fixed=T))]
-plot.loci.files<-loci.files[c(grep(".d2.",loci.files,fixed=T),
-	grep(".d5.",loci.files,fixed=T), grep(".d10.",loci.files,fixed=T),
-	grep(".d50.",loci.files,fixed=T))]
+#testing genepop
+s2d2.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp2deme2.txt")
+s2d2.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme2genepop.loci")
+s2d2.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme2genepop.ci")
+s2d2.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp2.deme2.sampledpops.txt")
+s2d100.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp2deme100.txt")
+s2d100.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme100genepop.loci")
+s2d100.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme100genepop.ci")
+s2d100.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp2.deme100.sampledpops.txt")
+s5d2.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp5deme2.txt")
+s5d2.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme2genepop.loci")
+s5d2.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme2genepop.ci")
+s5d2.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp5.deme2.sampledpops.txt")
+s5d100.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp5deme100.txt")
+s5d100.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme100genepop.loci")
+s5d100.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme100genepop.ci")
+s5d100.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp5.deme100.sampledpops.txt")
 
+png("genepop.comparison.png",height=225,width=169,units="mm",res=300)
+par(mfrow=c(4,3), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
+plot(s2d2.gene$Het, s2d2.gene$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+mtext("Genepop",3)
+mtext("2 Demes, 2 Samples",2)
+plot(s2d2.loci$Het, s2d2.loci$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+points(s2d2.ci$Het,s2d2.ci[,2],col="yellow",type="l")
+points(s2d2.ci$Het, s2d2.ci[,4],col="red",type="l")
+mtext("Lositan", 3)
+plot(s2d2.mydat$Ht, s2d2.mydat$WrightsFst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+mtext("My Calcs",3)
+			
+plot(s2d100.gene$Het, s2d100.gene$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+mtext("100 Demes, 2 Samples",2)
+plot(s2d100.loci$Het, s2d100.loci$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+points(s2d100.ci$Het,s2d100.ci[,2],col="yellow",type="l")
+points(s2d100.ci$Het, s2d100.ci[,4],col="red",type="l")
+plot(s2d100.mydat$Ht, s2d100.mydat$WrightsFst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
 
-s2.ci<-plot.ci.files[grep(".s2.",plot.ci.files,fixed=T)]
-s5.ci<-plot.ci.files[grep(".s5.",plot.ci.files,fixed=T)]
-s10.ci<-plot.ci.files[grep(".s10.",plot.ci.files,fixed=T)]
-s20.ci<-plot.ci.files[grep(".s20.",plot.ci.files,fixed=T)]
-s2.loci<-plot.loci.files[grep(".s2.",plot.loci.files,fixed=T)]
-s5.loci<-plot.loci.files[grep(".s5.",plot.loci.files,fixed=T)]
-s10.loci<-plot.loci.files[grep(".s10.",plot.loci.files,fixed=T)]
-s20.loci<-plot.loci.files[grep(".s20.",plot.loci.files,fixed=T)]
+plot(s5d2.gene$Het, s5d2.gene$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+mtext("2 Demes, 5 Samples",2)
+plot(s5d2.loci$Het, s5d2.loci$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+points(s5d2.ci$Het,s5d2.ci[,2],col="yellow",type="l")
+points(s5d2.ci$Het,s5d2.ci[,4],col="red",type="l")
+plot(s5d2.mydat$Ht, s5d2.mydat$WrightsFst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
 
-nms<-c("Nm0.1.","Nm1.","Nm10.")
-ds<-c(".d2.",".d5.",".d10.",".d50.")
-
-find.los.sig<-function(ci.dat,loci.dat){
-	bal<-NULL
-	pos<-NULL
-	loci.dat<-loci.dat[loci.dat$Het>0,]
-	for(ii in 1:(nrow(ci.dat)-1)){
-		fst.het<-loci.dat[loci.dat$Het >= ci.dat[ii,"Het"] & 
-			loci.dat$Het <= ci.dat[(ii+1),"Het"],]
-		max.bound<-min(ci.dat[ii:(ii+1),4])
-		min.bound<-max(ci.dat[ii:(ii+1),2])
-		bal<-rbind(bal, fst.het[fst.het$Fst <= min.bound,]) 
-		pos<-rbind(pos, fst.het[fst.het$Fst >= max.bound,])
-	}
-	props<-c((nrow(bal)/nrow(loci.dat)), (nrow(pos)/nrow(loci.dat)),
-		((nrow(bal)+nrow(pos))/nrow(loci.dat)))	
-	return(props)
-}
-
-plot.lositan<-function(ci.list,loci.list,out.name){
-	png(out.name,height=225,width=169,units="mm",res=300)
-	par(mfrow=c(4,3), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
-	for(i in 1:length(ds)){
-		for(j in 1:length(nms)){
-			ci.dat<-read.delim(ci.list[grep(ds[i], ci.list,fixed=T)[
-				grep(ds[i], ci.list,fixed=T) %in% 
-				grep(nms[j],ci.list,fixed=T)]])
-			sig.dat<-read.delim(loci.list[grep(ds[i],loci.list,fixed=T)[
-				grep(ds[i], loci.list,fixed=T) %in% 
-				grep(nms[j],loci.list,fixed=T)]])
-			plot(sig.dat$Het, sig.dat$Fst,las=1,ylim=c(0,1),
-				xlab="",ylab="",pch=19, xaxt="n",yaxt="n")
-			points(ci.dat$Het,ci.dat[,2],col="yellow",type="l")
-			points(ci.dat$Het, ci.dat[,4],col="red",type="l")
-			axis(1)
-			props<-find.los.sig(ci.dat,sig.dat)
-			legend("topleft",bty="n",
-				c(paste(round(props[1],3)," balancing"),
-				paste(round(props[2],3)," positive"),
-				paste(round(props[3],3)," total")))
-			if(i == 1 & j == 1){
-				mtext("2 Demes",2,cex=0.5,line=2)
-				mtext("Nm = 0.1",3,cex=0.5)
-			}
-			if(i == 1 & j == 2){
-				mtext("Nm = 1",3,cex=0.5)
-			}
-			if(i == 1 & j == 3){
-				mtext("Nm = 10",3,cex=0.5)
-			}
-			if(i == 2 & j == 1){
-				mtext("5 Demes",2,cex=0.5,line=2)
-			}
-			if(i == 3 & j == 1){
-				mtext("10 Demes",2,cex=0.5,line=2)
-			}
-			if(i == 4 & j == 1){
-				mtext ("50 Demes",2,cex=0.5,line=2)
-			}
-			#if(i == 4){
-			#	axis(1)}
-			if(j == 1)
-				axis(2,las=1)
-		}
-	}
-	mtext("Heterozygosity",1,line=0.5,outer=T,cex=0.5)
-	mtext("Fst",2,outer=T,line=2,cex=0.5)
-	dev.off()
-}
-
-plot.lositan(s2.ci,s2.loci,"fig6.s2.png")
-plot.lositan(s5.ci,s5.loci,"fig6.s5.png")
-plot.lositan(s10.ci,s10.loci,"fig6.s10.png")
-plot.lositan(s20.ci,s20.loci,"fig6.s20.png")
+plot(s5d100.gene$Het,s5d100.gene$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+mtext("100 Demes, 5 Samples",2)
+plot(s5d100.loci$Het, s5d100.loci$Fst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+points(s5d100.ci$Het,s5d100.ci[,2],col="yellow",type="l")
+points(s5d100.ci$Het,s5d100.ci[,4],col="red",type="l")
+plot(s5d100.mydat$Ht, s5d100.mydat$WrightsFst,las=1,ylim=c(0,1),
+	xlab="",ylab="",pch=19)
+dev.off()
 
 #my dat
 
@@ -562,71 +874,6 @@ plot.mydat.lositan(s2.ci,s2.loci,"fig6.s2.mydat.png")
 plot.mydat.lositan(s5.ci,s5.loci,"fig6.s5.mydat.png")
 plot.mydat.lositan(s10.ci,s10.loci,"fig6.s10.mydat.png")
 plot.mydat.lositan(s20.ci,s20.loci,"fig6.s20.mydat.png")
-
-
-#testing genepop
-s2d2.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp2deme2.txt")
-s2d2.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme2genepop.loci")
-s2d2.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme2genepop.ci")
-s2d2.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp2.deme2.sampledpops.txt")
-s2d100.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp2deme100.txt")
-s2d100.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme100genepop.loci")
-s2d100.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp2deme100genepop.ci")
-s2d100.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp2.deme100.sampledpops.txt")
-s5d2.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp5deme2.txt")
-s5d2.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme2genepop.loci")
-s5d2.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme2genepop.ci")
-s5d2.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp5.deme2.sampledpops.txt")
-s5d100.gene<-read.delim("E://ubuntushare//numerical_analysis_genepop//samp5deme100.txt")
-s5d100.loci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme100genepop.loci")
-s5d100.ci<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10samp5deme100genepop.ci")
-s5d100.mydat<-read.delim("E://ubuntushare//numerical_analysis_genepop//loc10.samp5.deme100.sampledpops.txt")
-
-png("genepop.comparison.png",height=225,width=169,units="mm",res=300)
-par(mfrow=c(4,3), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
-plot(s2d2.gene$Het, s2d2.gene$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-mtext("Genepop",3)
-mtext("2 Demes, 2 Samples",2)
-plot(s2d2.loci$Het, s2d2.loci$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-points(s2d2.ci$Het,s2d2.ci[,2],col="yellow",type="l")
-points(s2d2.ci$Het, s2d2.ci[,4],col="red",type="l")
-mtext("Lositan", 3)
-plot(s2d2.mydat$Ht, s2d2.mydat$WrightsFst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-mtext("My Calcs",3)
-			
-plot(s2d100.gene$Het, s2d100.gene$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-mtext("100 Demes, 2 Samples",2)
-plot(s2d100.loci$Het, s2d100.loci$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-points(s2d100.ci$Het,s2d100.ci[,2],col="yellow",type="l")
-points(s2d100.ci$Het, s2d100.ci[,4],col="red",type="l")
-plot(s2d100.mydat$Ht, s2d100.mydat$WrightsFst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-
-plot(s5d2.gene$Het, s5d2.gene$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-mtext("2 Demes, 5 Samples",2)
-plot(s5d2.loci$Het, s5d2.loci$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-points(s5d2.ci$Het,s5d2.ci[,2],col="yellow",type="l")
-points(s5d2.ci$Het,s5d2.ci[,4],col="red",type="l")
-plot(s5d2.mydat$Ht, s5d2.mydat$WrightsFst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-
-plot(s5d100.gene$Het,s5d100.gene$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-mtext("100 Demes, 5 Samples",2)
-plot(s5d100.loci$Het, s5d100.loci$Fst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-points(s5d100.ci$Het,s5d100.ci[,2],col="yellow",type="l")
-points(s5d100.ci$Het,s5d100.ci[,4],col="red",type="l")
-plot(s5d100.mydat$Ht, s5d100.mydat$WrightsFst,las=1,ylim=c(0,1),
-	xlab="",ylab="",pch=19)
-dev.off()
 
 ############################################################################
 #ADAM'S CODE FIGS
