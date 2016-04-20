@@ -484,44 +484,43 @@ dev.off()
 ############################################################################
 #PLOT FIG S2-REVISIONS (FORMER FIG 4)
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
+setwd("B://ubuntushare//fst_outliers//results")
 
-dat.list<-list(
-	read.delim("Nm1.2pops.1sample.n100.output.txt"),
-	read.delim("Nm1.2pops.1sample.n500.output.txt"),
-	read.delim("Nm1.2pops.1sample.n1000.output.txt"),
-	read.delim("Nm1.5pops.1sample.n100.output.txt"),
-	read.delim("Nm1.5pops.1sample.n500.output.txt"),
-	read.delim("Nm1.5pops.1sample.n1000.output.txt"))
-names(dat.list)<-c("Nm1.2pops.1sample.n100",
-	"Nm1.2pops.1sample.n500","Nm1.2pops.1sample.n1000",
-	"Nm1.5pops.1sample.n100","Nm1.5pops.1sample.n500",
-	"Nm1.5pops.1sample.n1000")
-nm.cis<-list(
-	read.delim("Nm0.1.d2.s2.fig.genepop.ci"),
-	read.delim("Nm1.d2.s2.fig.genepop.ci"),
-	read.delim("Nm10.d2.s2.fig.genepop.ci"),
-	read.delim("Nm0.1.d5.s5.fig.genepop.ci"),
-	read.delim("Nm1.d5.s5.fig.genepop.ci"),
-	read.delim("Nm10.d5.s5.fig.genepop.ci"))
+pop.list<-list(
+	read.delim("Nm1.d2.n100.output.txt"),
+	read.delim("Nm1.d2.n500.fig.output.txt"),
+	read.delim("Nm1.d2.n1000.fig.output.txt"),
+	read.delim("Nm1.d5.n100.fig.output.txt"),
+	read.delim("Nm1.d5.n500.fig.output.txt"),
+	read.delim("Nm1.d5.n1000.fig.output.txt"))
+names(pop.list)<-c("Nm1.d2.n100","Nm1.d2.n500","Nm1.d2.n1000",
+	"Nm1.d5.n100","Nm1.d5.n500","Nm1.d5.n1000")
+pop.cis<-list(
+	read.delim("Nm1.d2.n100.genepop.ci"),
+	read.delim("Nm1.d2.n500.fig.genepop.ci"),
+	read.delim("Nm1.d2.n1000.fig.genepop.ci"),
+	read.delim("Nm1.d5.n100.fig.genepop.ci"),
+	read.delim("Nm1.d5.n500.fig.genepop.ci"),
+	read.delim("Nm1.d5.n1000.fig.genepop.ci"))
 
-png("fig4.png",width=169,height=169,units="mm",res=300)
+
+pdf("FigS2_popsize.pdf")
 par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
-	oma = c(4, 4, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
-for (i in 1:length(dat.list)) {
+	oma = c(4, 4.5, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
+for (i in 1:length(pop.list)) {
 	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
-	
-	y.max<-(max(dat.list[[i]]$WrightsFst)+2*sd(dat.list[[i]]$WrightsFst))
+	y.min<-min(min(pop.cis[[i]][,2]),min(pop.list[[i]]$WrightsFst))
+	y.max<-(max(pop.list[[i]]$WrightsFst)+2*sd(pop.list[[i]]$WrightsFst))
 	if(y.max>1)
 		y.max<-1
-	plot(dat.list[[i]]$Ht,dat.list[[i]]$WrightsFst,las=1,,xlab="",ylab="",
+	plot(pop.list[[i]]$Ht,pop.list[[i]]$WrightsFst,las=1,,xlab="",ylab="",
 		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
-	points(nm.cis[[i]]$Het,nm.cis[[i]][,2],col="yellow",type="l")
-	points(nm.cis[[i]]$Het, nm.cis[[i]][,4],col="red",type="l")
+	points(pop.cis[[i]]$Het,pop.cis[[i]][,2],col="yellow",type="l")
+	points(pop.cis[[i]]$Het, pop.cis[[i]][,4],col="red",type="l")
 
-	Nm<-strsplit(strsplit(names(dat.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
+	Nm<-strsplit(strsplit(names(pop.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
-	avg.fst<-round(mean(dat.list[[i]]$WrightsFst),digits=4)
+	avg.fst<-round(mean(pop.list[[i]]$WrightsFst),digits=4)
 	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
 		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
