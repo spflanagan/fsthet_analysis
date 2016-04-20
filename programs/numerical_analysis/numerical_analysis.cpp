@@ -78,6 +78,7 @@ int main(int argc, char* argv[])
 
 	base_name = "default";	
 	s = 0.005;
+	pop_size = 1000;
 
 	if (argc == 1)
 	{
@@ -88,6 +89,7 @@ int main(int argc, char* argv[])
 			cout << "\nnumerical_analysis:\n";
 			cout << "Runs numerical analysis to generate Fst-Het patterns\n";
 			cout << "-o:\tbase file name (include path). Example: N1000_s10_\n";
+			cout << "-p:\tPopulation size (N). This number is set to 1000 if not specified and is constant among all populations.\n";
 			cout << "-n:\tNm\n";
 			cout << "-d:\tnumber of demes\n";
 			cout << "-r:\trandom sample? In interactive mode, use Y to turn on and N to turn off. In command-line mode, use 1 to turn on.\n";
@@ -111,6 +113,7 @@ int main(int argc, char* argv[])
 			cout << "\nnumerical_analysis:\n";
 			cout << "Runs numerical analysis to generate Fst-Het patterns\n";
 			cout << "-o:\tbase file name (include path). Example: N1000_s10_\n";
+			cout << "-p:\tPopulation size (N). This number is set to 1000 if not specified and is constant among all populations.\n";
 			cout << "-n:\tNm\n";
 			cout << "-d:\tnumber of subpopulations/demes\n";
 			cout << "-r:\trandom sample? In interactive mode, use Y to turn on and N to turn off. In command-line mode, use 1 to turn on.\n";
@@ -127,6 +130,8 @@ int main(int argc, char* argv[])
 	{
 		tempstring1 = argv[i];
 		tempstring2 = argv[i + 1];
+		if (tempstring1 == "-p")
+			pop_size = atoi(tempstring2.c_str());
 		if (tempstring1 == "-o")
 			base_name = tempstring2;
 		if (tempstring1 == "-n")
@@ -168,6 +173,8 @@ int main(int argc, char* argv[])
 	{
 		cout << "\nProvide base file name (include path). Example: N1000_s10_\n";
 		cin >> base_name;
+		cout << "\nProvide population size (enter 1000 for the default).\n";
+		cin >> pop_size;
 		cout << "\nProvide Nm\n";
 		cin >> Nm;
 		cout << "\nProvide the number of subpopulations/demes\n";
@@ -202,7 +209,7 @@ int main(int argc, char* argv[])
 			directional_selection = false;
 	}
 	
-	pop_size = 1000;
+	
 	total_pop.pop_size = pop_size * num_pops;
 
 	num_reps = 2000;
