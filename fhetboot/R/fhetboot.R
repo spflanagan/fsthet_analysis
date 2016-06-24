@@ -1,4 +1,6 @@
 #Author: Sarah P. Flanagan
+#Last updated 24 June 2016
+#Latest update allows haploid genepop format and omits missing data
 #Date: 15 February 2016
 #Purpose: bootstrap over a genepop file to generate a null distribution
 #and then use Johnson distribution to generate confidence intervals.
@@ -72,12 +74,20 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 
 calc.allele.freq<-function(genotypes){
 	obs.gen<-summary(as.factor(genotypes))
+	obs.gen<-obs.gen[names(obs.gen) != "000000" & names(obs.gen) 
+		!= "0000" & names(obs.gen) != "0"]
 	if(nchar(names(obs.gen[1])) %% 2 == 0){
 		splitnum<-nchar(names(obs.gen[1]))/2
 		alleles<-cbind(substr(genotypes,1,splitnum),
 			substr(genotypes,splitnum+1,nchar(names(obs.gen[1]))))
+		alleles<-alleles[alleles != "0" & alleles != "00" &
+			alleles != "000" & alleles!= "0000" &  
+			alleles != "00000" & alleles != "000000"]
 	} else { #assume it's haploid
 		alleles<-cbind(genotypes,genotypes)
+		alleles<-alleles[alleles != "0" & alleles != "00" &
+			alleles != "000" & alleles!= "0000" &  
+			alleles != "00000" & alleles != "000000"]
 	}
 	obs.af<-summary(as.factor(alleles))/sum(summary(as.factor(alleles)))
 	return(obs.af)
