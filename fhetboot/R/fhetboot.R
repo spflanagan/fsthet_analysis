@@ -72,7 +72,13 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 
 calc.allele.freq<-function(genotypes){
 	obs.gen<-summary(as.factor(genotypes))
-	alleles<-cbind(substr(genotypes,1,2),substr(genotypes,3,4))
+	if(nchar(names(obs.gen[1])) %% 2 == 0){
+		splitnum<-nchar(names(obs.gen[1]))/2
+		alleles<-cbind(substr(genotypes,1,splitnum),
+			substr(genotypes,splitnum+1,nchar(names(obs.gen[1]))))
+	} else { #assume it's haploid
+		alleles<-cbind(genotypes,genotypes)
+	}
 	obs.af<-summary(as.factor(alleles))/sum(summary(as.factor(alleles)))
 	return(obs.af)
 }
@@ -176,7 +182,11 @@ fst.boot<-function(df){
 
 
 ci.means<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
-	boot.ci<-as.data.frame(do.call(rbind,boot.out.list))
+	if(class(boot.out.list)=="list") {
+		boot.ci<-as.data.frame(do.call(rbind,boot.out.list))
+	} else {
+		boot.ci<-as.data.frame(boot.out.list)
+	}
 	boot.ci$Ht<-rownames(boot.ci)
 	avg.cil<-tapply(boot.ci[,1],boot.ci$Ht,mean)
 	avg.ciu<-tapply(boot.ci[,2],boot.ci$Ht,mean)
@@ -195,6 +205,13 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst"
 	} else if(is.null(ci.list)){
 		avg.ci95<-ci.means(boot.out[[2]])
 		avg.ci99<-ci.means(boot.out[[3]])
+	} else {
+		avg.ci95<-list(as.numeric(ci.list$low95),as.numeric(ci.list$upp95))
+		names(avg.ci95[[1]])<-rownames(ci.list)	
+		names(avg.ci95[[2]])<-rownames(ci.list)
+		avg.ci99<-list(as.numeric(ci.list$low99),as.numeric(ci.list$upp99))
+		names(avg.ci99[[1]])<-rownames(ci.list)	
+		names(avg.ci99[[2]])<-rownames(ci.list)
 	}
 	if(names(avg.ci95[[1]])[1] != "0"){
 		avg.ci95[[1]]<-c(0,avg.ci95[[1]])
@@ -212,23 +229,17 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst"
 		else {
 			png("OutlierLoci.png",height=8,width=9,units="in",res=300) }
 	}
+	x.max<-round(as.numeric(max(df[,Ht.name]))+0.1,1)
 	plot(df[,Ht.name],df[,Fst.name],xlab="",ylab="",las=1,pch=pt.pch,axes=F,
-		xlim=c(0,0.5))
-	axis(1,pos=0,at=seq(0,0.5,0.1))
+		xlim=c(0,x.max))
+	axis(1,pos=0,at=seq(0,x.max,0.1))
 	axis(2,pos=0,las=1)
 	mtext(expression("F"["ST"]),2,line=2.5)
 	mtext(expression("H"["T"]),1,line=2.5)
-	if(is.null(ci.list)){
-		points(names(avg.ci95[[1]]),avg.ci95[[1]],type="l",col=ci.col[1])
-		points(names(avg.ci95[[2]]),avg.ci95[[2]],type="l",col=ci.col[1])
-		points(names(avg.ci99[[1]]),avg.ci99[[1]],type="l",col=ci.col[2])
-		points(names(avg.ci99[[2]]),avg.ci99[[2]],type="l",col=ci.col[2])
-	} else {
-		points(names(ci.list[[1]]),ci.list[[1]],type="l",col=ci.col[1])
-		points(names(ci.list[[2]]),ci.list[[2]],type="l",col=ci.col[1])
-		points(names(ci.list[[3]]),ci.list[[3]],type="l",col=ci.col[2])
-		points(names(ci.list[[4]]),ci.list[[4]],type="l",col=ci.col[2])
-	}
+	points(names(avg.ci95[[1]]),avg.ci95[[1]],type="l",col=ci.col[1])
+	points(names(avg.ci95[[2]]),avg.ci95[[2]],type="l",col=ci.col[1])
+	points(names(avg.ci99[[1]]),avg.ci99[[1]],type="l",col=ci.col[2])
+	points(names(avg.ci99[[2]]),avg.ci99[[2]],type="l",col=ci.col[2])
 	legend(x=0.01,y=max(df[,Fst.name]),c("95% CI","99% CI"),
 		col=ci.col,lty=1,bty='n')
 	if(make.file==TRUE) dev.off()
