@@ -22,7 +22,8 @@ upp.ci<-c(mean(as.numeric(fsts[[1]]$Fst))+(sd(as.numeric(fsts[[1]]$Fst))*1.96),
 
 nm<-c(0.1,1,10)
 
-png("TestingExpectations.png",height=7,width=7,units="in",res=300)
+png("../S1_TestingExpectations.png",height=7,width=7,units="in",res=300)
+pdf("../S1_TestingExpectations.pdf")
 par(lwd=1.3,cex=1.5)
 plot(obs, xaxt='n',xlab="",ylab="",las=1,ylim=c(0,1),pch=19)
 arrows(x1=1,y1=low.ci[1],x0=1,y0=upp.ci[1],code=3,angle=90)
@@ -33,7 +34,7 @@ axis(1,labels=c(0.1,1,10),at=c(1,2,3))
 legend("top",ncol=2,c("Observed","Expected"),pch=c(19,8),
 	col=c("black","blue"),bty='n')
 mtext(expression(italic("Nm")),1,line=2,cex=1.5)
-mtext(expression(italic("Fst")),2,line=2,cex=1.5)
+mtext(expression(italic(F)[ST]),2,line=2,cex=1.5)
 dev.off()
 
 
