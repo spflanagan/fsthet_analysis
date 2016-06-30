@@ -609,13 +609,13 @@ for(i in 1:length(ds)){
 			grep(selsg[j],sel.gpop.cis,fixed=T)]])
 		plot(sig.dat$Ht,sig.dat$Fst,las=1,xlab="",ylab="",
 			pch=19,xaxt='n',yaxt='n')
-		points(ci.dat$Het,ci.dat$Low95,col="dodgerblue",type="l",lty=2,lwd=2)
+		points(ci.dat$Het,ci.dat$Low95,col="dodgerblue",type="l",lty=1,lwd=2)
 		points(ci.dat$Het,ci.dat$High95,col="dodgerblue",type="l",
-			lty=2,lwd=2)
+			lty=1,lwd=2)
 		points(gci.dat$Het,gci.dat[,2],col="red",type="l",
-			lty=1,lwd=2)
+			lty=2,lwd=2)
 		points(gci.dat$Het,gci.dat[,4],col="red",type="l",
-			lty=1,lwd=2)
+			lty=2,lwd=2)
 		if(j>1){
 			sig<-read.delim(sig.loci[grep(ds[i],sig.loci,fixed=T)[
 				grep(ds[i], sig.loci,fixed=T) %in% 
@@ -656,7 +656,7 @@ mtext(expression(italic(F)[ST]),2,outer=T,line=1.5,cex=1)
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
-legend("top",col=c("dodgerblue","red","red"),pch=c("","","*"),lty=c(2,1,0),
+legend("top",col=c("dodgerblue","red","red"),pch=c("","","*"),lty=c(1,2,0),
 	c("fhetboot","LOSITAN","Selected Loci"),cex=1,
 	bg="white",ncol=3,box.lty=0)
 
