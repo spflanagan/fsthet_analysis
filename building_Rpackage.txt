@@ -1,11 +1,3 @@
-#########MAKING A VIGNETTE
-Needed to run 
-update.packages()
-And then it worked.
-
-Need to include an example genepop file in my fhetboot package (as a *.txt file) so now I'm playing around with building fhetboot using RStudio (because it's easy to build vignettes in RStudio).
-
-
 #########BUILDING
 Wrote the .Rd files and then checked the with R CMD Rd2txt
 
