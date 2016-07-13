@@ -1,3 +1,241 @@
+####################################################################################################
+#####Friday, 25 March 2016
+Fixed errors as best as I could from last time's output.
+
+Now re-checking the Rd files (do each one individually)
+R CMD Rd2txt <file>
+
+Then converted the manual files to html with Rdconv:
+
+	for file in *.Rd
+	do
+		base=${file%.Rd}
+		R CMD Rdconv --type=html --output=$base.html $base.Rd 
+	done
+	
+from ./fst_outliers/:
+R CMD check fhetboot
+
+* using log directory ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck’
+* using R version 3.0.2 (2013-09-25)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘fhetboot/DESCRIPTION’ ... OK
+* this is package ‘fhetboot’ version ‘1.0’
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘fhetboot’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... WARNING
+mean:
+  function(x, ...)
+mean.cis:
+  function(boot.out.list, ...)
+
+plot:
+  function(x, ...)
+plot.cis:
+  function(df, boot.out, ci.list, Ht.name, Fst.name, ci.col, pt.pch,
+           file.name, make.file, ...)
+
+See section ‘Generic functions and methods’ of the ‘Writing R
+Extensions’ manual.
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... OK
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... WARNING
+Undocumented data sets:
+  ‘boot.out.list’ ‘boot.out’
+All user-level objects in a package should have documentation entries.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... WARNING
+Undocumented arguments in documentation object 'mean.cis'
+  ‘...’
+
+Undocumented arguments in documentation object 'plot.cis'
+  ‘...’
+
+Functions with \usage entries need to have the appropriate \alias
+entries, and all their arguments documented.
+The \usage entries must correspond to syntactically valid R code.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+S3 methods shown with full name in documentation object 'mean.cis':
+  ‘mean.cis’
+
+S3 methods shown with full name in documentation object 'plot.cis':
+  ‘plot.cis’
+
+The \usage entries for S3 methods should use the \method markup and not
+their full name.
+See the chapter ‘Writing R documentation files’ in the ‘Writing R
+Extensions’ manual.
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... WARNING
+Files not of a type allowed in a ‘data’ directory:
+  ‘ci.df’
+Please use e.g. ‘inst/extdata’ for non-R data files
+* checking data for non-ASCII characters ... OK
+* checking data for ASCII and uncompressed saves ... WARNING
+  
+  Note: significantly better compression could be obtained
+        by using R CMD build --resave-data
+               old_size new_size compress
+  boot.out.rda    176Kb     73Kb       xz
+  fsts.rda         27Kb     20Kb       xz
+  gpop.rda        269Kb    137Kb    bzip2
+* checking examples ... NONE
+* checking PDF version of manual ... WARNING
+LaTeX errors when creating PDF version.
+This typically indicates Rd problems.
+* checking PDF version of manual without hyperrefs or index ... ERROR
+Re-running with no redirection of stdout/stderr.
+Hmm ... looks like a package
+Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
+  pdflatex is not available
+Error in running tools::texi2pdf()
+You may want to clean up by 'rm -rf /tmp/RtmpVspE3r/Rd2pdf55a05b8f3f8'
+
+Fixed that, now:
+sarah@sarah-VirtualBox:~/sf_ubuntushare/fst_outliers$ R CMD check fhetboot
+* using log directory ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck’
+* using R version 3.0.2 (2013-09-25)
+* using platform: x86_64-pc-linux-gnu (64-bit)
+* using session charset: UTF-8
+* checking for file ‘fhetboot/DESCRIPTION’ ... OK
+* this is package ‘fhetboot’ version ‘1.0’
+* checking package namespace information ... OK
+* checking package dependencies ... OK
+* checking if this is a source package ... OK
+* checking if there is a namespace ... OK
+* checking for executable files ... OK
+* checking for hidden files and directories ... OK
+* checking for portable file names ... OK
+* checking for sufficient/correct file permissions ... OK
+* checking whether package ‘fhetboot’ can be installed ... OK
+* checking installed package size ... OK
+* checking package directory ... OK
+* checking DESCRIPTION meta-information ... OK
+* checking top-level files ... OK
+* checking for left-over files ... OK
+* checking index information ... OK
+* checking package subdirectories ... OK
+* checking R files for non-ASCII characters ... OK
+* checking R files for syntax errors ... OK
+* checking whether the package can be loaded ... OK
+* checking whether the package can be loaded with stated dependencies ... OK
+* checking whether the package can be unloaded cleanly ... OK
+* checking whether the namespace can be loaded with stated dependencies ... OK
+* checking whether the namespace can be unloaded cleanly ... OK
+* checking loading without being on the library search path ... OK
+* checking dependencies in R code ... OK
+* checking S3 generic/method consistency ... OK
+* checking replacement functions ... OK
+* checking foreign function calls ... OK
+* checking R code for possible problems ... NOTE
+find.outliers: no visible global function definition for ‘mean.cis’
+plotting.cis: no visible global function definition for ‘mean.cis’
+* checking Rd files ... OK
+* checking Rd metadata ... OK
+* checking Rd cross-references ... OK
+* checking for missing documentation entries ... OK
+* checking for code/documentation mismatches ... OK
+* checking Rd \usage sections ... OK
+* checking Rd contents ... OK
+* checking for unstated dependencies in examples ... OK
+* checking contents of ‘data’ directory ... OK
+* checking data for non-ASCII characters ... OK
+* checking data for ASCII and uncompressed saves ... WARNING
+  
+  Note: significantly better compression could be obtained
+        by using R CMD build --resave-data
+               old_size new_size compress
+  boot.out.rda    176Kb     73Kb       xz
+  fsts.rda         27Kb     20Kb       xz
+  gpop.rda        269Kb    137Kb    bzip2
+* checking examples ... NONE
+* checking PDF version of manual ... WARNING
+LaTeX errors when creating PDF version.
+This typically indicates Rd problems.
+* checking PDF version of manual without hyperrefs or index ... ERROR
+Re-running with no redirection of stdout/stderr.
+Hmm ... looks like a package
+Error in texi2dvi(file = file, pdf = TRUE, clean = clean, quiet = quiet,  : 
+  pdflatex is not available
+Error in running tools::texi2pdf()
+You may want to clean up by 'rm -rf /tmp/RtmpBLHh8k/Rd2pdf39261758e661'
+
+This problem seems to be regarding finding pdflatex. In R in linux:
+> Sys.which("pdflatex")
+pdflatex 
+      "" 
+> Sys.gentenv("PATH")
+Error: could not find function "Sys.gentenv"
+> Sys.getenv("PATH")
+[1] "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/home/sarah/Programs:/home/sarah/Programs/plink-1.07-x86_64:/home/sarah/Programs:/home/sarah/Programs/plink-1.07-x86_64:/home/sarah/Programs/bowtie2-2.2.5:/home/sarah/Programs/rsem-1.2.22"
+
+Looks like latex isn't installed on my machine...
+sudo apt-get install texlive-latex-base
+sudo apt-get install texlive-fonts-recommended
+sudo apt-get install texlive-fonts-extra
+sudo apt-get install texlive-latex-extra
+
+Now everything is good except:
+Note: significantly better compression could be obtained
+        by using R CMD build --resave-data
+               old_size new_size compress
+  boot.out.rda    176Kb     73Kb       xz
+  fsts.rda         27Kb     20Kb       xz
+  gpop.rda        269Kb    137Kb    bzip2
+* checking examples ... NONE
+* checking PDF version of manual ... WARNING
+LaTeX errors when creating PDF version.
+This typically indicates Rd problems.
+* checking PDF version of manual without hyperrefs or index ... OK
+
+WARNING: There were 2 warnings.
+See
+  ‘/media/sf_ubuntushare/fst_outliers/fhetboot.Rcheck/00check.log’
+for details.
+
+R CMD build --resave-data
+
+R CMD INSTALL -l ./fhetboot/ fhetboot
+R CMD check fhetboot 
+R CMD build --resave-data fhetboot
+
+Now I have fhetboot_1.0.tar.gz!
+
+
+
+####################################################################################################
 Wrote the .Rd files and then checked the with R CMD Rd2txt
 
 Then converted the manual files to html with Rdconv:
