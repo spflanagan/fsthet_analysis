@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ####################################################################################################
 #####Friday, 25 March 2016
 Fixed errors as best as I could from last time's output.
@@ -236,6 +237,17 @@ Now I have fhetboot_1.0.tar.gz!
 
 
 ####################################################################################################
+=======
+#########MAKING A VIGNETTE
+Needed to run 
+update.packages()
+And then it worked.
+
+Need to include an example genepop file in my fhetboot package (as a *.txt file) so now I'm playing around with building fhetboot using RStudio (because it's easy to build vignettes in RStudio).
+
+
+#########BUILDING
+>>>>>>> 0d3ba0b52b0eb2e4ad44afd28391ab404c666a1f
 Wrote the .Rd files and then checked the with R CMD Rd2txt
 
 Then converted the manual files to html with Rdconv:

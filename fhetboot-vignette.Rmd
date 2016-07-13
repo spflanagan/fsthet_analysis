@@ -1,0 +1,64 @@
+---
+title: "Using fhetboot"
+author: "Sarah P. Flanagan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using fhetboot}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation (*F*st) relative to their expected heterozygosity (*Ht*), as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fhetboot** bootstraps across the existing dataset to generate confidence intervals that approximate the actual *F*st-*Ht* distribution.  
+
+*This package performs the following tasks:
+	+ Parses genepop files into R
+	+ Calculates allele frequencies, Ht, and Fst
+	+ Bootstraps across loci to generate 95% and 99% confidence intervals
+	+ Generates customizable Fst-Ht plots with confidence intervals
+	+ Identifies loci lying outside of the confidence intervals
+	
+## Getting Started
+
+The first step is to organize your data in the genepop format. If you've been using LOSITAN, the format is identical. For details on the genepop format, refer to [this website](http://genepop.curtin.edu.au/help_input.html). **fhetboot** accepts both haploid and diploid genepop files with alleles coded using either the 2- or 3-digit format.
+
+```{r}
+library("fhetboot",lib="E:/ubuntushare/fst_outliers/fhetboot/")
+setwd(system.file('data', package = 'fhetboot'))
+gpop<-my.read.genepop("example.genepop.txt")
+
+#run
+```
+
+## Bootstrapping
+
+The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+
+    output: 
+      rmarkdown::html_vignette:
+        css: mystyles.css
+
+## Other Options
+
+The figure sizes have been customised so that you can easily put two images side-by-side. 
+
+You can enable figure captions by `fig_caption: yes` in YAML:
+
+    output:
+      rmarkdown::html_vignette:
+        fig_caption: yes
+
+Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
+
+## Customizing the Figures
+
+You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
+
+```{r, echo=FALSE, results='asis'}
+knitr::kable(head(mtcars, 10))
+```
+
+Also a quote using `>`:
+
+> "He who gives up [code] safety for [code] speed deserves neither."
+([via](https://twitter.com/hadleywickham/status/504368538874703872))
