@@ -1,0 +1,161 @@
+---
+title: "Using fhetboot"
+author: "Sarah P. Flanagan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using fhetboot}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fhetboot** bootstraps across the existing dataset to generate confidence intervals that approximate the actual Fst-Ht distribution.  
+
+This package performs several tasks.  
+    - Parses genepop files into R.  
+    - Calculates allele frequencies, Ht, and Fst.  
+    - Bootstraps across loci to generate 95% and 99% confidence intervals.  
+    - Generates customizable Fst-Ht plots with confidence intervals.  
+    - Identifies loci lying outside of the confidence intervals.  
+	
+## Getting Started
+
+###Read in your data
+The first step is to organize your data in the genepop format. If you've been using LOSITAN, the format is identical. For details on the genepop format, refer to [this website](http://genepop.curtin.edu.au/help_input.html). **fhetboot** accepts both haploid and diploid genepop files with alleles coded using either the 2- or 3-digit format.
+
+```{r}
+library("fhetboot",lib.loc = "E:/ubuntushare/fst_outliers/fhetboot")
+gfile<-system.file("extdata", "example.genepop.txt",package = 'fhetboot')
+gpop<-my.read.genepop(gfile)
+```
+This function outputs any descriptors you've included in the header of your genepop file.This code was adapted from [adegenet]( http://adegenet.r-forge.r-project.org/).    
+
+###Calculate actual values
+Before getting into any bootstrapping analyses, you must calculate the actual Fst and Ht values.
+
+```{r}
+fsts<-calc.actual.fst(gpop)
+head(fsts)
+
+#Plot the actual values to see what your distribution looks like
+par(mar=c(4,4,1,1))
+plot(fsts$Ht, fsts$Fst,xlab="Ht",ylab="Fst",pch=19)
+```
+
+
+Since this distribution is not highly skewed, it should be fine for a bootstrap analysis. If you only have two demes (and your graph is skewed highly to the right), you might consider using alternative approaches to identifying outliers (e.g. BayeScan, BayEnv, PCAdapt).
+
+## Bootstrapping
+
+The `boot.out` function conducts a single bootstrap run. We recommend running at least 10 bootstrap replicates. The bootstrap module is relatively slow, so if you want to verify that your data are correctly formatted and everything is going according to plan you can run it with a single replicate.      
+
+###Testing it out
+```{r}
+boot.test<-fst.boot(gpop)
+str(boot.test)
+head(boot.test$CI95)
+```
+From the results of `str(boot.test)`, you can see that `fst.boot()` returns a list of three data frames: one with the bootstrapped Ht and Fst values, one with the Ht and Fst values for the upper and lower 95% confidence intervals, and one with the Ht and Fst values for the upper and lower 99% confidence intervals.  
+
+If you want to visualize these results, you can use `plotting.cis`. Plotting.cis requires the raw datapoints (`fsts`) and either a list with the confidence intervals or a list of multiple bootstrap replicates. Since we only ran a single bootstrap replicate in this case, we'll give `plotting.cis` a list.      
+```{r}
+#plot the results
+ci.df<-data.frame(low95=boot.test$CI95[,1],upp95=boot.test$CI95[,2],
+	low99=boot.test$CI99[,1],upp99=boot.test$CI99[,2])
+ci.df$Ht<-as.numeric(rownames(ci.df))
+par(mar=c(4,4,1,1))
+plotting.cis(df=fsts,ci.list=ci.df,make.file=F)
+
+```
+
+Clearly, these confidence intervals are not ideally smoothed (since they only represent a single replicate), but you can see that they generally follow the shape of the distribution.  
+
+###Running the actual analysis
+The simplest way to run the analysis is to use the `replicate` function. I recommend running about 10 bootstrap replicates. I tested 10, 100, and 1000 replicates and they all yielded qualitatively similar results, so since the `fst.boot` function is rather slow you can get away with using a minimum of 10 replicates. You might want to test out different numbers of replicates for yourself, if you want to make sure you're accurately representing your data.  
+```{r}
+boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
+```
+
+`boot.out` is a data.frame with three elements: the bootstrapped values (Fsts), 95% confidence intervals (CI95), and 99% confidence intervals (CI99). Each of these elements is a list of data.frames, with one data.frame per bootstrap replicate. Use `str` to visualize the output if you're confused.  
+
+Now we want to generate a plot with the confidence intervals. Again, `plotting.cis` will do the trick. We can also use the `find.outliers` function to pull out a data.frame containing the loci that lie outside of the confidence intervals.
+```{r}
+par(mar=c(4,4,1,1))
+plotting.cis(df=fsts,boot.out=boot.out,make.file=F)
+outliers<-find.outliers(fsts,boot.out=boot.out)
+head(outliers[[1]])#the 95% CI outliers
+head(outliers[[2]])#the 99% CI outliers
+```
+
+
+## Customizing the Figures
+The default `plotting.cis()` output may not be ideal for publication. Luckily, the function `plotting.cis()` has several built-in options for customizing the plot.   
+
+###The data you use
+As demonstrated in the two cases above, `plotting.cis()` requires the original data and one of two things with the confidence intervals.  
+    - The results from multiple bootstrap replicates (as generated by the above example), and it then calculates the mean confidence intervals from those. This is specified by `plotting.cis(boot.out=<name>)`.    
+    - A `ci.list`, which is actually a data.frame with Ht values as row names and four columns: low95, upp95, low99, and upp99. These header names are requried for it to work.     
+
+One of these two things is required or `plotting.cis()` will fail.    
+
+If your actual data (`df=<name>`, or `fsts` in the above examples) have different column names, you can specify those using `plotting.cis(Ht.name=<name>)` and `plotting.cis(Fst.name=<name>)`. Otherwise, the defaults are `plotting.cis(Ht.name="Ht",Fst.name="Fst")`.  
+
+###The look of the graph
+Two aspects of the graph can be controlled through `plotting.cis()`: the color of the 95% and 99% confidence intervals and the shape of the points. These are controlled by `ci.col` and `pt.pch`.   
+The defaults are:	`plotting.cis(ci.col=c("red","gold"), pt.pch=1)`.  
+For `ci.col`, the first color is the 95% CI color and the second is the 99% CI color, and the defaults are red and gold (to echo LOSITAN's color scheme). The defualt point shape is open circles (`ptpch=1`). 
+
+###Saving the graph to a file
+In the above examples, you may have noticed that `plotting.cis()` always contained the command `make.file=F`. This command allows you to automatically save the graph to a file or to print it to the default device in R. If `make.file=TRUE`, then the function generates a *.png file. The default file name is "OutlierLoci.png", but this can be changed using `file.name`. If you choose to designate a file.name, it must contain the ".png" extension. For example:
+```{r,eval=F}
+plotting.cis(df=fsts,boot.out=boot.out,make.file=T,file.name="ExampleOutliers.png")
+```
+
+
+## Other Functions
+
+I just want to take a moment to discuss what the other functions in **fhetboot** do and some other ways to use the proram.
+
+###Saving the data and plotting it yourself.
+Although `plotting.cis` can be a useful tool, it is possible to save your confidence intervals and generate your own plots. First, you use the function `ci.means()` to calculate the mean confidence intervals across all of the bootstrap replicates, and then you can generate a plot and add the confidence intervals using `points()`.    
+
+```{r}
+#calculate means
+boot.out.ci95<-ci.means(boot.out[[2]])
+boot.out.ci99<-ci.means(boot.out[[3]])
+
+#create a data.frame of confidence intervals
+cis<-as.data.frame(t(do.call(rbind,c(boot.out.ci95,boot.out.ci99))))
+colnames(cis)<-c("low95","upp95","low99","upp99")
+cis$Ht<-as.numeric(rownames(cis))
+
+#plot
+par(mar=c(4,4,1,1))
+plot(fsts$Ht, fsts$Fst,pch=19,xlab="Ht",ylab="Fst")
+points(cis$Ht,cis$low95,type="l",col="red")
+points(cis$Ht,cis$upp95,type="l",col="red")
+points(cis$Ht,cis$low99,type="l",col="gold",lty=2)
+points(cis$Ht,cis$upp99,type="l",col="gold",lty=2)
+legend(x=0.01,y=max(fsts$Fst),c("95% CI","99% CI"),
+		col=c("red","gold"),lty=c(1,2),bty='n')
+```
+
+###Look at the distribution of allele frequencies
+The analyses in **fhetboot** use the function `calc.allele.freq` to calculate allele frequencies. If you're interested in examining the allele frequency distribution in your dataset, you can use this function on your actual data.    
+```{r}
+af.actual<-apply(gpop[,3:ncol(gpop)],2,calc.allele.freq)
+
+#extract the minimum allele frequency for each locus
+min.af<-unlist(lapply(af.actual,min))
+par(mar=c(2,2,2,2))
+hist(min.af)
+```
+
+##Conclusion
+Hopefully this package will be a useful tool for population geneticists and molecular ecologists. It's important to consider the assumptions of the tests you use as well as remembering that statistics should be used to describe your dataset. Use your common sense about when to use different methods and how to implement them. Good luck!
+
+***
+*If you run into any problems, find any bugs, or have other comments on fhetboot please contact me: spflanagan.phd@gmail.com.*  
+
+***
+

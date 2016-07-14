@@ -1,0 +1,26 @@
+boot.out                Example bootstrap output from numerical
+                        simulations
+boot.out.list           Example list of CI matrices from bootstrap
+                        output from numerical simulations
+calc.actual.fst         This calcualtes global Fsts from a genepop
+                        dataframe.
+calc.allele.freq        This calculates allele frequencies.
+calc.exp.het            This calculates expected heterozygosities.
+calc.fst                This calculates Fst.
+ci.df                   Example dataframe of confidence intervals from
+                        bootstrapping.
+ci.means                This calculates the average confidence
+                        intervals from multiple bootstrap outputs.
+find.outliers           This identifies all of the SNPs outside of the
+                        confidence intervals in the dataset.
+fst.boot                This is the major bootstrapping function to
+                        calculate confidence intervals.
+fst.boot.onecol         This bootstraps across all individuals to
+                        calculate a bootstrapped Fst for a
+                        randomly-sampled locus.
+fsts                    Example fst calculations from a genepop file.
+gpop                    Example genepop file from numerical simulations
+my.read.genepop         This reads a genepop file into R
+plotting.cis            This plots a dataframe of fsts with
+                        bootstrapped confidence intervals.
+remove.spaces           This removes spaces from a character vector

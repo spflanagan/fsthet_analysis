@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Sarah P. Flanagan" />
+
+<meta name="date" content="2016-07-14" />
+
+<title>Using fhetboot</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using fhetboot</h1>
+<h4 class="author"><em>Sarah P. Flanagan</em></h4>
+<h4 class="date"><em>2016-07-14</em></h4>
+
+
+
+<p>A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont &amp; Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same distribution for all demographic parameters. <strong>fhetboot</strong> bootstraps across the existing dataset to generate confidence intervals that approximate the actual Fst-Ht distribution.</p>
+<p>This package performs several tasks.<br />
+- Parses genepop files into R.<br />
+- Calculates allele frequencies, Ht, and Fst.<br />
+- Bootstraps across loci to generate 95% and 99% confidence intervals.<br />
+- Generates customizable Fst-Ht plots with confidence intervals.<br />
+- Identifies loci lying outside of the confidence intervals.</p>
+<div id="getting-started" class="section level2">
+<h2>Getting Started</h2>
+<div id="read-in-your-data" class="section level3">
+<h3>Read in your data</h3>
+<p>The first step is to organize your data in the genepop format. If you’ve been using LOSITAN, the format is identical. For details on the genepop format, refer to <a href="http://genepop.curtin.edu.au/help_input.html">this website</a>. <strong>fhetboot</strong> accepts both haploid and diploid genepop files with alleles coded using either the 2- or 3-digit format.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(<span class="st">&quot;fhetboot&quot;</span>,<span class="dt">lib.loc =</span> <span class="st">&quot;E:/ubuntushare/fst_outliers/fhetboot&quot;</span>)
+gfile&lt;-<span class="kw">system.file</span>(<span class="st">&quot;extdata&quot;</span>, <span class="st">&quot;example.genepop.txt&quot;</span>,<span class="dt">package =</span> <span class="st">'fhetboot'</span>)
+gpop&lt;-<span class="kw">my.read.genepop</span>(gfile)</code></pre></div>
+<pre><code>## 
+## Parsing Genepop file...
+## 
+## 
+## File description:  Numerical Analysis with Nm=10, N=1000, 75 Demes, sampling 5 populations. 
+## 
+## ...done.</code></pre>
+<p>This function outputs any descriptors you’ve included in the header of your genepop file.This code was adapted from <a href="http://adegenet.r-forge.r-project.org/">adegenet</a>.</p>
+</div>
+<div id="calculate-actual-values" class="section level3">
+<h3>Calculate actual values</h3>
+<p>Before getting into any bootstrapping analyses, you must calculate the actual Fst and Ht values.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">fsts&lt;-<span class="kw">calc.actual.fst</span>(gpop)
+<span class="kw">head</span>(fsts)</code></pre></div>
+<pre><code>##   Locus       Ht                 Fst
+## 1  loc0 0.410112  0.0139279026217228
+## 2  loc1 0.463008 0.00114036906489743
+## 3  loc2 0.488448  0.0426821278825996
+## 4  loc3 0.488448  0.0174593815513626
+## 5  loc4 0.426272   0.030102845131747
+## 6  loc5 0.198912  0.0600868725868723</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#Plot the actual values to see what your distribution looks like</span>
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">1</span>))
+<span class="kw">plot</span>(fsts$Ht, fsts$Fst,<span class="dt">xlab=</span><span class="st">&quot;Ht&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;Fst&quot;</span>,<span class="dt">pch=</span><span class="dv">19</span>)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Since this distribution is not highly skewed, it should be fine for a bootstrap analysis. If you only have two demes (and your graph is skewed highly to the right), you might consider using alternative approaches to identifying outliers (e.g. BayeScan, BayEnv, PCAdapt).</p>
+</div>
+</div>
+<div id="bootstrapping" class="section level2">
+<h2>Bootstrapping</h2>
+<p>The <code>boot.out</code> function conducts a single bootstrap run. We recommend running at least 10 bootstrap replicates. The bootstrap module is relatively slow, so if you want to verify that your data are correctly formatted and everything is going according to plan you can run it with a single replicate.</p>
+<div id="testing-it-out" class="section level3">
+<h3>Testing it out</h3>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">boot.test&lt;-<span class="kw">fst.boot</span>(gpop)</code></pre></div>
+<pre><code>## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(boot.test)</code></pre></div>
+<pre><code>## List of 3
+##  $ Fsts:'data.frame':    2000 obs. of  2 variables:
+##   ..$ Ht : num [1:2000] 0.0392 0.0392 0.043 0.043 0.043 ...
+##   ..$ Fst: num [1:2000] 0.00612 0.00816 0.00446 0.00446 0.0026 ...
+##  $ CI95: num [1:22, 1:2] 0.0026 0.00589 0.00589 0.00298 0.00262 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : chr [1:22] &quot;0.08&quot; &quot;0.1&quot; &quot;0.12&quot; &quot;0.14&quot; ...
+##   .. ..$ : chr [1:2] &quot;Low95&quot; &quot;Upp95&quot;
+##  $ CI99: num [1:22, 1:2] 0.0026 0.00589 0.00204 0.00204 0.00148 ...
+##   ..- attr(*, &quot;dimnames&quot;)=List of 2
+##   .. ..$ : chr [1:22] &quot;0.08&quot; &quot;0.1&quot; &quot;0.12&quot; &quot;0.14&quot; ...
+##   .. ..$ : chr [1:2] &quot;Low99&quot; &quot;Upp99&quot;</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(boot.test$CI95)</code></pre></div>
+<pre><code>##            Low95      Upp95
+## 0.08 0.002602714 0.02557319
+## 0.1  0.005894737 0.04576436
+## 0.12 0.005894737 0.05602837
+## 0.14 0.002984881 0.05602837
+## 0.16 0.002620187 0.05898618
+## 0.18 0.002620187 0.07413184</code></pre>
+<p>From the results of <code>str(boot.test)</code>, you can see that <code>fst.boot()</code> returns a list of three data frames: one with the bootstrapped Ht and Fst values, one with the Ht and Fst values for the upper and lower 95% confidence intervals, and one with the Ht and Fst values for the upper and lower 99% confidence intervals.</p>
+<p>If you want to visualize these results, you can use <code>plotting.cis</code>. Plotting.cis requires the raw datapoints (<code>fsts</code>) and either a list with the confidence intervals or a list of multiple bootstrap replicates. Since we only ran a single bootstrap replicate in this case, we’ll give <code>plotting.cis</code> a list.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#plot the results</span>
+ci.df&lt;-<span class="kw">data.frame</span>(<span class="dt">low95=</span>boot.test$CI95[,<span class="dv">1</span>],<span class="dt">upp95=</span>boot.test$CI95[,<span class="dv">2</span>],
+    <span class="dt">low99=</span>boot.test$CI99[,<span class="dv">1</span>],<span class="dt">upp99=</span>boot.test$CI99[,<span class="dv">2</span>])
+ci.df$Ht&lt;-<span class="kw">as.numeric</span>(<span class="kw">rownames</span>(ci.df))
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">1</span>))
+<span class="kw">plotting.cis</span>(<span class="dt">df=</span>fsts,<span class="dt">ci.list=</span>ci.df,<span class="dt">make.file=</span>F)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>Clearly, these confidence intervals are not ideally smoothed (since they only represent a single replicate), but you can see that they generally follow the shape of the distribution.</p>
+</div>
+<div id="running-the-actual-analysis" class="section level3">
+<h3>Running the actual analysis</h3>
+<p>The simplest way to run the analysis is to use the <code>replicate</code> function. I recommend running about 10 bootstrap replicates. I tested 10, 100, and 1000 replicates and they all yielded qualitatively similar results, so since the <code>fst.boot</code> function is rather slow you can get away with using a minimum of 10 replicates. You might want to test out different numbers of replicates for yourself, if you want to make sure you’re accurately representing your data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">boot.out&lt;-<span class="kw">as.data.frame</span>(<span class="kw">t</span>(<span class="kw">replicate</span>(<span class="dv">10</span>, <span class="kw">fst.boot</span>(gpop))))</code></pre></div>
+<pre><code>## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;
+## [1] &quot;Bootstrapping done. Now Calculating CIs&quot;</code></pre>
+<p><code>boot.out</code> is a data.frame with three elements: the bootstrapped values (Fsts), 95% confidence intervals (CI95), and 99% confidence intervals (CI99). Each of these elements is a list of data.frames, with one data.frame per bootstrap replicate. Use <code>str</code> to visualize the output if you’re confused.</p>
+<p>Now we want to generate a plot with the confidence intervals. Again, <code>plotting.cis</code> will do the trick. We can also use the <code>find.outliers</code> function to pull out a data.frame containing the loci that lie outside of the confidence intervals.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">1</span>))
+<span class="kw">plotting.cis</span>(<span class="dt">df=</span>fsts,<span class="dt">boot.out=</span>boot.out,<span class="dt">make.file=</span>F)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">outliers&lt;-<span class="kw">find.outliers</span>(fsts,<span class="dt">boot.out=</span>boot.out)
+<span class="kw">head</span>(outliers[[<span class="dv">1</span>]])<span class="co">#the 95% CI outliers</span></code></pre></div>
+<pre><code>##        Locus       Ht                 Fst
+## 1963 loc1962 0.102168 0.00203586250097905
+## 71     loc70   0.1128  0.0510638297872339
+## 491   loc490 0.119808  0.0571581196581187
+## 1897 loc1896 0.123288 0.00298488092920523
+## 1923 loc1922   0.1128  0.0560283687943264
+## 235   loc234 0.143832   0.103120307024862</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(outliers[[<span class="dv">2</span>]])<span class="co">#the 99% CI outliers</span></code></pre></div>
+<pre><code>##        Locus       Ht                 Fst
+## 1963 loc1962 0.102168 0.00203586250097905
+## 491   loc490 0.119808  0.0571581196581187
+## 1923 loc1922   0.1128  0.0560283687943264
+## 235   loc234 0.143832   0.103120307024862
+## 472   loc471   0.1302  0.0589861751152064
+## 590   loc589 0.140448 0.00148097516518539</code></pre>
+</div>
+</div>
+<div id="customizing-the-figures" class="section level2">
+<h2>Customizing the Figures</h2>
+<p>The default <code>plotting.cis()</code> output may not be ideal for publication. Luckily, the function <code>plotting.cis()</code> has several built-in options for customizing the plot.</p>
+<div id="the-data-you-use" class="section level3">
+<h3>The data you use</h3>
+<p>As demonstrated in the two cases above, <code>plotting.cis()</code> requires the original data and one of two things with the confidence intervals.<br />
+- The results from multiple bootstrap replicates (as generated by the above example), and it then calculates the mean confidence intervals from those. This is specified by <code>plotting.cis(boot.out=&lt;name&gt;)</code>.<br />
+- A <code>ci.list</code>, which is actually a data.frame with Ht values as row names and four columns: low95, upp95, low99, and upp99. These header names are requried for it to work.</p>
+<p>One of these two things is required or <code>plotting.cis()</code> will fail.</p>
+<p>If your actual data (<code>df=&lt;name&gt;</code>, or <code>fsts</code> in the above examples) have different column names, you can specify those using <code>plotting.cis(Ht.name=&lt;name&gt;)</code> and <code>plotting.cis(Fst.name=&lt;name&gt;)</code>. Otherwise, the defaults are <code>plotting.cis(Ht.name=&quot;Ht&quot;,Fst.name=&quot;Fst&quot;)</code>.</p>
+</div>
+<div id="the-look-of-the-graph" class="section level3">
+<h3>The look of the graph</h3>
+<p>Two aspects of the graph can be controlled through <code>plotting.cis()</code>: the color of the 95% and 99% confidence intervals and the shape of the points. These are controlled by <code>ci.col</code> and <code>pt.pch</code>.<br />
+The defaults are: <code>plotting.cis(ci.col=c(&quot;red&quot;,&quot;gold&quot;), pt.pch=1)</code>.<br />
+For <code>ci.col</code>, the first color is the 95% CI color and the second is the 99% CI color, and the defaults are red and gold (to echo LOSITAN’s color scheme). The defualt point shape is open circles (<code>ptpch=1</code>).</p>
+</div>
+<div id="saving-the-graph-to-a-file" class="section level3">
+<h3>Saving the graph to a file</h3>
+<p>In the above examples, you may have noticed that <code>plotting.cis()</code> always contained the command <code>make.file=F</code>. This command allows you to automatically save the graph to a file or to print it to the default device in R. If <code>make.file=TRUE</code>, then the function generates a *.png file. The default file name is “OutlierLoci.png”, but this can be changed using <code>file.name</code>. If you choose to designate a file.name, it must contain the “.png” extension. For example:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plotting.cis</span>(<span class="dt">df=</span>fsts,<span class="dt">boot.out=</span>boot.out,<span class="dt">make.file=</span>T,<span class="dt">file.name=</span><span class="st">&quot;ExampleOutliers.png&quot;</span>)</code></pre></div>
+</div>
+</div>
+<div id="other-functions" class="section level2">
+<h2>Other Functions</h2>
+<p>I just want to take a moment to discuss what the other functions in <strong>fhetboot</strong> do and some other ways to use the proram.</p>
+<div id="saving-the-data-and-plotting-it-yourself." class="section level3">
+<h3>Saving the data and plotting it yourself.</h3>
+<p>Although <code>plotting.cis</code> can be a useful tool, it is possible to save your confidence intervals and generate your own plots. First, you use the function <code>ci.means()</code> to calculate the mean confidence intervals across all of the bootstrap replicates, and then you can generate a plot and add the confidence intervals using <code>points()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#calculate means</span>
+boot.out.ci95&lt;-<span class="kw">ci.means</span>(boot.out[[<span class="dv">2</span>]])
+boot.out.ci99&lt;-<span class="kw">ci.means</span>(boot.out[[<span class="dv">3</span>]])
+
+<span class="co">#create a data.frame of confidence intervals</span>
+cis&lt;-<span class="kw">as.data.frame</span>(<span class="kw">t</span>(<span class="kw">do.call</span>(rbind,<span class="kw">c</span>(boot.out.ci95,boot.out.ci99))))
+<span class="kw">colnames</span>(cis)&lt;-<span class="kw">c</span>(<span class="st">&quot;low95&quot;</span>,<span class="st">&quot;upp95&quot;</span>,<span class="st">&quot;low99&quot;</span>,<span class="st">&quot;upp99&quot;</span>)
+cis$Ht&lt;-<span class="kw">as.numeric</span>(<span class="kw">rownames</span>(cis))
+
+<span class="co">#plot</span>
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">4</span>,<span class="dv">4</span>,<span class="dv">1</span>,<span class="dv">1</span>))
+<span class="kw">plot</span>(fsts$Ht, fsts$Fst,<span class="dt">pch=</span><span class="dv">19</span>,<span class="dt">xlab=</span><span class="st">&quot;Ht&quot;</span>,<span class="dt">ylab=</span><span class="st">&quot;Fst&quot;</span>)
+<span class="kw">points</span>(cis$Ht,cis$low95,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>)
+<span class="kw">points</span>(cis$Ht,cis$upp95,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;red&quot;</span>)
+<span class="kw">points</span>(cis$Ht,cis$low99,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;gold&quot;</span>,<span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">points</span>(cis$Ht,cis$upp99,<span class="dt">type=</span><span class="st">&quot;l&quot;</span>,<span class="dt">col=</span><span class="st">&quot;gold&quot;</span>,<span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">legend</span>(<span class="dt">x=</span><span class="fl">0.01</span>,<span class="dt">y=</span><span class="kw">max</span>(fsts$Fst),<span class="kw">c</span>(<span class="st">&quot;95% CI&quot;</span>,<span class="st">&quot;99% CI&quot;</span>),
+        <span class="dt">col=</span><span class="kw">c</span>(<span class="st">&quot;red&quot;</span>,<span class="st">&quot;gold&quot;</span>),<span class="dt">lty=</span><span class="kw">c</span>(<span class="dv">1</span>,<span class="dv">2</span>),<span class="dt">bty=</span><span class="st">'n'</span>)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="look-at-the-distribution-of-allele-frequencies" class="section level3">
+<h3>Look at the distribution of allele frequencies</h3>
+<p>The analyses in <strong>fhetboot</strong> use the function <code>calc.allele.freq</code> to calculate allele frequencies. If you’re interested in examining the allele frequency distribution in your dataset, you can use this function on your actual data.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">af.actual&lt;-<span class="kw">apply</span>(gpop[,<span class="dv">3</span>:<span class="kw">ncol</span>(gpop)],<span class="dv">2</span>,calc.allele.freq)
+
+<span class="co">#extract the minimum allele frequency for each locus</span>
+min.af&lt;-<span class="kw">unlist</span>(<span class="kw">lapply</span>(af.actual,min))
+<span class="kw">par</span>(<span class="dt">mar=</span><span class="kw">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>))
+<span class="kw">hist</span>(min.af)</code></pre></div>
+<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAASAAAAEgCAMAAAAjXV6yAAAAXVBMVEUAAAAAADoAAGYAOjoAOpAAZrY6AAA6ADo6AGY6OgA6OpA6kNtmAABmtv+QOgCQOjqQZgCQtpCQ2/+2ZgC2Zma2/7a2///bkDrb2//b////tmb/25D//7b//9v///+Su1IFAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAIG0lEQVR4nO2da3viNhCFnW1g20LSNm7rxoD//8+sLpYtgUZHNjg41jkfdsEcxtJrXYY8Y6g6Kqnq2Q1YuwgIiICACAiIgIAICIiAgAgIiICACAiIgIAICGgeoMt79fpp/98NTzz9/e/9LQtVV5U6Vaots96MtQSg8/HHowG1qovVIdmWWW/GegCgG9XVwwE11cvHc978uBHU6OukH+gBbRCd9uOVUwdfPgw51dy/9rrJ5mXd9POx2umr/KZj+H0ZApiQ9pUbsz19Y8L77x7Ce29+JiDDx4BxgPoj2qgsupG/jYdfP1v7smq56rOncfSNAUJAoTk4/QhiDP8kQE49IH1hTasOboqpK2gbfjDHd+ZSWkA9s50xHUyfD90wLNxq4QcYZ8mNeQBkYx+GFrrwT5piV4BUU4ZLbwH1K1FtB5V+rPpmO/Hm4jQmgDquumj/tV3ywnRuXo6AQvMA6M0A8ddEG34dgPojh6Fnbhbq1rnHQV9dDANo1/X/joD8ACGg0DyuQe5wF4ZfySLt1oa3noNrq5oMb+6xD8h0wL4SB+QHmA7IC78SQN24j2WNIEsiAei+EeSFXwmgyx8fXbDiyGuQaW7rFo2DAEheg3IAeeHXAchuOX5j5V3MjSC7ckkjSN7FAKCxPTb8OgC5REQ3pQ3yoF13nQeNa1Bqke78AJMBeeFXAshmrnar71Nac6Tf0s3oudnFXj4adUgC5AWYDMgL/wxAM1XDz93r09cAqs1CcpXGfQ99DaD2+pPS99EXTTGbRn6/CcY/uUIREBABAREQEAEBERAQAQEREBABAREQEAEBERAQAQEREBABAT0VUBXRM9sT03MBRQ6tDdraTh5rz9ra+NSTlwsoc+7kAvqymXh/1GjP85qfC2g+2/v1AEB5xx5r+7r1fUuAMt86TQQEREBABARkI7hqmjkV8iUAalxNTjvjloYCAF3ex6Ku6fUFBQA6H4fK7nb6JCsAEEdQQv0a1A8hrkFCBFcmP6fCqQhAj45AQCDC5gAxURTFRBGI2zxQMlHM+sNTAYAyRlDZgDISxcIB4USxdED32AgI2AoCdNq/5dgyXtoYIP/bHoRcumxAbvPiCBIjnI/2rlMCEiPU5vtqCEiOoD6wElAywmn/CwElI1zeKwKaG4GA5tsICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNiKAAQrzAoHhCvMygbE+qCEdISMWxHKBsQRlFC/BrHCTJKNwAozUcyDgAgIiIkiEBNFIG7zQMlEkbcicARBMVEEYqIIxDwIiICAvAht4odBSgekf1rm9Punv+Fnn6gEQLX+WTkzerjNxyKYcXP6aX43jn9RjEQ4H3X2c/mv4wgSIjRu3FhU005UAqCusdtXK5balw7oHhsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBARsBAVsRgFhhJspEYIWZLB2B9UEJ6Qi8FSGhiSPowT8cNtv25WtQboXZ4j1fJ6D8CrNvB+ju32SbmAd9O0B5toQICGhiolgooPxEsUxAU7b5h7bruwCacCtCmYA4ghIqL1GctYttN1HMsyXEPAiIgICsvVHTyyxDDfhzR6GAdJHr+bjrCChut9v85V0t0QQUs7tEsX79JKCYfUgU6x0BRe0Oi0qHCChqd6n05Z2A5tkJKNNGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBGQMBWKiBWmIkydlaYydJ21gclpO0TbkUoExBHUEL9GsQKM0nWzgozUcyDgAgIiIkiEBNFIG7zQMlEkbcicARBMVEEYqIIxDwIiICACAiIgIBsHjTmO/yDWcwulkffRC0UkCK0y7GVCyjxdf9h1GIB5doICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNgICNhKBcRbEUQZO29FkKXtLCRPSNun3IqwAU0HlDGCylW/BqFbEcqVHXDwVoRyNXFGlicCAiIgIAICmpoVbEDLAirGtqx9A7Zl7RuwLWvfgG1Z+wZsy9o3YFvWvgHbsvYN2Ja1b8C2rH0Dtpn28kRAQAQEREBABAREQEAEBERAQAQEREBABAREQEAEBJQHqK2ql4/oE9FmqvritSLXAep4zURgO+2rKv4lUIGtUSeVvgnp9OtQ+yR34UZZgFoVrXURgyei7fKuHjTRPl0HaONFJeFJleV8hNEa/UQgdD4OxWFyF26VA8gWWNW72yey7bTXzYz9+Ph1gPMxCihyUhjNftNYrG1m0Li3y12IKAdQ0Fm555FXYpfp2ta8/hkDFJ70p3S5A1sCUFsdhvJCuQsRZQEyzWv9tsZ+fyPySo1t6ml0DQps7Y9/jvEVLYyWmmLBKYUuRJQDyI6DfjQET2SbPRLrU2jTwz0KKLA1enpEv6rv6qSp1XcgInchoiUBteIaPdp01WgGoBfpmofR9Ig97YU6y+UAzZxiQkXobTQ8xex6YdeOVLTk4rLcFJu3SDdCFhTYmr5mJ9Jz32Y7E1uqQ1tyaCy3SM/Z5sfS4rRNKzqCApstdY9d80huIQ2N4fjDt/k5iaK4EkQCxDPpMANUFq/eXbLlrUEPTxTNTNDx7D7SiDuFZ+vnTtQYROvEjxqBrRU/uAS2WrT1gFAXbsQPq0AEBERAQP8D/jHk0pwmU6gAAAAASUVORK5CYII=" /><!-- --></p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>Hopefully this package will be a useful tool for population geneticists and molecular ecologists. It’s important to consider the assumptions of the tests you use as well as remembering that statistics should be used to describe your dataset. Use your common sense about when to use different methods and how to implement them. Good luck!</p>
+<hr />
+<p><em>If you run into any problems, find any bugs, or have other comments on fhetboot please contact me: <a href="mailto:spflanagan.phd@gmail.com">spflanagan.phd@gmail.com</a>.</em></p>
+<hr />
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

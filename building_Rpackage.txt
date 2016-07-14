@@ -533,10 +533,23 @@ Now I have fhetboot_1.0.tar.gz!
 
 ####################################################################################################
 #########MAKING A VIGNETTE
+###Wednesday, 13 July 2016
 Needed to run 
 update.packages()
 And then it worked.
 
 Need to include an example genepop file in my fhetboot package (as a *.txt file) so now I'm playing around with building fhetboot using RStudio (because it's easy to build vignettes in RStudio).
 
+###Thursday, 14 July 2016
+OK, I've figured it out for the most part. Now building (CMD check, CMD build, CMD INSTALL etc.) in RStudio because it already has all the requisite packages installed.
 
+The vignette is not a PDF
+
+Apparently also need to "Knit" the vignette twice: once with output: rmarkdown::pdf_document and once with output: rmarkdown::html_vignette to get html and pdf versions. But PDF version doesn't work in windows...
+
+Downloaded pandoc in Ubuntu (downloaded *.deb from the website and then sudo dpkg -i ~/Downloads/*.deb sudo apt-get install -f).
+Then in R used 
+library(rmarkdown)
+render("fhetboot-vignette.Rmd")
+
+This worked!
