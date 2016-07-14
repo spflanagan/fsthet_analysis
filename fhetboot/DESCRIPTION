@@ -5,3 +5,5 @@ Description: A program to generate bootstrapped confidence intervals for the Fst
 Author: Sarah P. Flanagan and Adam G. Jones
 Maintainer: Sarah P. Flanagan <spflanagan.phd@gmail.com>
 License: GPL-2
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr

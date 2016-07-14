@@ -11,54 +11,84 @@ vignette: >
 
 A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation (*F*st) relative to their expected heterozygosity (*Ht*), as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fhetboot** bootstraps across the existing dataset to generate confidence intervals that approximate the actual *F*st-*Ht* distribution.  
 
-*This package performs the following tasks:
-	+ Parses genepop files into R
-	+ Calculates allele frequencies, Ht, and Fst
-	+ Bootstraps across loci to generate 95% and 99% confidence intervals
-	+ Generates customizable Fst-Ht plots with confidence intervals
-	+ Identifies loci lying outside of the confidence intervals
+This package performs several tasks.  
+    * Parses genepop files into R.  
+    * Calculates allele frequencies, Ht, and Fst.  
+    * Bootstraps across loci to generate 95% and 99% confidence intervals.  
+    * Generates customizable Fst-Ht plots with confidence intervals.  
+    * Identifies loci lying outside of the confidence intervals.  
 	
 ## Getting Started
 
+###Read in your data
 The first step is to organize your data in the genepop format. If you've been using LOSITAN, the format is identical. For details on the genepop format, refer to [this website](http://genepop.curtin.edu.au/help_input.html). **fhetboot** accepts both haploid and diploid genepop files with alleles coded using either the 2- or 3-digit format.
 
 ```{r}
-library("fhetboot",lib="E:/ubuntushare/fst_outliers/fhetboot/")
-setwd(system.file('data', package = 'fhetboot'))
-gpop<-my.read.genepop("example.genepop.txt")
-
-#run
+library("fhetboot",lib.loc = "B:/ubuntushare/fst_outliers/fhetboot")
+gfile<-system.file("extdata", "example.genepop.txt",package = 'fhetboot')
+gpop<-my.read.genepop(gfile)
 ```
+This function outputs any descriptors you've included in the header of your genepop file ^[1] 
+
+###Calculate actual values
+Before getting into any bootstrapping analyses, you must calculate the actual Fst and Ht values.
+
+```{r}
+fsts<-calc.actual.fst(gpop)
+head(fsts)
+
+#Plot the actual values to see what your distribution looks like
+par(mar=c(4,4,1,1))
+plot(fsts$Ht, fsts$Fst,xlab="Ht",ylab="Fst",pch=19)
+```
+Since this distribution is not highly skewed, it should be fine for a bootstrap analysis. If you only have two demes (and your graph is skewed highly to the right), you might consider using alternative approaches to identifying outliers (e.g. BayeScan, BayEnv, PCAdapt).
 
 ## Bootstrapping
 
-The `html_vignette` template includes a basic CSS theme. To override this theme you can specify your own CSS in the document metadata as follows:
+The `boot.out` function conducts a single bootstrap run. We recommend running at least 10 bootstrap replicates. The bootstrap module is relatively slow, so if you want to verify that your data are correctly formatted and everything is going according to plan you can run it with a single replicate.  
 
-    output: 
-      rmarkdown::html_vignette:
-        css: mystyles.css
-
-## Other Options
-
-The figure sizes have been customised so that you can easily put two images side-by-side. 
-
-You can enable figure captions by `fig_caption: yes` in YAML:
-
-    output:
-      rmarkdown::html_vignette:
-        fig_caption: yes
-
-Then you can use the chunk option `fig.cap = "Your figure caption."` in **knitr**.
-
-## Customizing the Figures
-
-You can write math expressions, e.g. $Y = X\beta + \epsilon$, footnotes^[A footnote here.], and tables, e.g. using `knitr::kable()`.
-
-```{r, echo=FALSE, results='asis'}
-knitr::kable(head(mtcars, 10))
+###Testing it out
+```{r}
+boot.test<-fst.boot(gpop)
+str(boot.test)
 ```
 
-Also a quote using `>`:
+```{r, eval=F}
+#plot the results
+#plotting.cis requires the raw datapoints and either a list with the confidence intervals or a list of multiple bootstrap replicates. Here we're passing it a list because we only ran one bootstrap rep.
+plotting.cis(fsts,
+	ci.list=list(boot.test$CI95[,1],boot.test$CI95[,2],boot.test$CI99[,1],boot.test$CI99[,2]))
 
-> "He who gives up [code] safety for [code] speed deserves neither."
-([via](https://twitter.com/hadleywickham/status/504368538874703872))
+
+#create a data frame with the confidence intervals from a single run
+ci.df<-data.frame(low95=boot.test$CI95[,1],upp95=boot.test$CI95[,2],
+	low99=boot.test$CI99[,1],upp99=boot.test$CI99[,2])
+ci.df$Ht<-as.numeric(rownames(ci.df))
+
+#identify outliers from a single bootstrap run [NOT RECOMMENDED!]
+out1<-find.outliers(fsts,ci.df=ci.df)
+```
+
+###Running the actual analysis
+```{r, eval=F}
+boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
+plotting.cis(fsts,boot.out,make.file=F)
+outliers<-find.outliers(fsts,boot.out=boot.out)
+```
+
+
+## Customizing the Figures
+The default `plotting.cis()` output is probably not ideal for most cases. There are several ways to customize the plot.
+
+###Making use of the function's options
+`make.file=F`
+
+###Saving the data and plotting it yourself.
+This is certainly an option.  
+
+## Other Functions
+
+I just want to take a moment to discuss what the other functions do and some other ways to use the proram.
+
+
+[1](http://adegenet.r-forge.r-project.org/)This code was adapted from adegenet 
