@@ -1,14 +1,22 @@
 #Example use of fhetboot
-#Author: Sarah P. Flanagan
-#Last updated: 14 July 2016
+#Author: Sarah P. Flanagan (spflanagan.phd@gmail.com)
+#Last updated: 30 November 2016
 
 
-library("fhetboot",lib.loc = "E:/ubuntushare/fst_outliers/fhetboot")
+library("fhetboot",lib.loc = "~/Projects/fst_outliers/fhetboot")
 gfile<-system.file("extdata", "example.genepop.txt",package = 'fhetboot')
 gpop<-my.read.genepop(gfile)
 
 #basic analysis
 fsts<-calc.actual.fst(gpop)
+fsts.wc<-calc.actual.fst(gpop,"wc")
+fsts.wcc<-calc.actual.fst(gpop,"wcc")
+#compare
+plot(fsts$Ht,fsts$Fst,col="black",pch=19,ylim=c(-0.05,1))
+points(fsts.wc$Ht,fsts.wc$Fst,col="blue",cex=1.3)
+points(fsts.wcc$Ht,fsts.wcc$Fst,pch=5,col="red")
+
+
 boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
 plotting.cis(fsts,boot.out,make.file=F)
 

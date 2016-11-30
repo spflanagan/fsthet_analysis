@@ -72,25 +72,42 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 	return(res)
 }
 
+allele.counts<-function(genotypes){
+  obs.gen<-summary(as.factor(genotypes))
+  obs.gen<-obs.gen[names(obs.gen) != "000000" & names(obs.gen) 
+                   != "0000" & names(obs.gen) != "0"]
+  if(nchar(names(obs.gen[1])) %% 2 == 0){
+    splitnum<-nchar(names(obs.gen[1]))/2
+    allele.names<-levels(as.factor(c(substr(names(obs.gen),1,splitnum),
+                                     substr(names(obs.gen),splitnum+1,nchar(names(obs.gen[1]))))))
+    alleles<-cbind(substr(genotypes,1,splitnum),
+                   substr(genotypes,splitnum+1,nchar(names(obs.gen[1]))))
+    alleles<-alleles[alleles != "0" & alleles != "00" &
+                       alleles != "000" & alleles!= "0000" &  
+                       alleles != "00000" & alleles != "000000"]
+  } else { #assume it's haploid
+    allele.names<-levels(as.factor(names(obs.gen)))
+    alleles<-cbind(genotypes,genotypes)
+    alleles<-alleles[alleles != "0" & alleles != "00" &
+                       alleles != "000" & alleles!= "0000" &  
+                       alleles != "00000" & alleles != "000000"]
+  }
+  obs<-summary(as.factor(alleles))
+  if(length(obs) < length(allele.names)){
+    num.missing<-length(allele.names[!(allele.names%in% names(obs))])
+    AlleleCounts<-c(obs,rep(0,num.missing))
+    names(AlleleCounts)<-c(names(obs)[names(obs) %in% allele.names],
+                           allele.names[!(allele.names%in% names(obs))])   
+  }else{
+    AlleleCounts<-obs
+  }
+  return(AlleleCounts)
+}
+
 calc.allele.freq<-function(genotypes){
-	obs.gen<-summary(as.factor(genotypes))
-	obs.gen<-obs.gen[names(obs.gen) != "000000" & names(obs.gen) 
-		!= "0000" & names(obs.gen) != "0"]
-	if(nchar(names(obs.gen[1])) %% 2 == 0){
-		splitnum<-nchar(names(obs.gen[1]))/2
-		alleles<-cbind(substr(genotypes,1,splitnum),
-			substr(genotypes,splitnum+1,nchar(names(obs.gen[1]))))
-		alleles<-alleles[alleles != "0" & alleles != "00" &
-			alleles != "000" & alleles!= "0000" &  
-			alleles != "00000" & alleles != "000000"]
-	} else { #assume it's haploid
-		alleles<-cbind(genotypes,genotypes)
-		alleles<-alleles[alleles != "0" & alleles != "00" &
-			alleles != "000" & alleles!= "0000" &  
-			alleles != "00000" & alleles != "000000"]
-	}
-	obs.af<-summary(as.factor(alleles))/sum(summary(as.factor(alleles)))
-	return(obs.af)
+  counts<-allele.counts(genotypes)
+  obs.af<-counts/sum(counts)
+  return(obs.af)
 }
 
 calc.exp.het<-function(af){ 
@@ -101,13 +118,81 @@ calc.exp.het<-function(af){
 
 calc.fst<-function(df,i){
 	df.split<-split(df[,i],df[,1])
-	af<-lapply(df.split,calc.allele.freq)
-	hexp<-unlist(lapply(af,calc.exp.het))
-	n<-unlist(lapply(df.split,length))
-	hs<-sum(hexp*n)/sum(n)
+	af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+	hexp<-apply(af,1,calc.exp.het)
+	hs<-mean(hexp)
 	ht<-calc.exp.het(calc.allele.freq(df[,i]))
 	fst<-(ht-hs)/ht
 	return(c(ht,fst))
+}
+
+wc.fst<-function(df,i){
+  ###ADAPTED FROM LOTTERHOS & WHITLOCK (2014) 
+  #Data from: Evaluation of demographic history and neutral parameterization on the performance of Fst outlier tests. 
+  #Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.v8d05
+  #FSTcalcs.R code
+  
+  #This is the calculation of beta from Weir and Cockerham (1993)
+  df.split<-split(df[,i],df[,1])
+  AllCounts<-do.call("rbind",lapply(df.split,allele.counts))
+  pops <- rownames(AllCounts)
+  numpops <- dim(AllCounts)[1]
+  numalleles <- dim(AllCounts)[2]	
+  sample.sizes <- rowSums(AllCounts)
+  num.inds<-unlist(lapply(df.split,length))
+  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+  X <- sum(af^2)
+  Y <- sum(colSums(af)^2)
+  n<-unlist(lapply(df.split,length))
+  M <- num.inds[1]	#uncorrected for sample size
+  F0 <- (M*X-numpops)/((M-1)*numpops) 
+  F1 <- (Y-X)/(numpops*(numpops-1))
+  He <- 1-F1
+  fst <- (F0-F1)/(1-F1)
+  #FST <- 1 - (1-F0)/(1-F1); an alternative way of writing the previous line
+  return(c(He, fst))
+}
+
+wc.corr.fst<-function(df,i){
+  ###ADAPTED FROM LOTTERHOS & WHITLOCK (2014) 
+  #Data from: Evaluation of demographic history and neutral parameterization on the performance of Fst outlier tests. 
+  #Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.v8d05
+  #FSTcalcs.R code
+  
+  #This is the code implemented by FDIST2 in my.thetacal
+  #Beaumont & Nichols (1996) changed the calculation of beta from
+  #Cockerham & Weir (1993) by adding a sample size correction.
+  df.split<-split(df[,i],df[,1])
+  AllCounts<-do.call("rbind",lapply(df.split,allele.counts))
+  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+  sample.sizes <- rowSums(AllCounts) #these sample sizes are the number of alleles sampled.
+  pops <- rownames(AllCounts)
+  numpops <- dim(AllCounts)[1]
+  numalleles <- dim(AllCounts)[2]
+  X <- sum(af^2)
+  Y <- sum(colSums(af)^2)
+  n<-unlist(lapply(df.split,length))
+  x0 <- sum((rowSums(AllCounts^2)-sample.sizes)/(sample.sizes*(sample.sizes-1)))
+  yy=0
+  for (j in 1:(numpops-1)){
+    for (k in (j+1):numpops){
+      y1=0;
+      for (i in 1:numalleles){
+        y1 <- y1 + AllCounts[j,i]*AllCounts[k,i]
+        #print(y1)
+      }
+      yy <- yy + y1/(sample.sizes[j]*sample.sizes[k])
+    }
+  }
+  
+  q2<- x0/numpops
+  q3 <- 2*yy/(numpops*(numpops-1))
+  
+  het0 <- 1-q2
+  het1 <- 1-q3 #this is what is output as heterozygosity by fdist2
+  FST <- (q2-q3)/(1-q3)
+  #FST <- 1-het0/het1 #alternative way of writing    
+  return(c(het1, FST))
 }
 
 fst.boot.onecol<-function(df){
@@ -116,9 +201,39 @@ fst.boot.onecol<-function(df){
 	return(ht.fst)
 }
 
-fst.boot<-function(df){	
+wc.boot.onecol<-function(df){
+  col<-sample(3:ncol(df),1)
+  ht.fst<-wc.fst(df,col)
+  return(ht.fst)
+}
+
+wcc.boot.onecol<-function(df){
+  col<-sample(3:ncol(df),1)
+  ht.fst<-wc.corr.fst(df,col)
+  return(ht.fst)
+}
+
+fst.options.print<-function()
+{
+  print("For Nei's Fst formulation: nei, Nei, NEI, N",quote=F)
+  print("For Weir and Cockerham (1993)'s Fst formulation: WeirCockerham, WC, weircockerham, wc",quote=F)
+  print("For Beaumont's sample-size-corrected version of Weir and Cockerhams (1993)'s Fst formulation:
+        WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
+}
+
+fst.boot<-function(df, fst.choice="nei"){	
+  #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
+  fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
+                 "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+  if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	nloci<-(ncol(df)-2)
-	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df))))
+	if(fst.choice == "nei" | fst.choice == "Nei" | fst.choice == "NEI" | fst.choice == "N"){
+	  boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df))))}
+	if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
+	  boot.out<-as.data.frame(t(replicate(nloci, wc.boot.onecol(df))))}
+	if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
+	   fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
+	  boot.out<-as.data.frame(t(replicate(nloci, wcc.boot.onecol(df))))}
 	colnames(boot.out)<-c("Ht","Fst")
 	print("Bootstrapping done. Now Calculating CIs")
 	#order by het
@@ -291,11 +406,29 @@ find.outliers<-function(df,ci.df=NULL,boot.out=NULL,file.name=NULL){
 	return(list(out95,out99))
 }
 
-calc.actual.fst<-function(df){
+calc.actual.fst<-function(df, fst.choice="N"){
+	fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
+	               "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+	if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),
-		stringsAsFactors=F)
-	for(i in 3:ncol(df)){
-		fsts[i-2,]<-c(colnames(df)[i],calc.fst(df,i))
+	                 stringsAsFactors=F)
+	
+	if(fst.choice == "nei" | fst.choice == "Nei" | fst.choice == "NEI" | fst.choice == "N"){
+	  for(i in 3:ncol(df)){
+	    fsts[i-2,]<-c(colnames(df)[i],calc.fst(df,i))
+	  }
 	}
+	if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
+	  for(i in 3:ncol(df)){
+	  fsts[i-2,]<-c(colnames(df)[i],wc.fst(df,i))
+	  }
+	}
+	if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
+	   fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
+	  for(i in 3:ncol(df)){
+	    fsts[i-2,]<-c(colnames(df)[i],wc.corr.fst(df,i))
+	  }
+	}
+	
 	return(fsts)
 }
