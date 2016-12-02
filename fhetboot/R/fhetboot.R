@@ -221,7 +221,7 @@ fst.options.print<-function()
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
-fst.boot<-function(df, fst.choice="nei"){	
+fst.boot<-function(df, fst.choice="nei", ci=0.05){	
   #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
@@ -276,35 +276,104 @@ fst.boot<-function(df, fst.choice="nei"){
 	}
 	#remove bins with too few
 	bin.fst<-bin.fst[-rmvec]
-	bin.fst<-lapply(bin.fst,sort)	
-	#find 95% quantile
-	fst95<-lapply(bin.fst, function(x){
-		keep.fst<-x[round(length(x)*0.025):round(length(x)*0.975)]
-		if(length(keep.fst)>0){
-			fst.thresh<-c(min(keep.fst),max(keep.fst))
-			names(fst.thresh)<-c("Low95","Upp95")
-		} else{
-			fst.thresh<-c("","")
-			names(fst.thresh)<-c("Low95","Upp95")
+	bin.fst<-lapply(bin.fst,sort)
+	final.bins<-bins[bins$breaks %in% as.numeric(names(bin.fst)),]
+	#find quantile
+	if(length(ci) > 1){
+		fst.CI<-list()
+		for(j in 1:length(ci)){
+		ci.min<-(ci[j]/2)
+		ci.max<-1-(ci[j]/2)
+		print(c(ci.min,ci.max))
+		fstCI<-lapply(bin.fst, function(x){
+			keep.fst<-x[round(length(x)*ci.min):round(length(x)*ci.max)]
+			if(length(keep.fst)>0){
+				fst.thresh<-c(min(keep.fst),max(keep.fst))
+				names(fst.thresh)<-c("Low","Upp")
+			} else{
+				fst.thresh<-c("","")
+				names(fst.thresh)<-c("Low","Upp")
+			}
+			return(fst.thresh)
+		})
+		ci.name<-paste("CI",(1-ci[j]),sep="")
+		fst.CI[[j]]<-do.call(rbind,fstCI)
+		names(fst.CI)[j]<-ci.name
 		}
-		return(fst.thresh)
-	})
-	fst.95<-do.call(rbind,fst95)
-	#find 99% quantile
-	fst.99<-lapply(bin.fst, function(x){
-		keep.fst<-x[round(length(x)*0.005):round(length(x)*0.995)]
-		if(length(keep.fst)>0){
-			fst.thresh<-c(min(keep.fst),max(keep.fst))
-		} else {
-			fst.thresh<-c("","")
-		}
-		names(fst.thresh)<-c("Low99","Upp99")
-		return(fst.thresh)
-	})
-	fst.99<-do.call(rbind,fst.99)
-	return(list(Fsts=boot.out,CI95=fst.95,CI99=fst.99))
+	} else {
+		ci.min<-ci/2
+		ci.max<-1-(ci/2)
+		fstCI<-lapply(bin.fst, function(x){
+			keep.fst<-x[round(length(x)*ci.min):round(length(x)*ci.max)]
+			if(length(keep.fst)>0){
+				fst.thresh<-c(min(keep.fst),max(keep.fst))
+				names(fst.thresh)<-c("Low","Upp")
+			} else{
+				fst.thresh<-c("","")
+				names(fst.thresh)<-c("Low","Upp")
+			}
+			return(fst.thresh)
+		})
+		ci.name<-paste("CI",(1-ci),sep="")
+		fst.CI<-do.call(rbind,fstCI)
+		names(fst.CI)<-ci.name
+
+	}
+	return(list(Fsts=boot.out,Bins=final.bins,fst.CI))
 }
 
+fst.boot.means<-function(boot.out){ #boot.out[[1]]
+	all.boot<-data.frame(
+		Ht=unlist(lapply(boot.out$Fsts, 
+			function(x) { out<-x$Ht; return(out) })),
+		Fst=unlist(lapply(boot.out$Fsts, 
+			function(x) { out<-x$Fst; return(out) })))
+	breaks<-boot.out$Bins[[1]]
+	bmu<-t(apply(breaks,1,function(x){
+		x.ht<-all.boot[all.boot$Ht >= x[1] & 
+			all.boot$Ht <= x[2],"Ht"]
+		x.fst<-all.boot[all.boot$Ht >= x[1] & 
+			all.boot$Ht <= x[2],"Fst"]
+		x.fh<-c(mean(x.ht),mean(x.fst),length(x.ht))
+		return(x.fh)		
+	}))
+	bmu<-data.frame(bmu[,1],bmu[,2],bmu[,3],breaks[,1],breaks[,2])
+	colnames(bmu)<-c("Ht","Fst","Num","LowBin","UppBin")
+	return(bmu)
+}
+
+p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
+	if(is.null(boot.out) & is.null(boot.means)) { 
+		stop("You must provide either bootstrapping output or bootstrap means") }
+	if(is.null(boot.out)){ #then it's boot.means
+		
+	}
+	if(is.null(boot.means)){ #then it's boot.out.
+		boot.means<-fst.boot.means(boot.out)
+		boot.means$real.means<-apply(boot.means,1,function(x){
+			rmu<-mean(as.numeric(actual.fsts[
+				as.numeric(actual.fsts$Ht) >= as.numeric(x[4]) & 
+				as.numeric(actual.fsts$Ht) <= as.numeric(x[5]),"Fst"]))
+			return(rmu)
+		})
+		boot.means$unitsaway<-abs(boot.means$real.means - boot.means$Fst)
+		boot.means$low<-boot.means$Fst-boot.means$unitsaway
+		boot.means$upp<-boot.means$Fst+boot.means$unitsaway
+		pvals<-apply(actual.fsts,1, function(x){
+			low<-boot.means[
+				as.numeric(boot.means$LowBin) <= as.numeric(x[2])
+				& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),"low"]
+			upp<-boot.means[
+				as.numeric(boot.means$LowBin) <= as.numeric(x[2])
+				& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),"upp"]
+			n<-boot.means[
+				as.numeric(boot.means$LowBin) <= as.numeric(x[2])
+				& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),"Num"]
+			p<-(sum(x[3] < low) + sum(x[3] > upp))/n
+			#Some of these loci are in multiple bins.
+		})		
+	}#boot.means
+}
 
 ci.means<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
 	if(class(boot.out.list)=="list") {

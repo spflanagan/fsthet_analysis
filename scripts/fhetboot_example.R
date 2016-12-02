@@ -3,7 +3,7 @@
 #Last updated: 30 November 2016
 
 
-library("fhetboot",lib.loc = "~/Projects/fst_outliers/fhetboot")
+library("fhetboot",lib.loc = "B:/ubuntushare/fst_outliers/fhetboot")
 gfile<-system.file("extdata", "example.genepop.txt",package = 'fhetboot')
 gpop<-my.read.genepop(gfile)
 
