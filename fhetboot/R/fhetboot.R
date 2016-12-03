@@ -1,6 +1,7 @@
 #Author: Sarah P. Flanagan
-#Last updated 24 June 2016
-#Latest update allows haploid genepop format and omits missing data
+#2 Dec 2016: allow user to specify confidence intervals
+#2 Dec 2016: Calculate p-values from bootstrapped distribution
+#27 June 2016: allows haploid genepop format and omits missing data
 #Date: 15 February 2016
 #Purpose: bootstrap over a genepop file to generate a null distribution
 #and then use Johnson distribution to generate confidence intervals.
@@ -222,6 +223,7 @@ fst.options.print<-function()
 }
 
 fst.boot<-function(df, fst.choice="nei", ci=0.05){	
+		#updated 2 Dec 2016
   #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
@@ -242,18 +244,6 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05){
 	breaks<-hist(boot.out$Ht,breaks=25,plot=F)$breaks
 	br.rate<-0.1
 	newbreaks<-breaks-(br.rate/2)
-#	if((length(breaks) %% 2)==0){ #if it's even
-#		bins<-rbind(cbind(breaks[seq(1,length(breaks),2)],
-#			breaks[seq(2,length(breaks),2)]),
-#			cbind(newbreaks[seq(1,length(newbreaks),2)],
-#			newbreaks[seq(2,length(newbreaks),2)]))
-#	} else {
-#		bins<-rbind(cbind(breaks[seq(1,length(breaks)+1,2)],
-#			breaks[seq(2,length(breaks)+1,2)]),
-#			cbind(newbreaks[seq(1,length(newbreaks)+1,2)],
-#			newbreaks[seq(2,length(newbreaks)+1,2)]))
-#	}
-#	bins<-bins[order(bins[,1]),]
 	bins<-as.data.frame(cbind(newbreaks,breaks))
 	mids<-apply(bins,1,mean)
 	#bin fsts
@@ -277,14 +267,17 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05){
 	#remove bins with too few
 	bin.fst<-bin.fst[-rmvec]
 	bin.fst<-lapply(bin.fst,sort)
-	final.bins<-bins[bins$breaks %in% as.numeric(names(bin.fst)),]
+	for(i in 1:length(rmvec)){
+		bins[(rmvec[i]+1),1]<-bins[rmvec[i],1]
+	}
+	bins<-bins[-rmvec,]
+	#final.bins<-bins[bins$breaks %in% as.numeric(names(bin.fst)),]#no good
+
 	#find quantile
-	if(length(ci) > 1){
-		fst.CI<-list()
+	fst.CI<-list()
 		for(j in 1:length(ci)){
 		ci.min<-(ci[j]/2)
 		ci.max<-1-(ci[j]/2)
-		print(c(ci.min,ci.max))
 		fstCI<-lapply(bin.fst, function(x){
 			keep.fst<-x[round(length(x)*ci.min):round(length(x)*ci.max)]
 			if(length(keep.fst)>0){
@@ -300,29 +293,12 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05){
 		fst.CI[[j]]<-do.call(rbind,fstCI)
 		names(fst.CI)[j]<-ci.name
 		}
-	} else {
-		ci.min<-ci/2
-		ci.max<-1-(ci/2)
-		fstCI<-lapply(bin.fst, function(x){
-			keep.fst<-x[round(length(x)*ci.min):round(length(x)*ci.max)]
-			if(length(keep.fst)>0){
-				fst.thresh<-c(min(keep.fst),max(keep.fst))
-				names(fst.thresh)<-c("Low","Upp")
-			} else{
-				fst.thresh<-c("","")
-				names(fst.thresh)<-c("Low","Upp")
-			}
-			return(fst.thresh)
-		})
-		ci.name<-paste("CI",(1-ci),sep="")
-		fst.CI<-do.call(rbind,fstCI)
-		names(fst.CI)<-ci.name
 
-	}
-	return(list(Fsts=boot.out,Bins=final.bins,fst.CI))
+	return(list(Fsts=boot.out,Bins=bins,fst.CI))
 }
 
 fst.boot.means<-function(boot.out){ #boot.out[[1]]
+		#updated 2 Dec 2016
 	all.boot<-data.frame(
 		Ht=unlist(lapply(boot.out$Fsts, 
 			function(x) { out<-x$Ht; return(out) })),
@@ -343,79 +319,85 @@ fst.boot.means<-function(boot.out){ #boot.out[[1]]
 }
 
 p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
+		#updated 2 Dec 2016
 	if(is.null(boot.out) & is.null(boot.means)) { 
 		stop("You must provide either bootstrapping output or bootstrap means") }
-	if(is.null(boot.out)){ #then it's boot.means
-		
-	}
-	if(is.null(boot.means)){ #then it's boot.out.
-		boot.means<-fst.boot.means(boot.out)
-		boot.means$real.means<-apply(boot.means,1,function(x){
-			rmu<-mean(as.numeric(actual.fsts[
-				as.numeric(actual.fsts$Ht) >= as.numeric(x[4]) & 
-				as.numeric(actual.fsts$Ht) <= as.numeric(x[5]),"Fst"]))
-			return(rmu)
-		})
-		boot.means$unitsaway<-abs(boot.means$real.means - boot.means$Fst)
-		boot.means$low<-boot.means$Fst-boot.means$unitsaway
-		boot.means$upp<-boot.means$Fst+boot.means$unitsaway
-		pvals<-apply(actual.fsts,1, function(x){
-			low<-boot.means[
-				as.numeric(boot.means$LowBin) <= as.numeric(x[2])
-				& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),"low"]
-			upp<-boot.means[
-				as.numeric(boot.means$LowBin) <= as.numeric(x[2])
-				& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),"upp"]
-			n<-boot.means[
-				as.numeric(boot.means$LowBin) <= as.numeric(x[2])
-				& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),"Num"]
-			p<-(sum(x[3] < low) + sum(x[3] > upp))/n
-			#Some of these loci are in multiple bins.
-		})		
+	if(is.null(boot.means)){ #then we need to calculate means
+		boot.means<-fst.boot.means(boot.out)				
 	}#boot.means
+	boot.means$real.means<-apply(boot.means,1,function(x){
+		rmu<-mean(as.numeric(actual.fsts[
+			as.numeric(actual.fsts$Ht) >= as.numeric(x[4]) & 
+			as.numeric(actual.fsts$Ht) <= as.numeric(x[5]),"Fst"]))
+		return(rmu)
+	})
+	boot.means$unitsaway<-abs(boot.means$real.means - boot.means$Fst)
+	boot.means$low<-boot.means$Fst-boot.means$unitsaway
+	boot.means$upp<-boot.means$Fst+boot.means$unitsaway
+	pvals<-apply(actual.fsts,1, function(x){
+		bin<-boot.means[
+			as.numeric(boot.means$LowBin) <= as.numeric(x[2])
+			& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),]
+		fsts.in.bin<-apply(bin,1,function(y){
+			actual.fsts[actual.fsts$Ht >= y["LowBin"] 
+				& actual.fsts$Ht <= y["UppBin"],]
+		})
+		unitsaway<-apply(bin,1,function(y){ 
+			abs(as.numeric(x[3]) - as.numeric(y["Fst"])) })
+		low<-apply(bin,1,function(y){ 
+			as.numeric(y["Fst"]) - as.numeric(x[3])  })
+		upp<-apply(bin,1,function(y){ 
+			as.numeric(y["Fst"]) + as.numeric(x[3])  })
+		n<-lapply(fsts.in.bin, nrow)
+		for(i in 1:length(fsts.in.bin)){
+			p[i]<-(nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) < 
+				as.numeric(low[i]),]) + 
+				nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) > 
+				as.numeric(upp[i]),]))/as.numeric(n[i])
+		}
+		p<-max(p)
+		#Some of these loci are in multiple bins.
+	})
+	names(pvals)<-actual.fsts$Locus
+	return(pvals)
 }
 
-ci.means<-function(boot.out.list){ #should be boot.out[[2]] or boot.out[[3]]
-	if(class(boot.out.list)=="list") {
-		boot.ci<-as.data.frame(do.call(rbind,boot.out.list))
+ci.means<-function(boot.out.list){ #boot.out[[3]]
+	#updated 2 Dec 2016
+	if(class(boot.out.list)=="list" & length(boot.out.list) > 1) {
+		boot.ci<-as.data.frame(do.call(rbind,
+			lapply(boot.out.list,function(x){
+				x<-as.data.frame(x[[1]])
+			})))
 	} else {
-		boot.ci<-as.data.frame(boot.out.list)
+		boot.ci<-as.data.frame(boot.out.list[[1]])
 	}
 	boot.ci$Ht<-rownames(boot.ci)
 	avg.cil<-tapply(boot.ci[,1],boot.ci$Ht,mean)
 	avg.ciu<-tapply(boot.ci[,2],boot.ci$Ht,mean)
-	return(list(avg.cil,avg.ciu))
+	return(list(low=avg.cil,upp=avg.ciu))
 }
 
 plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
-	ci.col=c("red","gold"), pt.pch=1,file.name=NULL,
+	ci.col="red", pt.pch=1,file.name=NULL,ci.name="95% CI",
 	make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
 #It must have at least two columns, one named "Ht" and one named "Fst"
 #Or you must pass the column names to the function
 #You must give it bootstrap output or a list of confidence interval values.
+#updated 2 Dec 2016
 	if(is.null(boot.out) & is.null(ci.list)){
 		 stop("Must provide bootstrap output or a list of CI values") 
 	} else if(is.null(ci.list)){
-		avg.ci95<-ci.means(boot.out[[2]])
-		avg.ci99<-ci.means(boot.out[[3]])
+		avg.ci<-ci.means(boot.out[[3]])
 	} else {
-		avg.ci95<-list(as.numeric(ci.list$low95),as.numeric(ci.list$upp95))
-		names(avg.ci95[[1]])<-rownames(ci.list)	
-		names(avg.ci95[[2]])<-rownames(ci.list)
-		avg.ci99<-list(as.numeric(ci.list$low99),as.numeric(ci.list$upp99))
-		names(avg.ci99[[1]])<-rownames(ci.list)	
-		names(avg.ci99[[2]])<-rownames(ci.list)
+		avg.ci<-ci.list
 	}
-	if(names(avg.ci95[[1]])[1] != "0"){
-		avg.ci95[[1]]<-c(0,avg.ci95[[1]])
-		avg.ci95[[2]]<-c(0,avg.ci95[[2]])
-		avg.ci99[[1]]<-c(0,avg.ci99[[1]])
-		avg.ci99[[2]]<-c(0,avg.ci99[[2]])
-		names(avg.ci95[[1]])[1]<-0
-		names(avg.ci95[[2]])[1]<-0
-		names(avg.ci99[[1]])[1]<-0
-		names(avg.ci99[[2]])[1]<-0
+	if(names(avg.ci[[1]])[1] != "0"){ #need to extend the CIs to 0
+		avg.ci[[1]]<-c(0,avg.ci[[1]])
+		avg.ci[[2]]<-c(0,avg.ci[[2]])
+		names(avg.ci[[1]])[1]<-0
+		names(avg.ci[[2]])[1]<-0
 	}
 	if(make.file==TRUE){
 		if(!is.null(file.name)) {
@@ -428,51 +410,44 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst"
 		xlim=c(0,x.max))
 	axis(1,pos=0,at=seq(0,x.max,0.1))
 	axis(2,pos=0,las=1)
-	mtext(expression("F"["ST"]),2,line=2.5)
-	mtext(expression("H"["T"]),1,line=2.5)
-	points(names(avg.ci95[[1]]),avg.ci95[[1]],type="l",col=ci.col[1])
-	points(names(avg.ci95[[2]]),avg.ci95[[2]],type="l",col=ci.col[1])
-	points(names(avg.ci99[[1]]),avg.ci99[[1]],type="l",col=ci.col[2])
-	points(names(avg.ci99[[2]]),avg.ci99[[2]],type="l",col=ci.col[2])
-	legend(x=0.01,y=max(df[,Fst.name]),c("95% CI","99% CI"),
+	mtext(expression(italic(F)["ST"]),2,line=2.5)
+	mtext(expression(italic(H)["T"]),1,line=2.5)
+	points(names(avg.ci[[1]]),avg.ci[[1]],type="l",col=ci.col)
+	points(names(avg.ci[[2]]),avg.ci[[2]],type="l",col=ci.col)
+	legend(x=0.01,y=max(df[,Fst.name]),ci.name,
 		col=ci.col,lty=1,bty='n')
 	if(make.file==TRUE) dev.off()
 	
 }
 
-find.outliers<-function(df,ci.df=NULL,boot.out=NULL,file.name=NULL){
-#Need to either give this function bootstrap output or a list of CIs
+find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
+#Updated 2 Dec 2016
+#Need to give this function bootstrap output (or a list of CIs)
 	if(is.null(boot.out) & is.null(ci.df)){
 		stop("Must provide bootstrap output or a list of CI values") 
-	} else if(is.null(ci.df)){
-		avg.ci95<-ci.means(boot.out[[2]])
-		avg.ci99<-ci.means(boot.out[[3]])
-		ci.df<-as.data.frame(t(do.call(rbind,c(avg.ci95,avg.ci99))))
-		colnames(ci.df)<-c("low95","upp95","low99","upp99")
+	} else if(is.null(ci.df)){ #what am I doing here??
+		avg.ci<-ci.means(boot.out[[3]])
+		ci.df<-as.data.frame(t(do.call(rbind,avg.ci)))
 		ci.df$Ht<-as.numeric(rownames(ci.df))
 	}
 	diff<-0
 	for(i in 2:nrow(ci.df)){
 		diff<-c(diff,ci.df$Ht[i]-ci.df$Ht[(i-1)])
 	}
-	bin<-cbind(ci.df$Ht-(diff/2),ci.df$Ht+(diff/2))
+	#bin<-cbind(ci.df$Ht-(diff/2),ci.df$Ht+(diff/2))
+	bin<-boot.out[[2]][[1]]
 	actual.bin<-apply(bin, 1, function(x){ #this returns a list of Fst vectors
 		out<-df[df$Ht > x[1] &	df$Ht < x[2],] })
-	out95<-NULL
-	out99<-NULL
-	for(i in 1:nrow(ci.df)){
-		out95<-rbind(out95,actual.bin[[i]][
-			actual.bin[[i]]$Fst< ci.df[i,"low95"] | 
-			actual.bin[[i]]$Fst> ci.df[i,"upp95"],])
-		out99<-rbind(out99,actual.bin[[i]][
-			actual.bin[[i]]$Fst< ci.df[i,"low99"] | 
-			actual.bin[[i]]$Fst> ci.df[i,"upp99"],])
+	out<-NULL
+	for(i in 1:length(actual.bin)){ #what's going on??
+		out<-rbind(out,actual.bin[[i]][
+			actual.bin[[i]]$Fst< ci.df[i,"low"] | 
+			actual.bin[[i]]$Fst> ci.df[i,"upp"],])
 	}
 	if(!is.null(file.name)){
-		write.csv(out95,paste(file.name,"95.csv",sep=""))
-		write.csv(out99,paste(file.name,"99.csv",sep=""))
+		write.csv(out,paste(file.name,".csv",sep=""))
 	}
-	return(list(out95,out99))
+	return(out)
 }
 
 calc.actual.fst<-function(df, fst.choice="N"){
