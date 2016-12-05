@@ -1,0 +1,17 @@
+\name{smooth.cis}
+\alias{smooth.cis}
+\title{Smooths the confidence intervals.}
+\description{
+	This function samples the confidence interval values every smoothing.rate heterozygosity values.
+	It outputs a new confidence interval list with the sub-sampled confidence intervals.
+}
+\usage{
+	smooth.cis(ci.list, smoothing.rate=0.025)
+}
+\arguments{
+  \item{ci.list}{A list of lower and upper confidence intervals.}
+  \item{smoothing.rate}{The 'by' paramter for seq to determine how frequently to sample the heterozygosity. The default is 0.025.}
+}
+\value{
+	\item{new.cis}{A list of the subsampled confidence intervals (lower and then upper). }
+}

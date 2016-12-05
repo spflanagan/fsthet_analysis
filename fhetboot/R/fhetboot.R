@@ -1,4 +1,5 @@
 #Author: Sarah P. Flanagan
+#3 Dec 2016: add fhetboot function to conduct the basic analysis
 #2 Dec 2016: allow user to specify confidence intervals
 #2 Dec 2016: Calculate p-values from bootstrapped distribution
 #27 June 2016: allows haploid genepop format and omits missing data
@@ -145,7 +146,7 @@ wc.fst<-function(df,i){
   X <- sum(af^2)
   Y <- sum(colSums(af)^2)
   n<-unlist(lapply(df.split,length))
-  M <- num.inds[1]	#uncorrected for sample size
+  M <- mean(num.inds)	#uncorrected for sample size
   F0 <- (M*X-numpops)/((M-1)*numpops) 
   F1 <- (Y-X)/(numpops*(numpops-1))
   He <- 1-F1
@@ -196,53 +197,43 @@ wc.corr.fst<-function(df,i){
   return(c(het1, FST))
 }
 
-fst.boot.onecol<-function(df){
-	col<-sample(3:ncol(df),1)
-	ht.fst<-calc.fst(df,col)
+fst.boot.onecol<-function(df,fst.choice){
+  fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
+                 "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+  if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
+  col<-sample(3:ncol(df),1)
+  if(fst.choice == "nei" | fst.choice == "Nei" | fst.choice == "NEI" | fst.choice == "N"){
+    ht.fst<-calc.fst(df,col) }
+  if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
+    ht.fst<-wc.fst(df,col) }
+  if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
+     fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
+    ht.fst<-wc.corr.fst(df,col) }
 	return(ht.fst)
 }
 
-wc.boot.onecol<-function(df){
-  col<-sample(3:ncol(df),1)
-  ht.fst<-wc.fst(df,col)
-  return(ht.fst)
-}
-
-wcc.boot.onecol<-function(df){
-  col<-sample(3:ncol(df),1)
-  ht.fst<-wc.corr.fst(df,col)
-  return(ht.fst)
-}
-
-fst.options.print<-function()
-{
+fst.options.print<-function(){
   print("For Nei's Fst formulation: nei, Nei, NEI, N",quote=F)
   print("For Weir and Cockerham (1993)'s Fst formulation: WeirCockerham, WC, weircockerham, wc",quote=F)
   print("For Beaumont's sample-size-corrected version of Weir and Cockerhams (1993)'s Fst formulation:
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
-fst.boot<-function(df, fst.choice="nei", ci=0.05){	
+fst.boot<-function(df, fst.choice="nei", ci=0.05,smooth.rate=0.1){	
 		#updated 2 Dec 2016
   #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	nloci<-(ncol(df)-2)
-	if(fst.choice == "nei" | fst.choice == "Nei" | fst.choice == "NEI" | fst.choice == "N"){
-	  boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df))))}
-	if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
-	  boot.out<-as.data.frame(t(replicate(nloci, wc.boot.onecol(df))))}
-	if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
-	   fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
-	  boot.out<-as.data.frame(t(replicate(nloci, wcc.boot.onecol(df))))}
+	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df,fst.choice))))
 	colnames(boot.out)<-c("Ht","Fst")
 	print("Bootstrapping done. Now Calculating CIs")
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
 	breaks<-hist(boot.out$Ht,breaks=25,plot=F)$breaks
-	br.rate<-0.1
+	br.rate<-smooth.rate
 	newbreaks<-breaks-(br.rate/2)
 	bins<-as.data.frame(cbind(newbreaks,breaks))
 	mids<-apply(bins,1,mean)
@@ -322,6 +313,9 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 		#updated 2 Dec 2016
 	if(is.null(boot.out) & is.null(boot.means)) { 
 		stop("You must provide either bootstrapping output or bootstrap means") }
+  if(class(boot.out[[2]])=="data.frame"){
+    stop("Can only calculate p-values if bootstrapping was run more than once.") }
+  }
 	if(is.null(boot.means)){ #then we need to calculate means
 		boot.means<-fst.boot.means(boot.out)				
 	}#boot.means
@@ -349,6 +343,7 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 		upp<-apply(bin,1,function(y){ 
 			as.numeric(y["Fst"]) + as.numeric(x[3])  })
 		n<-lapply(fsts.in.bin, nrow)
+		p<-NULL
 		for(i in 1:length(fsts.in.bin)){
 			p[i]<-(nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) < 
 				as.numeric(low[i]),]) + 
@@ -378,14 +373,14 @@ ci.means<-function(boot.out.list){ #boot.out[[3]]
 	return(list(low=avg.cil,upp=avg.ciu))
 }
 
-plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst",
-	ci.col="red", pt.pch=1,file.name=NULL,ci.name="95% CI",
-	make.file=TRUE) {
+plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
+	ci.col="red", pt.pch=1,file.name=NULL,ci.name="95% CI",sig.col=ci.col,smooth.ci=TRUE,
+	smoothing.rate=0.025,make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
 #It must have at least two columns, one named "Ht" and one named "Fst"
 #Or you must pass the column names to the function
 #You must give it bootstrap output or a list of confidence interval values.
-#updated 2 Dec 2016
+#updated 5 Dec 2016
 	if(is.null(boot.out) & is.null(ci.list)){
 		 stop("Must provide bootstrap output or a list of CI values") 
 	} else if(is.null(ci.list)){
@@ -393,6 +388,9 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst"
 	} else {
 		avg.ci<-ci.list
 	}
+  if(smooth.ci==TRUE){
+    avg.ci<-smooth.cis(avg.ci,smoothing.rate)
+  }
 	if(names(avg.ci[[1]])[1] != "0"){ #need to extend the CIs to 0
 		avg.ci[[1]]<-c(0,avg.ci[[1]])
 		avg.ci[[2]]<-c(0,avg.ci[[2]])
@@ -412,6 +410,9 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst"
 	axis(2,pos=0,las=1)
 	mtext(expression(italic(F)["ST"]),2,line=2.5)
 	mtext(expression(italic(H)["T"]),1,line=2.5)
+	if(!is.null(sig.list)){
+	  points(df[df[,1] %in% sig.list,Ht.name],df[df[,1] %in% sig.list,Fst.name],col=sig.col,pch=pt.pch)
+	}
 	points(names(avg.ci[[1]]),avg.ci[[1]],type="l",col=ci.col)
 	points(names(avg.ci[[2]]),avg.ci[[2]],type="l",col=ci.col)
 	legend(x=0.01,y=max(df[,Fst.name]),ci.name,
@@ -421,25 +422,28 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,Ht.name="Ht",Fst.name="Fst"
 }
 
 find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
-#Updated 2 Dec 2016
+#Updated 5 Dec 2016
 #Need to give this function bootstrap output (or a list of CIs)
 	if(is.null(boot.out) & is.null(ci.df)){
 		stop("Must provide bootstrap output or a list of CI values") 
-	} else if(is.null(ci.df)){ #what am I doing here??
+	} else if(is.null(ci.df)){ #need to calculate the mean ci values
 		avg.ci<-ci.means(boot.out[[3]])
-		ci.df<-as.data.frame(t(do.call(rbind,avg.ci)))
-		ci.df$Ht<-as.numeric(rownames(ci.df))
 	}
+  ci.df<-as.data.frame(t(do.call(rbind,avg.ci)))
+  ci.df$Ht<-as.numeric(rownames(ci.df))
 	diff<-0
 	for(i in 2:nrow(ci.df)){
 		diff<-c(diff,ci.df$Ht[i]-ci.df$Ht[(i-1)])
 	}
 	#bin<-cbind(ci.df$Ht-(diff/2),ci.df$Ht+(diff/2))
-	bin<-boot.out[[2]][[1]]
+	if(class(boot.out[[2]])=="list"){
+	  bin<-boot.out[[2]][[1]] }
+	if(class(boot.out[[2]])=="data.frame"){
+	  bin<-boot.out[[2]] }
 	actual.bin<-apply(bin, 1, function(x){ #this returns a list of Fst vectors
-		out<-df[df$Ht > x[1] &	df$Ht < x[2],] })
+		out<-df[df$Ht > x[1] &	df$Ht < x[2],] }) #one for each bin.
 	out<-NULL
-	for(i in 1:length(actual.bin)){ #what's going on??
+	for(i in 1:length(actual.bin)){ #turn it into a table
 		out<-rbind(out,actual.bin[[i]][
 			actual.bin[[i]]$Fst< ci.df[i,"low"] | 
 			actual.bin[[i]]$Fst> ci.df[i,"upp"],])
@@ -448,6 +452,14 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 		write.csv(out,paste(file.name,".csv",sep=""))
 	}
 	return(out)
+}
+
+smooth.cis<-function(ci.list, smoothing.rate=0.025){
+    hts<-seq(0,1,smoothing.rate)
+    new.low<-ci.list[[1]][as.numeric(names(ci.list[[1]])) %in% hts]
+    new.upp<-ci.list[[2]][as.numeric(names(ci.list[[2]])) %in% hts]
+    new.cis<-list(new.low,new.upp)
+    return(new.cis)
 }
 
 calc.actual.fst<-function(df, fst.choice="N"){
@@ -475,4 +487,21 @@ calc.actual.fst<-function(df, fst.choice="N"){
 	}
 	
 	return(fsts)
+}
+
+fhetboot<-function(gpop, fst.choice,alpha=0.05,nreps=10){
+  fsts<-calc.actual.fst(gpop,fst.choice)
+  boot.out<-as.data.frame(t(replicate(nreps, fst.boot(gpop))))
+  boot.pvals<-p.boot(fsts,boot.out=boot.out)
+  boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
+  boot.sig<-boot.cor.pvals[boot.cor.pvals <= alpha]
+  plotting.cis(fsts,boot.out,make.file=F,sig.list=names(boot.sig),smooth.ci = TRUE,
+               smoothing.rate = 0.01,pt.pch = 19)
+  new.cis<-smooth.cis(ci.means(boot.out[[3]]),smoothing.rate = 0.01)
+  outliers<-find.outliers(fsts,boot.out,ci.df=new.cis)
+  fsts$P.value<-boot.pvals
+  fsts$Corr.P.value<-boot.cor.pvals
+  fsts$Outlier<-FALSE
+  fsts[fsts$Locus %in% outliers$Locus,"Outlier"]<-TRUE
+  return(fsts)
 }
