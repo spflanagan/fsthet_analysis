@@ -102,6 +102,70 @@ colnames(moura.dat)<-header1
 groups<-c(rep("AR",17),rep("SR",13),rep("RU",9),rep("BS",13),rep("AT",21),
 	rep("CT",16),rep("OS",7),rep("IC",6),rep("MI",13))
 
+###################LITERATURE SURVEY RESULTS
+
+setwd("~/Projects/fst_outliers/results")
+res<-read.csv("lit_review.csv")
+
+res$Lositan.Pattern[res$Lositan.Pattern %in% 
+                      c("incline","Incline, shark tooth","Incline/shark tooth","Shark tooth, incline","Skewed/incline")]<-"Incline"
+res$Lositan.Pattern[res$Lositan.Pattern %in% 
+                      c("Shark tooth, skewed","Shark tooth/skewed","skew","skewed","Slightly skewed")]<-"Skewed"
+res$Lositan.Pattern[res$Lositan.Pattern %in% c("Shark teeth","shark tooth","Shark tooth","normal","Normal")]<-"Normal"
+res<-res[!(res$Lositan.Pattern==""),]
+res$Lositan.Pattern<-factor(res$Lositan.Pattern)
+
+dat<-res[,c("Lositan.Pattern","PopsMoreThanDemes","PopsLessThanDemes","DemesInformedAnalysis","NumPops","NumDemes")]
+dat$category<-as.character(dat$DemesInformedAnalysis)
+dat$category[is.na(dat$category)]<-"NoPopStructure"
+dat$category[dat$category=="yes"]<-"DemesInformedAnalysis"
+dat$category[dat$PopsMoreThanDemes==TRUE & dat$category=="no"]<-"PopsMoreThanDemes"
+dat$category[dat$PopsLessThanDemes==TRUE & dat$category=="no"]<-"PopsLessThanDemes"
+dat$category[dat$PopsMoreThanDemes==FALSE & dat$PopsLessThanDemes==FALSE & dat$category=="no"]<-"SameNumPopsDemes"
+freq<-table(dat$Lositan.Pattern,dat$category)/rowSums(table(dat$Lositan.Pattern,dat$category))
+barplot(t(freq),horiz=T,col=c("gainsboro","dark grey","deepskyblue3","darkorchid","goldenrod"),
+        border=NA)
+legend("top",rownames(freq),col=c("gainsboro","dark grey","deepskyblue3","darkorchid","goldenrod"),bty='n',ncol=5,pch=15)
+
+dat$NumPops[dat$NumPops=="15, split by deme"]<-15
+dat$NumPops[dat$NumPops=="2 (species)"]<-2
+dat$NumPops[dat$NumPops=="6 to 10"]<-6
+dat$NumPops[dat$NumPops=="5,8"]<-5
+dat$NumPops<-as.numeric(as.character(dat$NumPops))
+dat$PopsCategory<-dat$NumPops
+dat$PopsCategory[dat$PopsCategory>=10]<-"10orMore"
+
+dat$DemeCategory<-dat$NumDemes
+dat$DemeCategory[dat$DemeCategory %in% c("2,3","2 to 3")]<-2
+dat$DemeCategory[dat$DemeCategory %in% c("3 to 3","3 to 4", "4 to 3")]<-3
+dat$DemeCategory[dat$DemeCategory=="5 (including species differences)"]<-5
+dat$DemeCategory<-factor(dat$DemeCategory)
+
+num.freq<-table(dat$PopsCategory,dat$DemeCategory)/rowSums(table(dat$PopsCategory,dat$DemeCategory))
+barplot(t(num.freq[c(2,3,4,5,6,7,8,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T)
+legend("top",colnames(num.freq),col=rainbow(10),bty='n',ncol=5,pch=15,y.adjust=1)
+
+pop.order<-c(2,3,4,5,6,7,9,"10orMore")
+deme.order<-c(1,2,3,4,5,7,8,10,14,18)
+count.skew<-table(dat$PopsCategory[dat$Lositan.Pattern=="Skewed"],dat$DemeCategory[dat$Lositan.Pattern=="Skewed"])
+count.skew<-count.skew[,as.character(deme.order)]
+freq.skew<-table(dat$PopsCategory[dat$Lositan.Pattern=="Skewed"],dat$DemeCategory[dat$Lositan.Pattern=="Skewed"])/
+  rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Skewed"],dat$DemeCategory[dat$Lositan.Pattern=="Skewed"]))
+freq.skew<-freq.skew[,as.character(deme.order)]
+n.skew<-rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Skewed"],dat$DemeCategory[dat$Lositan.Pattern=="Skewed"]))
+count.incline<-table(dat$PopsCategory[dat$Lositan.Pattern=="Incline"],dat$DemeCategory[dat$Lositan.Pattern=="Incline"])
+count.incline<-count.incline[,as.character(deme.order)]
+freq.incline<-table(dat$PopsCategory[dat$Lositan.Pattern=="Incline"],dat$DemeCategory[dat$Lositan.Pattern=="Incline"])/
+  rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Incline"],dat$DemeCategory[dat$Lositan.Pattern=="Incline"]))
+freq.incline<-freq.incline[,as.character(deme.order)]
+n.incline<-rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Incline"],dat$DemeCategory[dat$Lositan.Pattern=="Incline"]))
+count.normal<-table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"])
+count.normal<-count.normal[,as.character(deme.order)]
+freq.normal<-table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"])/
+  rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"]))
+freq.normal<-freq.normal[,as.character(deme.order)]
+n.normal<-rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"]))
+
 ####################PLOTTING
 normal.loci<-read.delim("Hess_2013_data_Genepop.genepop.loci")#Hess et al. 2013
 normal.ci<-read.delim("Hess_2013_data_Genepop.genepop.ci")
@@ -116,7 +180,7 @@ skewed<-read.delim("dann.2012.traced.txt")
 
 pdf("../Fig1_literature.pdf",height=7,width=10)
 png("../Fig1_literature.png",height=10,width=7,units="in",res=300)
-par(mfrow=c(3,1),oma=c(2,2,2,2),mar=c(2,2,2,2))
+par(mfrow=c(3,2),oma=c(2,2,2,2),mar=c(2,2,2,2),xpd=T)
 plot(normal.loci$Het, normal.loci$Fst,xlab="",ylab="",pch=19,las=1)
 points(normal.ci$Het,normal.ci[,2],col="red",type="l",lwd=2)
 points(normal.ci$Het, normal.ci[,4],col="red",type="l",lwd=2)
@@ -139,6 +203,36 @@ text(x=0.095,y=0.27,"C. Skewed")
 
 mtext(expression(italic(H)[italic(T)]),1,outer=T,cex=0.85)
 mtext(expression(italic(F)[ST]),2,outer=T,cex=0.85)
+
+###NOW the literature review
+png("test_litrev_out.png",height=11,width=8.5,units="in",res=300)
+par(oma=c(2,2,2,2),mar=c(2,2,2,2),mfrow=c(3,2),xpd=T)
+#barplot(t(freq),horiz=T,col=c("gainsboro","dark grey","deepskyblue3","darkorchid","goldenrod"),
+#        border=NA,las=1)
+#legend("top",colnames(freq),col=c("gainsboro","dark grey","deepskyblue3","darkorchid","goldenrod"),bty='n',ncol=5,pch=15,
+#       inset=c(0,-0.5))
+
+bp<-barplot(t(freq.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
+legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
+text(1.01,bp,n.normal[pop.order])
+
+bp<-barplot(t(count.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,las=1,beside=T)
+
+bp<-barplot(t(freq.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
+legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
+text(1.01,bp,n.incline[pop.order])
+mtext("Number of Populations",2,outer=F,line=1.5,cex=0.8)
+
+bp<-barplot(t(count.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,las=1,beside=T)
+mtext("Number of Studies",2,outer=F,line=1.5,cex=0.8)
+bp<-barplot(t(freq.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
+legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
+text(1.01,bp,n.skew[pop.order])
+mtext("Proportion of Studies",1,outer=F,line=1.5,cex=0.8)
+
+bp<-barplot(t(count.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,las=1,beside=T)
+legend("topleft",legend=deme.order,col=rainbow(10),bty='n',ncol=5,pch=15,title="Number of Demes")
+mtext("Number of Populations",1,outer=F,line=1.5,cex=0.8)
 
 dev.off()
 
