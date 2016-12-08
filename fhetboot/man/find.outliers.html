@@ -1,10 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html><head><title>R: This identifies all of the SNPs outside of the confidence...</title>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<link rel="stylesheet" type="text/css" href="R.css">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: This identifies all of the SNPs outside of the confidence...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
 </head><body>
 
-<table width="100%" summary="page for find.outliers"><tr><td>find.outliers</td><td align="right">R Documentation</td></tr></table>
+<table width="100%" summary="page for find.outliers"><tr><td>find.outliers</td><td style="text-align: right;">R Documentation</td></tr></table>
 
 <h2>This identifies all of the SNPs outside of the confidence intervals in the dataset.</h2>
 
@@ -17,7 +16,7 @@
 <h3>Usage</h3>
 
 <pre>
-find.outliers(df, ci.df = NULL, boot.out = NULL, file.name = NULL)
+find.outliers(df, boot.out, ci.df = NULL, file.name = NULL)
 </pre>
 
 
@@ -30,15 +29,15 @@ find.outliers(df, ci.df = NULL, boot.out = NULL, file.name = NULL)
 </td></tr>
 <tr valign="top"><td><code>boot.out</code></td>
 <td>
-<p>Bootstrap output. You must either provide this or a list of confidence interval values.</p>
+<p>Bootstrap output. You must provide this.</p>
 </td></tr>
 <tr valign="top"><td><code>ci.df</code></td>
 <td>
-<p>List of confidence intervals. You must either provide this or bootstrap output.</p>
+<p>List of confidence intervals. You may provide this in addition to bootstrap output to save a small amount of time.</p>
 </td></tr>
 <tr valign="top"><td><code>file.name</code></td>
 <td>
-<p>You may provide a file name to output the outliers to a csv file. Otherwise, the function will only return the 95 and 99 percent outliers.</p>
+<p>You may provide a file name to output the outliers to a csv file. Otherwise, the function will only return the outliers.</p>
 </td></tr>
 </table>
 
@@ -46,13 +45,9 @@ find.outliers(df, ci.df = NULL, boot.out = NULL, file.name = NULL)
 <h3>Value</h3>
 
 <table summary="R valueblock">
-<tr valign="top"><td><code>out95</code></td>
+<tr valign="top"><td><code>out</code></td>
 <td>
-<p>A list of the 95 percent outlier loci</p>
-</td></tr>
-<tr valign="top"><td><code>out99</code></td>
-<td>
-<p>A list of the 99 percent outlier loci</p>
+<p>A list of the outlier loci</p>
 </td></tr>
 </table>
 

@@ -1,0 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: This calculates Beaumont &amp; Nichols's Fst.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for wc.corr.fst"><tr><td>wc.corr.fst</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>This calculates Beaumont &amp; Nichols's Fst. </h2>
+
+<h3>Description</h3>
+
+<p>This calculates Beaumont &amp; Nichols (1996)'s Fst. 
+This is just a sample-size corrected version of the Weir &amp; Cockerham (1993)'s beta.
+The caluclation is done as beta=(q2-q3)/(1-q3), 
+where:
+q3=2Y/(N(N-1)),
+q2=x0/N,
+N=number of populations
+x0=sum(sum((cij*cij)-nj)/(nj(nj-1)))
+where cij is the number of allele i (allele count i) in group j
+and nj is the sample size of population j
+Y=sum((sum(cij*cik)/(nj*nk)))
+where cij is allele count i in population j and cik is allele count i in population k
+and nj is the sample size in pop j and nk is the sample size in pop k.
+</p>
+<p>This calculation is used in bootstrapping functions.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+wc.corr.fst(df, i)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>df</code></td>
+<td>
+<p>A dataframe containing the genepop information, where the first column is the population ID.</p>
+</td></tr>
+<tr valign="top"><td><code>i</code></td>
+<td>
+<p>Column number containing genotype information.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<table summary="R valueblock">
+<tr valign="top"><td><code>ht</code></td>
+<td>
+<p>1-q3. This is a single numerical value.</p>
+</td></tr>
+<tr valign="top"><td><code>fst</code></td>
+<td>
+<p>The calculated Fst value ((q2-q3)/(1-q3))for this locus.</p>
+</td></tr>
+</table>
+
+
+</body></html>

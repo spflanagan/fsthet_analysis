@@ -9,7 +9,7 @@ rm(list=ls())
 ###############################################################################
 #DATA FROM LITERATURE
 ###############################################################################
-setwd("E://ubuntushare//fst_outliers//results//data_from_literature")
+setwd("B://ubuntushare//fst_outliers//results//data_from_literature")
 ###################REFORMATTING
 smith.dat<-read.delim("smith2015_skewed.txt")
 locus.id.index<-c(3,5,7,9,11,13,15,17,19,21)
@@ -104,7 +104,7 @@ groups<-c(rep("AR",17),rep("SR",13),rep("RU",9),rep("BS",13),rep("AT",21),
 
 ###################LITERATURE SURVEY RESULTS
 
-setwd("~/Projects/fst_outliers/results")
+setwd("B:/ubuntushare/fst_outliers/results")
 res<-read.csv("lit_review.csv")
 
 res$Lositan.Pattern[res$Lositan.Pattern %in% 
@@ -165,7 +165,7 @@ freq.normal<-table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCateg
   rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"]))
 freq.normal<-freq.normal[,as.character(deme.order)]
 n.normal<-rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"]))
-
+color.scheme<-c('#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b')
 ####################PLOTTING
 normal.loci<-read.delim("Hess_2013_data_Genepop.genepop.loci")#Hess et al. 2013
 normal.ci<-read.delim("Hess_2013_data_Genepop.genepop.ci")
@@ -182,9 +182,14 @@ pdf("../Fig1_literature.pdf",height=7,width=10)
 png("../Fig1_literature.png",height=10,width=7,units="in",res=300)
 par(mfrow=c(3,2),oma=c(2,2,2,2),mar=c(2,2,2,2),xpd=T)
 plot(normal.loci$Het, normal.loci$Fst,xlab="",ylab="",pch=19,las=1)
+clip(0,0.5,0,1)
 points(normal.ci$Het,normal.ci[,2],col="red",type="l",lwd=2)
 points(normal.ci$Het, normal.ci[,4],col="red",type="l",lwd=2)
 text(x=0.115,y=0.55,"A. Well-behaved")
+
+bp<-barplot(t(count.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,
+	border=NA,las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
+legend("topleft",legend=deme.order,col=color.scheme,bty='n',ncol=5,pch=15,title="Number of Demes")
 
 #plot(incline.loci$Het, incline.loci$Fst,xlab="",ylab="",pch=19,las=1)
 #points(incline.ci$Het,incline.ci[,2],col="red",type="l",lwd=2)
@@ -192,55 +197,58 @@ text(x=0.115,y=0.55,"A. Well-behaved")
 #text(x=0.05,y=0.21,"B. Incline")
 
 plot(jaggedci.loci$Het, jaggedci.loci$Fst,xlab="",	ylab="",pch=19,las=1)
+clip(0,0.9,0,1)
 points(jaggedci.ci$Het,jaggedci.ci[,2],col="red",type="l",lwd=2)
 points(jaggedci.ci$Het, jaggedci.ci[,4],col="red",type="l",lwd=2)
 text(x=0.25,y=0.85,"B. Incline, Jagged CI")
 
+bp<-barplot(t(count.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,
+	border=NA,las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
+mtext("Number of Populations",2,outer=F,line=2,cex=0.8)
+
+
 plot(skewed$points.x, skewed$points.y,xlab="",	ylab="",pch=19,las=1)
+clip(0,0.5,0,1)
 points(skewed$lower.x,skewed$lower.y,col="red",type="l",lwd=2)
 points(skewed$upper.x, skewed$upper.y,col="red",type="l",lwd=2)
 text(x=0.095,y=0.27,"C. Skewed")
+mtext(expression(italic(H)[italic(T)]),1,outer=F,line=2,cex=0.85)
 
-mtext(expression(italic(H)[italic(T)]),1,outer=T,cex=0.85)
+bp<-barplot(t(count.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,border=NA,
+	las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
+
+mtext("Number of Populations",1,outer=F,line=2,cex=0.8)
 mtext(expression(italic(F)[ST]),2,outer=T,cex=0.85)
 
+dev.off()
 ###NOW the literature review
-png("test_litrev_out.png",height=11,width=8.5,units="in",res=300)
-par(oma=c(2,2,2,2),mar=c(2,2,2,2),mfrow=c(3,2),xpd=T)
+#png("test_litrev_out.png",height=11,width=8.5,units="in",res=300)
+#par(oma=c(2,2,2,2),mar=c(2,2,2,2),mfrow=c(3,2),xpd=T)
 #barplot(t(freq),horiz=T,col=c("gainsboro","dark grey","deepskyblue3","darkorchid","goldenrod"),
 #        border=NA,las=1)
 #legend("top",colnames(freq),col=c("gainsboro","dark grey","deepskyblue3","darkorchid","goldenrod"),bty='n',ncol=5,pch=15,
 #       inset=c(0,-0.5))
 
-bp<-barplot(t(freq.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
-legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
-text(1.01,bp,n.normal[pop.order])
+#bp<-barplot(t(freq.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
+#legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
+#text(1.01,bp,n.normal[pop.order])
+#bp<-barplot(t(freq.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
+#legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
+#text(1.01,bp,n.incline[pop.order])
 
-bp<-barplot(t(count.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,las=1,beside=T)
+#mtext("Number of Studies",2,outer=F,line=1.5,cex=0.8)
+#bp<-barplot(t(freq.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
+#legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
+#text(1.01,bp,n.skew[pop.order])
+#mtext("Proportion of Studies",1,outer=F,line=1.5,cex=0.8)
 
-bp<-barplot(t(freq.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
-legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
-text(1.01,bp,n.incline[pop.order])
-mtext("Number of Populations",2,outer=F,line=1.5,cex=0.8)
 
-bp<-barplot(t(count.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,las=1,beside=T)
-mtext("Number of Studies",2,outer=F,line=1.5,cex=0.8)
-bp<-barplot(t(freq.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,horiz=T,las=1)
-legend("top",legend=deme.order,col=rainbow(10),bty='n',ncol=10,pch=15,inset=c(0,-0.3))
-text(1.01,bp,n.skew[pop.order])
-mtext("Proportion of Studies",1,outer=F,line=1.5,cex=0.8)
-
-bp<-barplot(t(count.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=rainbow(10),border=NA,las=1,beside=T)
-legend("topleft",legend=deme.order,col=rainbow(10),bty='n',ncol=5,pch=15,title="Number of Demes")
-mtext("Number of Populations",1,outer=F,line=1.5,cex=0.8)
-
-dev.off()
 
 ###############################################################################
 #FDIST2
 ###############################################################################
 #PLOT ALL THE PARAMETER COMBINATIONS
-setwd("E://ubuntushare//fst_outliers//results//fdist2")
+setwd("B://ubuntushare//fst_outliers//results//fdist2")
 
 file.list<-list.files(pattern="out.dat[2-5]\\d{2}.txt")
 for(i in 1:length(file.list)){

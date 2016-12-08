@@ -5,7 +5,7 @@
 	This calculates mean heterozygosity and Fst values for each bin used in bootstrapping.
 }
 \usage{
-p.boot(actual.fsts, boot.out)
+p.boot(actual.fsts, boot.out,boot.means=NULL)
 }
 \arguments{
   \item{actual.fsts}{The first item in the output lists from fst.boot. }

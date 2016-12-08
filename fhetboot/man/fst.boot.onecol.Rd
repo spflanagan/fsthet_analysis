@@ -7,7 +7,7 @@
 	It then calculates Fst and Ht for that locus.
 }
 \usage{
-fst.boot.onecol(df)
+fst.boot.onecol(df, fst.choice)
 }
 \arguments{
   \item{df}{A dataframe containing the genepop information, where the first column is the population ID.}

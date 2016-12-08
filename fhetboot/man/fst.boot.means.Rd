@@ -5,10 +5,10 @@
 	This calculates mean heterozygosity and Fst values for each bin used in bootstrapping.
 }
 \usage{
-fst.boot.means(boot.out[[1]])
+fst.boot.means(boot.out)
 }
 \arguments{
-  \item{boot.out.means}{The first item in the output lists from fst.boot. }
+  \item{boot.out}{The first item in the output lists from fst.boot (aka boot.out[[1]]. }
 }
 \value{
 	\item{bmu}{A dataframe containing four columns:

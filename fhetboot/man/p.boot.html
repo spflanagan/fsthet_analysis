@@ -1,0 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Calculates mean values within the bins.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for p.boot"><tr><td>p.boot</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Calculates mean values within the bins. </h2>
+
+<h3>Description</h3>
+
+<p>This calculates mean heterozygosity and Fst values for each bin used in bootstrapping.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+p.boot(actual.fsts, boot.out)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>actual.fsts</code></td>
+<td>
+<p>The first item in the output lists from fst.boot. </p>
+</td></tr>
+<tr valign="top"><td><code>boot.out</code></td>
+<td>
+<p>The output from a bootstrapping run. Either supply this or boot.means. </p>
+</td></tr>
+<tr valign="top"><td><code>boot.means</code></td>
+<td>
+<p>The output from fst.boot.means. Either supply this or bootstrapping output. </p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<table summary="R valueblock">
+<tr valign="top"><td><code>pvals</code></td>
+<td>
+<p>A numeric containing uncorrected p-values for each locus. The names attribute are the locus names.</p>
+</td></tr>
+</table>
+
+
+</body></html>

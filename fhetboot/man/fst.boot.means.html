@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Calculates mean values within the bins.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for fst.boot.means"><tr><td>fst.boot.means</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Calculates mean values within the bins. </h2>
+
+<h3>Description</h3>
+
+<p>This calculates mean heterozygosity and Fst values for each bin used in bootstrapping.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+fst.boot.means(boot.out[[1]])
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>boot.out.means</code></td>
+<td>
+<p>The first item in the output lists from fst.boot. </p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<table summary="R valueblock">
+<tr valign="top"><td><code>bmu</code></td>
+<td>
+<p>A dataframe containing four columns:
+heterozygosity
+Fst
+the number of loci in the bin
+the lower Ht value for the bin
+and the upper Ht value for the bin.</p>
+</td></tr>
+</table>
+
+
+</body></html>

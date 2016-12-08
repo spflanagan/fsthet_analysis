@@ -5,7 +5,9 @@
 	This plots a dataframe of fsts with bootstrapped confidence intervals.
 }
 \usage{
-plotting.cis(df, boot.out, ci.list, sig.list, Ht.name, Fst.name, ci.col, pt.pch,file.name,make.file, smoothing.rate=0.025, smooth.ci=TRUE)
+plotting.cis(df,boot.out,ci.list=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
+	ci.col="red", pt.pch=1,file.name=NULL,sig.col=ci.col,smooth.ci=TRUE,
+	smoothing.rate=0.025,make.file=TRUE)
 }
 \arguments{
   \item{df}{A dataframe of Fst and Ht values. It must have at least two columns, one named "Ht" and one named "Fst". Or you must pass the column names to the function}

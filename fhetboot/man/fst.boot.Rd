@@ -11,7 +11,7 @@
 	This function can be slow. We recommend running it 10 times to generate confidence intervals for analysis.
 }
 \usage{
-fst.boot(df)
+fst.boot(df,fst.choice="nei",ci=0.05,smooth.rate=0.1)
 }
 \arguments{
   \item{df}{A dataframe containing the genepop information, where the first column is the population ID.}

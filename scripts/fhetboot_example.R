@@ -3,7 +3,7 @@
 #Last updated: 5 December 2016
 
 
-library("fhetboot",lib.loc = "~/Projects/fst_outliers/fhetboot")
+library("fhetboot",lib.loc = "B:/ubuntushare/fst_outliers/fhetboot")
 gfile<-system.file("extdata", "example.genepop.txt",package = 'fhetboot')
 gpop<-my.read.genepop(gfile)
 
@@ -22,6 +22,9 @@ boot.pvals<-p.boot(fsts,boot.out=boot.out)
 boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
 boot.sig<-boot.cor.pvals[boot.cor.pvals <= 0.05]
 plotting.cis(fsts,boot.out,make.file=F,sig.list=names(boot.sig),smooth.ci = TRUE,smoothing.rate = 0.02)
+
+ci.boot<-ci.means(boot.out[[3]])
+boot.means<-fst.boot.means(boot.out)
 
 #example with just one bootstrap rep
 test<-fst.boot(gpop)

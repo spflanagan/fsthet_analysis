@@ -7,7 +7,3 @@
 \usage{
 fst.options.print()
 }
-\arguments{
-}
-\value{
-}

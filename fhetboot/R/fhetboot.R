@@ -315,7 +315,6 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 		stop("You must provide either bootstrapping output or bootstrap means") }
   if(class(boot.out[[2]])=="data.frame"){
     stop("Can only calculate p-values if bootstrapping was run more than once.") }
-  }
 	if(is.null(boot.means)){ #then we need to calculate means
 		boot.means<-fst.boot.means(boot.out)				
 	}#boot.means
@@ -374,7 +373,7 @@ ci.means<-function(boot.out.list){ #boot.out[[3]]
 }
 
 plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
-	ci.col="red", pt.pch=1,file.name=NULL,ci.name="95% CI",sig.col=ci.col,smooth.ci=TRUE,
+	ci.col="red", pt.pch=1,file.name=NULL,sig.col=ci.col,smooth.ci=TRUE,
 	smoothing.rate=0.025,make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
 #It must have at least two columns, one named "Ht" and one named "Fst"
@@ -415,8 +414,6 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",
 	}
 	points(names(avg.ci[[1]]),avg.ci[[1]],type="l",col=ci.col)
 	points(names(avg.ci[[2]]),avg.ci[[2]],type="l",col=ci.col)
-	legend(x=0.01,y=max(df[,Fst.name]),ci.name,
-		col=ci.col,lty=1,bty='n')
 	if(make.file==TRUE) dev.off()
 	
 }

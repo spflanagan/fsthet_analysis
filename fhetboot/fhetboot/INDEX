@@ -1,3 +1,6 @@
+boot.means              Example dataframe of mean Fst and
+                        heterozygosity from the bootstrapping for the
+                        bins.
 boot.out                Example bootstrap output from numerical
                         simulations
 boot.out.list           Example list of CI matrices from bootstrap
@@ -15,12 +18,20 @@ find.outliers           This identifies all of the SNPs outside of the
                         confidence intervals in the dataset.
 fst.boot                This is the major bootstrapping function to
                         calculate confidence intervals.
+fst.boot.means          Calculates mean values within the bins.
 fst.boot.onecol         This bootstraps across all individuals to
                         calculate a bootstrapped Fst for a
                         randomly-sampled locus.
+fst.options.printl      This prints the options for choosing an Fst
+                        calculation.
 fsts                    Example fst calculations from a genepop file.
+fsts.wc                 Example fst calculations from a genepop file.
+fsts.wcc                Example fst calculations from a genepop file.
 gpop                    Example genepop file from numerical simulations
 my.read.genepop         This reads a genepop file into R
+p.boot                  Calculates mean values within the bins.
 plotting.cis            This plots a dataframe of fsts with
                         bootstrapped confidence intervals.
 remove.spaces           This removes spaces from a character vector
+wc.corr.fst             This calculates Beaumont & Nichols's Fst.
+wc.fst                  This calculates Weir & Cockerham's Fst.
