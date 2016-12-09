@@ -209,7 +209,7 @@ fst.boot.onecol<-function(df,fst.choice){
   if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
      fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
     ht.fst<-wc.corr.fst(df,col) }
-	return(ht.fst)
+  return(ht.fst)
 }
 
 fst.options.print<-function(){
@@ -228,6 +228,7 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,smooth.rate=0.1){
 	nloci<-(ncol(df)-2)
 	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df,fst.choice))))
 	colnames(boot.out)<-c("Ht","Fst")
+	boot.out$Fst[is.na(boot.out$Fst)]<-0
 	print("Bootstrapping done. Now Calculating CIs")
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
@@ -438,7 +439,8 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	if(class(boot.out[[2]])=="data.frame"){
 	  bin<-boot.out[[2]] }
 	actual.bin<-apply(bin, 1, function(x){ #this returns a list of Fst vectors
-		out<-df[df$Ht > x[1] &	df$Ht < x[2],] }) #one for each bin.
+		out<-df[as.numeric(df$Ht) > as.numeric(x[1]) &	
+			as.numeric(df$Ht) < as.numeric(x[2]),] }) #one for each bin.
 	out<-NULL
 	for(i in 1:length(actual.bin)){ #turn it into a table
 		out<-rbind(out,actual.bin[[i]][

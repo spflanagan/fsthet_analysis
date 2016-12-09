@@ -23,9 +23,6 @@ boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
 boot.sig<-boot.cor.pvals[boot.cor.pvals <= 0.05]
 plotting.cis(fsts,boot.out,make.file=F,sig.list=names(boot.sig),smooth.ci = TRUE,smoothing.rate = 0.02)
 
-ci.boot<-ci.means(boot.out[[3]])
-boot.means<-fst.boot.means(boot.out)
-
 #example with just one bootstrap rep
 test<-fst.boot(gpop)
 plotting.cis(fsts, ci.list=test[[3]])
