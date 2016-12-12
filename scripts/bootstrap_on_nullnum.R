@@ -1,4 +1,4 @@
-source("E:/ubuntushare/fst_outliers/scripts/bootstrap_fst_het.R")
+source("B:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
 setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop")
 
 all.files<-list.files(pattern=".genepop$")
@@ -32,3 +32,103 @@ t.test(los.sig$totalp, proportions[,2], paired = TRUE)
 t.test(los.sig$totalp,proportions[,2],paired=T,alternative="greater")
 
 max.boot<-read.csv("Nm10.d50.s2.genepop95.csv")
+
+##Analyze lositan output
+#setwd("~/Desktop/numerical_analysis_genepop/")
+iam.ci<-list.files(pattern="genepop.ci")
+iam.loci<-list.files(pattern="genepop.loci")
+stp.ci<-list.files(pattern="step.ci")
+stp.loci<-list.files(pattern="step.loci")
+s.ci<-data.frame(filename=character(),ParamSet=character(),
+                 Nm=numeric(),demes=numeric(),sampled=numeric(), PropOutliers=numeric(),stringsAsFactors=F)
+for(i in 1:length(stp.ci)){
+  nm<-gsub("Nm(\\d.*).d.*","\\1",stp.ci[i])
+  d<-gsub("Nm\\d.*.d(\\d+).*","\\1",stp.ci[i])
+  s<-gsub("Nm\\d.*.d\\d+.*.s(\\d+).*","\\1",stp.ci[i])
+  params<-gsub("(.*).genepop.*","\\1",stp.ci[i])
+  dat<-read.delim(stp.ci[i])
+  low.ci<-dat[,c(1,2)]
+  upp.ci<-dat[,c(1,4)]
+  locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[1]),"loci",sep=".")
+  loc.name<-stp.loci[stp.loci %in% locus.name]
+  loc.dat<-read.delim(loc.name)
+  loc.dat<-loc.dat[loc.dat$Fst>-100,]
+  out<-apply(loc.dat,1,function(x){
+    outliers<-0
+    #get the two confidence interval values closest to x
+    lowl<-low.ci[as.numeric(low.ci$Het) <= as.numeric(x["Het"]),]
+    lowl<-lowl[nrow(lowl),]
+    uppl<-low.ci[as.numeric(low.ci$Het) >= as.numeric(x["Het"]),][1,]
+    if(nrow(lowl) > 0 & nrow(uppl) > 0) { low.fst<-mean(lowl$Fst,uppl$Fst) 
+	} else{
+		if(nrow(lowl) > 0){ low.fst<-lowl$Fst }
+		if(nrow(uppl) > 0){ low.fst<-uppl$Fst } 
+	}
+    lowu<-upp.ci[as.numeric(upp.ci$Het) <= as.numeric(x["Het"]),]
+    lowu<-lowu[nrow(lowu),]
+    uppu<-upp.ci[as.numeric(upp.ci$Het) >= as.numeric(x["Het"]),][1,]
+   
+	if(nrow(lowu) > 0 & nrow(uppu) > 0) {  upp.fst<-mean(lowu[,2],uppu[,2]) 
+	} else{
+		if(nrow(lowu) > 0){ upp.fst<-lowu[,2] }
+		if(nrow(uppu) > 0){ upp.fst<-uppu[,2] } 
+	}
+    if(as.numeric(x["Fst"]) > as.numeric(upp.fst) | as.numeric(x["Fst"]) < as.numeric(low.fst)){
+      outliers<-1
+    }
+    return(outliers)
+  })
+  outliers<-sum(out)/nrow(loc.dat)
+  s.ci[i,]<-cbind(locus.name,params,nm,d,s,outliers)
+}
+
+
+i.ci<-data.frame(filename=character(),ParamSet=character(),
+                 Nm=numeric(),demes=numeric(),s=numeric(), PropOutliers=numeric(),stringsAsFactors=F)
+for(i in 1:length(iam.ci)){
+  nm<-gsub("Nm(\\d.*).d.*","\\1",iam.ci[i])
+  d<-gsub("Nm\\d.*.d(\\d+).*","\\1",iam.ci[i])
+  s<-gsub("Nm\\d.*.d\\d+.*.s(\\d+).*","\\1",iam.ci[i])
+  params<-gsub("(.*).genepop.*","\\1",iam.ci[i])
+  dat<-read.delim(iam.ci[i])
+  low.ci<-dat[,c(1,2)]
+  upp.ci<-dat[,c(1,4)]
+  locus.name<-paste(gsub("(Nm\\d.*.genepop).ci","\\1",iam.ci[1]),"loci",sep=".")
+  loc.name<-iam.loci[iam.loci %in% locus.name]
+  loc.dat<-read.delim(loc.name)
+  loc.dat<-loc.dat[loc.dat$Fst>-100,]
+  out<-apply(loc.dat,1,function(x){
+    outliers<-0
+    #get the two confidence interval values closest to x
+    lowl<-low.ci[as.numeric(low.ci$Het) <= as.numeric(x["Het"]),]
+    lowl<-lowl[nrow(lowl),]
+    uppl<-low.ci[as.numeric(low.ci$Het) >= as.numeric(x["Het"]),][1,]
+    if(nrow(lowl) > 0 & nrow(uppl) > 0) { low.fst<-mean(lowl$Fst,uppl$Fst) 
+	} else{
+		if(nrow(lowl) > 0){ low.fst<-lowl$Fst }
+		if(nrow(uppl) > 0){ low.fst<-uppl$Fst } 
+	}
+    lowu<-upp.ci[as.numeric(upp.ci$Het) <= as.numeric(x["Het"]),]
+    lowu<-lowu[nrow(lowu),]
+    uppu<-upp.ci[as.numeric(upp.ci$Het) >= as.numeric(x["Het"]),][1,]
+    if(nrow(lowu) > 0 & nrow(uppu) > 0) {  upp.fst<-mean(lowu[,2],uppu[,2]) 
+	} else{
+		if(nrow(lowu) > 0){ upp.fst<-lowu[,2] }
+		if(nrow(uppu) > 0){ upp.fst<-uppu[,2] } 
+	}
+
+    if(as.numeric(x["Fst"]) > as.numeric(upp.fst) | as.numeric(x["Fst"]) < as.numeric(low.fst)){
+      outliers<-1
+    }
+    return(outliers)
+  })
+  outliers<-sum(out)/nrow(loc.dat)
+  i.ci[i,]<-cbind(locus.name,params,nm,d,s,outliers)
+}
+
+is.ci<-merge(s.ci,i.ci,by="ParamSet")
+t.test(as.numeric(is.ci$PropOutliers.x),as.numeric(is.ci$PropOutliers.y),paired=T)
+#t = 1.8257, df = 83, p-value = 0.07149
+
+write.csv(s.ci,"StepwiseLositanOutliers.csv")
+write.csv(i.ci,"InfiniteAllelesModel.csv")
