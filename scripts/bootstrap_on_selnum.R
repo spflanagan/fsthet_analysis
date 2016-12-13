@@ -18,7 +18,7 @@ sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	prop<-nrow(outliers)/(ncol(gpop)-2)
 	return(cbind(prop,wcc.prop))
 }))
-rownames(sel.proportions)<-all.files
+rownames(sel.proportions)<-sel.all.files
 write.table(sel.proportions,"SelectedProportionOutliers.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
