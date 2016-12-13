@@ -5,33 +5,23 @@ all.files<-list.files(pattern=".genepop$")
 proportions<-do.call(rbind,lapply(all.files, function(x) {
 	gpop<-my.read.genepop(x)
 	fsts.wcc<-calc.actual.fst(gpop,"WCC")
-	fsts<-calc.actual.fst(gpop)
-	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
+	#fsts<-calc.actual.fst(gpop)
+	#boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
 	wcc.boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop,"WCC"))))
 	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(x,"wcc.png",sep=""))
-	outliers<-find.outliers(fsts,boot.out=boot.out, 
-		file.name=x)
+#	outliers<-find.outliers(fsts,boot.out=boot.out, 
+#		file.name=x)
 	wcc.outliers<-find.outliers(fsts.wcc,boot.out=wcc.boot.out, 
 		file.name=x)
+	wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
 	wcc.prop<-nrow(wcc.outliers)/(ncol(gpop)-2)
-	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(cbind(prop,wcc.prop))
+#	prop<-nrow(outliers)/(ncol(gpop)-2)
+	return(wcc.prop)
 }))
 rownames(proportions)<-all.files
 write.table(proportions,"ProportionOutliers_WCC.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
-#compare to lositan analysis?
-los.sig<-read.table("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/sig.loci.sim.LOSITAN.txt",skip=1)
-colnames(los.sig)<-c("file","bal","pos","total","balp","posp","totalp")
-#these are all at the 95% level
-#do a paired t-test.
-los.sig<-los.sig[order(los.sig$file),]
-proportions<-proportions[order(rownames(proportions)),]
-t.test(los.sig$totalp, proportions[,2], paired = TRUE)
-t.test(los.sig$totalp,proportions[,2],paired=T,alternative="greater")
-
-max.boot<-read.csv("Nm10.d50.s2.genepop95.csv")
 
 ##Analyze lositan output
 setwd("~/Desktop/numerical_analysis_genepop/")
@@ -41,7 +31,9 @@ iam.loci<-list.files(pattern="genepop.loci")
 stp.ci<-list.files(pattern="step.ci")
 stp.loci<-list.files(pattern="step.loci")
 s.ci<-data.frame(filename=character(),ParamSet=character(),
-       Nm=numeric(),demes=numeric(),sampled=numeric(), PropOutliers=numeric(),stringsAsFactors=F)
+       Nm=numeric(),demes=numeric(),sampled=numeric(), 
+	PropBal=numeric(),PropPos=numeric(),PropOutliers=numeric(),
+	stringsAsFactors=F)
 
 for(i in 1:length(stp.ci)){
   nm<-gsub("Nm(\\d.*).d.*","\\1",stp.ci[i])
@@ -51,39 +43,31 @@ for(i in 1:length(stp.ci)){
   dat<-read.delim(stp.ci[i])
   low.ci<-dat[,c(1,2)]
   upp.ci<-dat[,c(1,4)]
-  locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[1]),"loci",sep=".")
+  locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[i]),"loci",sep=".")
   loc.name<-stp.loci[stp.loci %in% locus.name]
   loc.dat<-read.delim(loc.name)
-  loc.dat<-loc.dat[loc.dat$Fst>-100,]
-  out<-apply(loc.dat,1,function(x){
-    outliers<-0
+  loc.dat<-loc.dat[loc.dat$Fst>0,]
+  out<-data.frame(t(apply(loc.dat,1,function(x){
+	pos<-0
+	bal<-0
     #get the two confidence interval values closest to x
-    lowl<-low.ci[as.numeric(low.ci$Het) <= as.numeric(x["Het"]),]
-    lowl<-lowl[nrow(lowl),]
-    uppl<-low.ci[as.numeric(low.ci$Het) >= as.numeric(x["Het"]),][1,]
-    if(nrow(lowl) > 0 & nrow(uppl) > 0) { low.fst<-mean(lowl$Fst,uppl$Fst) 
-	} else{
-		if(nrow(lowl) > 0){ low.fst<-lowl$Fst }
-		if(nrow(uppl) > 0){ low.fst<-uppl$Fst } 
+	low.fst<-low.ci[which.min(abs(as.numeric(low.ci$Het)-as.numeric(x["Het"]))),]
+	upp.fst<-upp.ci[which.min(abs(as.numeric(upp.ci$Het)-as.numeric(x["Het"]))),]
+   if(as.numeric(x["Fst"]) > as.numeric(upp.fst[2])){
+	pos<-1
 	}
-    lowu<-upp.ci[as.numeric(upp.ci$Het) <= as.numeric(x["Het"]),]
-    lowu<-lowu[nrow(lowu),]
-    uppu<-upp.ci[as.numeric(upp.ci$Het) >= as.numeric(x["Het"]),][1,]
-   
-	if(nrow(lowu) > 0 & nrow(uppu) > 0) {  upp.fst<-mean(lowu[,2],uppu[,2]) 
-	} else{
-		if(nrow(lowu) > 0){ upp.fst<-lowu[,2] }
-		if(nrow(uppu) > 0){ upp.fst<-uppu[,2] } 
-	}
-    if(as.numeric(x["Fst"]) > as.numeric(upp.fst) | as.numeric(x["Fst"]) < as.numeric(low.fst)){
-      outliers<-1
+	if(as.numeric(x["Fst"]) < as.numeric(low.fst[2])){
+      	bal<-1
     }
-    return(outliers)
-  })
-  outliers<-sum(out)/nrow(loc.dat)
-  s.ci[i,]<-cbind(locus.name,params,nm,d,s,outliers)
+    return(cbind(bal,pos))
+  })))
+  prop.bal<-sum(out$X1)/nrow(loc.dat)
+  prop.pos<-sum(out$X2)/nrow(loc.dat)
+	prop.out<-sum(out$X1,out$X2)/nrow(loc.dat)
+  s.ci[i,]<-cbind(locus.name,params,nm,d,s,prop.bal,prop.pos,prop.out)
 }
 
+write.csv(s.ci,"StepwiseLositanOutliers.csv")
 
 i.ci<-data.frame(filename=character(),ParamSet=character(),
                  Nm=numeric(),demes=numeric(),s=numeric(), PropOutliers=numeric(),stringsAsFactors=F)
@@ -134,5 +118,29 @@ t.test(as.numeric(is.ci$PropOutliers.x),as.numeric(is.ci$PropOutliers.y),paired=
 
 #t = 1.8257, df = 83, p-value = 0.07149
 
-write.csv(s.ci,"StepwiseLositanOutliers.csv")
+
 write.csv(i.ci,"InfiniteAllelesModel.csv")
+
+#compare to lositan analysis
+s.ci<-read.csv("StepwiseLositanOutliers.csv")
+s.ci$filename<-gsub("(Nm\\d+.*.genepop).step.loci","\\1",s.ci$filename)
+i.ci<-read.csv("InfiniteAllelesModel.csv")
+i.ci$filename<-gsub("(Nm\\d+.*.genepop).loci","\\1",i.ci$filename)
+proportions<-read.table("ProportionOutliers_WCC.txt")
+proportions$filename<-rownames(proportions)
+
+#step
+step.prop<-merge(s.ci,proportions,by="filename")
+t.test(step.prop$PropOutliers,step.prop$wcc.prop)
+
+
+#los.sig<-read.table("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/sig.loci.sim.LOSITAN.txt",skip=1)
+#colnames(los.sig)<-c("file","bal","pos","total","balp","posp","totalp")
+#these are all at the 95% level
+#do a paired t-test.
+#los.sig<-los.sig[order(los.sig$file),]
+#proportions<-proportions[order(rownames(proportions)),]
+#t.test(los.sig$totalp, proportions[,2], paired = TRUE)
+#t.test(los.sig$totalp,proportions[,2],paired=T,alternative="greater")
+#max.boot<-read.csv("Nm10.d50.s2.genepop95.csv")
+
