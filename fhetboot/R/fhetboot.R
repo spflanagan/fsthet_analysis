@@ -209,7 +209,7 @@ fst.boot.onecol<-function(df,fst.choice){
   if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
      fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
     ht.fst<-wc.corr.fst(df,col) }
-	return(ht.fst)
+  return(ht.fst)
 }
 
 fst.options.print<-function(){
@@ -228,6 +228,7 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,smooth.rate=0.1){
 	nloci<-(ncol(df)-2)
 	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df,fst.choice))))
 	colnames(boot.out)<-c("Ht","Fst")
+	boot.out$Fst[boot.out$Fst=="NaN"]<-0
 	print("Bootstrapping done. Now Calculating CIs")
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
@@ -417,9 +418,8 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",
 	if(make.file==TRUE) dev.off()
 	
 }
-
 find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
-#Updated 5 Dec 2016
+#Updated 12 Dec 2016
 #Need to give this function bootstrap output (or a list of CIs)
 	if(is.null(boot.out) & is.null(ci.df)){
 		stop("Must provide bootstrap output or a list of CI values") 
@@ -428,27 +428,25 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	}
   ci.df<-as.data.frame(t(do.call(rbind,avg.ci)))
   ci.df$Ht<-as.numeric(rownames(ci.df))
-	diff<-0
-	for(i in 2:nrow(ci.df)){
-		diff<-c(diff,ci.df$Ht[i]-ci.df$Ht[(i-1)])
-	}
-	#bin<-cbind(ci.df$Ht-(diff/2),ci.df$Ht+(diff/2))
 	if(class(boot.out[[2]])=="list"){
 	  bin<-boot.out[[2]][[1]] }
 	if(class(boot.out[[2]])=="data.frame"){
 	  bin<-boot.out[[2]] }
-	actual.bin<-apply(bin, 1, function(x){ #this returns a list of Fst vectors
-		out<-df[df$Ht > x[1] &	df$Ht < x[2],] }) #one for each bin.
-	out<-NULL
-	for(i in 1:length(actual.bin)){ #turn it into a table
-		out<-rbind(out,actual.bin[[i]][
-			actual.bin[[i]]$Fst< ci.df[i,"low"] | 
-			actual.bin[[i]]$Fst> ci.df[i,"upp"],])
+	#match Fst and Ht
+	#I want to find the outliers. 
+	#For each df, find its closest cis
+	outliers<-NULL
+	for(i in 1: nrow(df)){
+		x<-df[i,]
+		#get the closest ones to the ht
+		this.ci<-ci.df[which.min(abs(as.numeric(ci.df$Ht)-as.numeric(x["Ht"]))),]
+		if(x["Fst"] > this.ci$upp | x["Fst"] < this.ci$low){		
+			outliers<-rbind(outliers,x) }
 	}
 	if(!is.null(file.name)){
-		write.csv(out,paste(file.name,".csv",sep=""))
+		write.csv(outliers,paste(file.name,".csv",sep=""))
 	}
-	return(out)
+	return(outliers)
 }
 
 smooth.cis<-function(ci.list, smoothing.rate=0.025){
