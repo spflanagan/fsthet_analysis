@@ -8,6 +8,7 @@ sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	fsts.wcc<-calc.actual.fst(gpop,"WCC")
 #	fsts<-calc.actual.fst(gpop)
 #	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
+	###NEED TO GO GET SELECTED LOCI
 	wcc.boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop,"WCC"))))
 	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(x,"wcc.png",sep=""))
 #	outliers<-find.outliers(fsts,boot.out=boot.out, 
@@ -214,13 +215,14 @@ t.test(as.numeric(sis.ci$PropOutliers.x),as.numeric(sis.ci$PropOutliers.y),paire
 write.csv(si.ci,"InfiniteAllelesModel_Selection.csv")
 
 #compare to lositan analysis
-ss.ci<-read.csv("StepwiseLositanOutliers.csv")
+ss.ci<-read.csv("StepwiseLositanOutliers_Selection.csv")
 ss.ci$filename<-gsub("(Nm\\d+.*.genepop).step.loci","\\1",ss.ci$filename)
-si.ci<-read.csv("InfiniteAllelesModel.csv")
+si.ci<-read.csv("InfiniteAllelesModel_Selection.csv")
 si.ci$filename<-gsub("(Nm\\d+.*.genepop).loci","\\1",si.ci$filename)
-proportions<-read.table("ProportionOutliers_WCC.txt")
-proportions$filename<-rownames(proportions)
+sel.proportions<-read.table("SelectedProportionOutliers.txt")
+sel.proportions$filename<-rownames(sel.proportions)
 
 #step
-step.prop<-merge(ss.ci,proportions,by="filename")
-t.test(step.prop$PropOutliers,step.prop$wcc.prop)
+step.prop<-merge(ss.ci,sel.proportions,by="filename")
+t.test(step.prop$PropOutliers,step.prop$V1)
+#t = 4.571, df = 75.817, p-value = 1.852e-05

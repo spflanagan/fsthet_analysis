@@ -1,6 +1,24 @@
 source("B:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
 setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop")
 
+find.los.sig<-function(ci.dat,loci.dat){
+  bal<-NULL
+  pos<-NULL
+  loci.dat<-loci.dat[loci.dat$Het>0,]
+  for(ii in 1:(nrow(ci.dat)-1)){
+    fst.het<-loci.dat[loci.dat$Het >= ci.dat[ii,"Het"] & 
+                        loci.dat$Het <= ci.dat[(ii+1),"Het"],]
+    max.bound<-min(ci.dat[ii:(ii+1),4])
+    min.bound<-max(ci.dat[ii:(ii+1),2])
+    bal<-rbind(bal, fst.het[fst.het$Fst <= min.bound,]) 
+    pos<-rbind(pos, fst.het[fst.het$Fst >= max.bound,])
+  }
+  props<-c((nrow(bal)/nrow(loci.dat)), (nrow(pos)/nrow(loci.dat)),
+           ((nrow(bal)+nrow(pos))/nrow(loci.dat)))	
+  return(props)
+}
+
+
 all.files<-list.files(pattern=".genepop$")
 proportions<-do.call(rbind,lapply(all.files, function(x) {
 	gpop<-my.read.genepop(x)
@@ -46,25 +64,8 @@ for(i in 1:length(stp.ci)){
   locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[i]),"loci",sep=".")
   loc.name<-stp.loci[stp.loci %in% locus.name]
   loc.dat<-read.delim(loc.name)
-  loc.dat<-loc.dat[loc.dat$Fst>-100 & loc.dat$Het > 0,]
-  out<-data.frame(t(apply(loc.dat,1,function(x){
-	pos<-0
-	bal<-0
-    #get the two confidence interval values closest to x
-	low.fst<-low.ci[which.min(abs(as.numeric(low.ci$Het)-as.numeric(x["Het"]))),]
-	upp.fst<-upp.ci[which.min(abs(as.numeric(upp.ci$Het)-as.numeric(x["Het"]))),]
-   if(as.numeric(x["Fst"]) > as.numeric(upp.fst[2])){
-	pos<-1
-	}
-	if(as.numeric(x["Fst"]) < as.numeric(low.fst[2])){
-      	bal<-1
-    }
-    return(cbind(bal,pos))
-  })))
-  prop.bal<-sum(out$X1)/nrow(loc.dat)
-  prop.pos<-sum(out$X2)/nrow(loc.dat)
-	prop.out<-sum(out$X1,out$X2)/nrow(loc.dat)
-  s.ci[i,]<-cbind(locus.name,params,nm,d,s,prop.bal,prop.pos,prop.out)
+  props<-find.los.sig(dat,loc.dat)
+  s.ci[i,]<-cbind(locus.name,params,nm,d,s,props[1],props[2],props[3])
 }
 
 write.csv(s.ci,"StepwiseLositanOutliers.csv")
@@ -131,9 +132,22 @@ proportions$filename<-rownames(proportions)
 
 #step
 step.prop<-merge(s.ci,proportions,by="filename")
-t.test(step.prop$PropOutliers,step.prop$wcc.prop)
+t.test(x=step.prop$PropOutliers,y=step.prop$V1,paired=T,alternative="less")
 
 
+#Correlation between fst and beta
+library(Hmisc)
+fst.cor<-data.frame(file=character(),Ht=numeric(),Fst=numeric(),Hb=numeric(),beta=numeric(),
+                    stringsAsFactors = FALSE)
+for(i in 1:length(all.files))
+{
+  gpop<-my.read.genepop(all.files[i])
+  fsts.wcc<-calc.actual.fst(gpop,"WCC")
+  fsts<-calc.actual.fst(gpop)
+  fst.cor<-rbind(fst.cor,cbind(file=rep(all.files[i],length(fsts$Ht)),
+    Ht=fsts$Ht,Fst=fsts$Fst,Hb=fsts.wcc$Ht,beta=fsts.wcc$Fst))
+}
+rcorr(fst.cor$Ht,fst.cor$Hb)
 #los.sig<-read.table("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/sig.loci.sim.LOSITAN.txt",skip=1)
 #colnames(los.sig)<-c("file","bal","pos","total","balp","posp","totalp")
 #these are all at the 95% level

@@ -219,7 +219,7 @@ fst.options.print<-function(){
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
-fst.boot<-function(df, fst.choice="nei", ci=0.05,smooth.rate=0.1){	
+fst.boot<-function(df, fst.choice="nei", ci=0.05,num.breaks=25){	
 		#updated 2 Dec 2016
   #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
@@ -233,8 +233,8 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,smooth.rate=0.1){
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
-	breaks<-hist(boot.out$Ht,breaks=25,plot=F)$breaks
-	br.rate<-smooth.rate
+	breaks<-hist(boot.out$Ht,breaks=num.breaks,plot=F)$breaks
+	br.rate<-breaks[2]-breaks[1]
 	newbreaks<-breaks-(br.rate/2)
 	bins<-as.data.frame(cbind(newbreaks,breaks))
 	mids<-apply(bins,1,mean)
@@ -362,20 +362,20 @@ ci.means<-function(boot.out.list){ #boot.out[[3]]
 	if(class(boot.out.list)=="list" & length(boot.out.list) > 1) {
 		boot.ci<-as.data.frame(do.call(rbind,
 			lapply(boot.out.list,function(x){
-				x<-as.data.frame(x[[1]])
+				y<-as.data.frame(x[[1]])
+				y$Het<-as.numeric(rownames(y))
+				return(y)
 			})))
 	} else {
 		boot.ci<-as.data.frame(boot.out.list[[1]])
 	}
-	boot.ci$Ht<-rownames(boot.ci)
-	avg.cil<-tapply(boot.ci[,1],boot.ci$Ht,mean)
-	avg.ciu<-tapply(boot.ci[,2],boot.ci$Ht,mean)
+	avg.cil<-tapply(boot.ci[,1],boot.ci$Het,mean)
+	avg.ciu<-tapply(boot.ci[,2],boot.ci$Het,mean)
 	return(list(low=avg.cil,upp=avg.ciu))
 }
 
 plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
-	ci.col="red", pt.pch=1,file.name=NULL,sig.col=ci.col,smooth.ci=TRUE,
-	smoothing.rate=0.025,make.file=TRUE) {
+	ci.col="red", pt.pch=1,file.name=NULL,sig.col=ci.col,make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
 #It must have at least two columns, one named "Ht" and one named "Fst"
 #Or you must pass the column names to the function
@@ -418,6 +418,7 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",
 	if(make.file==TRUE) dev.off()
 	
 }
+
 find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 #Updated 12 Dec 2016
 #Need to give this function bootstrap output (or a list of CIs)

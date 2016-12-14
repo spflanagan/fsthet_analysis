@@ -277,10 +277,10 @@ mtext("10",2,outer=F,line=4,las=1)
 plot(tr$V1, tr$V2, pch=19, ylab="",xlab="",las=1)
 mtext(expression(Estimated~italic(F)[ST]:~0.8),outer=F)
 plot(bl$V1, bl$V2, pch=19, ylab="",xlab="",las=1)
-mtext(expression(italic(F)[ST]),2,outer=T)
+mtext(expression(italic(hat(beta))),2,outer=T)
 mtext("75",2,outer=F,line=4,las=1)
 plot(br$V1, br$V2, pch=19, ylab="",xlab="",las=1)
-mtext("Expected Heterozygosity",1,outer=T)
+mtext(expression(italic(H[B])),1,outer=T)
 dev.off()
 ###############################################################################
 ################NUMERICAL ANALYSIS
@@ -438,7 +438,7 @@ for (i in 1:length(nm.list)) {
 	if(y.max>1)
 		y.max<-1
 	plot(nm.list[[i]]$Het,nm.list[[i]]$Fst,las=1,ylab="",xlab="",
-		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(y.min,y.max))
+		col="black",pch=19,xaxt="n", xlim=c(0,1),ylim=c(y.min,y.max))
 	points(nm.cis[[i]]$Het,nm.cis[[i]][,2],col="red",type="l")
 	points(nm.cis[[i]]$Het, nm.cis[[i]][,4],col="red",type="l")
 	Nm<-Nms[i]
@@ -448,7 +448,7 @@ for (i in 1:length(nm.list)) {
 		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
 	if (i %in% c(4,5,6))
-		axis(1, at = seq(0,0.6,0.1))
+		axis(1, at = seq(0,1,0.1))
 	if(i==1){
 		mtext("Nm = 0.1", 3,cex=.75)
 		mtext("2 Demes",2,line=1.75,cex=.75)}
@@ -460,8 +460,8 @@ for (i in 1:length(nm.list)) {
 	if(i==4)
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
-mtext(expression(italic(H)[italic(B)]),1,outer=T,line=2,cex=.75)
-mtext(expression(italic(beta)),2,outer=T,line=3,cex=.75)
+mtext(expression(italic(H)[B]),1,outer=T,line=2,cex=.75)
+mtext(expression(italic(hat(beta))),2,outer=T,line=2.5,cex=.75)
 dev.off()
 
 ############################################################################
@@ -504,7 +504,7 @@ for (i in 1:length(smp.list)) {
 	if(y.max>1)
 		y.max<-1
 	plot(smp.list[[i]]$Het,smp.list[[i]]$Fst,las=1,xlab="",ylab="",
-		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
+		col="black",pch=19,xaxt="n", xlim=c(0,1),ylim=c(0,y.max))
 	points(smp.cis[[i]]$Het,smp.cis[[i]][,2],col="red",type="l")
 	points(smp.cis[[i]]$Het, smp.cis[[i]][,4],col="red",type="l")
 	Nm<-strsplit(strsplit(names(smp.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
@@ -515,7 +515,7 @@ for (i in 1:length(smp.list)) {
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
 
 	if (i %in% c(4,5,6))
-		axis(1, at = seq(0,0.6,0.1))
+		axis(1, at = seq(0,1,0.1))
 	if(i==1){
 		mtext("1 Sample Per Deme", 3,cex=.75)
 		mtext("2 Demes",2,line=1.75,cex=.75)}
@@ -528,7 +528,7 @@ for (i in 1:length(smp.list)) {
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
 mtext(expression(italic(H)[italic(B)]),1,outer=T,line=2,cex=.75)
-mtext(expression(italic(beta)),2,outer=T,line=3,cex=.75)
+mtext(expression(italic(hat(beta))),2,outer=T,line=3,cex=.75)
 
 dev.off()
 
@@ -586,8 +586,8 @@ ss<-c(".s2.",".s5.",".s10.",".s20")
 ds<-c(".d2.",".d5.",".d10.",".d50.")
 
 
-png("../Fig5_jaggedPattern.png",height=225,width=225,units="mm",res=300)
-pdf("../Fig5_jaggedPattern.pdf")
+png("../Fig5_jaggedPattern_14Dec2016.png",height=225,width=225,units="mm",res=300)
+pdf("../Fig5_jaggedPattern_14Dec2016.pdf")
 par(mfrow=c(4,4), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
 for(i in 1:length(ds)){
 	for(j in 1:length(ss)){
@@ -636,8 +636,8 @@ for(i in 1:length(ds)){
 			axis(2,las=1)
 	}
 }
-mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=0.5)
-mtext(expression(italic(F)[ST]),2,outer=T,line=2,cex=0.5)
+mtext(expression(italic(H)[italic(B)]),1,line=0.5,outer=T,cex=0.5)
+mtext(expression(italic(hat(beta))),2,outer=T,line=1.5,cex=0.5)
 dev.off()
 
 ############################################################################
@@ -645,22 +645,22 @@ dev.off()
 ############################################################################
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_selection")
 source("../../fhetboot/R/fhetboot.R")
-sel.list<-c("Nm1.d2.s20.ds0.output.txt",
-	"Nm1.d2.s20.ds0.01.output.txt",
-	"Nm1.d2.s20.ds0.1.output.txt",
-	"Nm1.d2.s20.ds0.5.output.txt",
-	"Nm1.d5.s20.ds0.output.txt",
-	"Nm1.d5.s20.ds0.01.output.txt",
-	"Nm1.d5.s20.ds0.1.output.txt",
-	"Nm1.d5.s20.ds0.5.output.txt")
-sel.gpop.cis<-c("Nm1.d2.s20.ds0.genepop.ci",
-	"Nm1.d2.s20.ds0.01.genepop.ci",
-	"Nm1.d2.s20.ds0.1.genepop.ci",
-	"Nm1.d2.s20.ds0.5.genepop.ci",
-	"Nm1.d5.s20.ds0.genepop.ci",
-	"Nm1.d5.s20.ds0.01.genepop.ci",
-	"Nm1.d5.s20.ds0.1.genepop.ci",
-	"Nm1.d5.s20.ds0.5.genepop.ci")
+sel.list<-c("Nm1.d2.s20.ds0.genepop.step.loci",
+            "Nm1.d2.s20.ds0.01.genepop.step.loci",
+            "Nm1.d2.s20.ds0.1.genepop.step.loci",
+            "Nm1.d2.s20.ds0.5.genepop.step.loci",
+            "Nm1.d5.s20.ds0.genepop.step.loci",
+            "Nm1.d5.s20.ds0.01.genepop.step.loci",
+            "Nm1.d5.s20.ds0.1.genepop.step.loci",
+            "Nm1.d5.s20.ds0.5.genepop.step.loci")
+sel.gpop.cis<-c("Nm1.d2.s20.ds0.genepop.step.ci",
+	"Nm1.d2.s20.ds0.01.genepop.step.ci",
+	"Nm1.d2.s20.ds0.1.genepop.step.ci",
+	"Nm1.d2.s20.ds0.5.genepop.step.ci",
+	"Nm1.d5.s20.ds0.genepop.step.ci",
+	"Nm1.d5.s20.ds0.01.genepop.step.ci",
+	"Nm1.d5.s20.ds0.1.genepop.step.ci",
+	"Nm1.d5.s20.ds0.5.genepop.step.ci")
 sel.gpop<-list(
 	my.read.genepop("Nm1.d2.s20.ds0.genepop"),
 	my.read.genepop("Nm1.d2.s20.ds0.01.genepop"),
@@ -769,8 +769,8 @@ for(i in 1:length(ds)){
 		#	axis(2,las=1)
 	}
 }
-mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=1)
-mtext(expression(italic(F)[ST]),2,outer=T,line=1.5,cex=1)
+mtext(expression(italic(H)[B]),1,line=0.5,outer=T,cex=1)
+mtext(expression(italic(hat(beta))),2,outer=T,line=1.5,cex=1)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
@@ -915,8 +915,8 @@ for(i in 1:length(ds)){
 		#	axis(2,las=1)
 	}
 }
-mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=1)
-mtext(expression(italic(F)[ST]),2,outer=T,line=1.5,cex=1)
+mtext(expression(italic(H)[B]),1,line=0.5,outer=T,cex=1)
+mtext(expression(italic(hat(beta))),2,outer=T,line=1.5,cex=1)
 
 par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
@@ -934,46 +934,46 @@ dev.off()
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
 
 pop.list<-list(
-	read.delim("Nm1.d2.n100.output.txt"),
-	read.delim("Nm1.d2.n500.fig.output.txt"),
-	read.delim("Nm1.d2.n1000.fig.output.txt"),
-	read.delim("Nm1.d5.n100.fig.output.txt"),
-	read.delim("Nm1.d5.n500.fig.output.txt"),
-	read.delim("Nm1.d5.n1000.fig.output.txt"))
+  read.delim("Nm1.d2.n100.genepop.step.loci"),
+  read.delim("Nm1.d2.n500.genepop.step.loci"),
+  read.delim("Nm1.d2.n1000.genepop.step.loci"),
+  read.delim("Nm1.d5.n100.genepop.step.loci"),
+  read.delim("Nm1.d5.n500.genepop.step.loci"),
+  read.delim("Nm1.d5.n1000.genepop.step.loci"))
 names(pop.list)<-c("Nm1.d2.n100","Nm1.d2.n500","Nm1.d2.n1000",
 	"Nm1.d5.n100","Nm1.d5.n500","Nm1.d5.n1000")
 pop.cis<-list(
-	read.delim("Nm1.d2.n100.genepop.ci"),
-	read.delim("Nm1.d2.n500.fig.genepop.ci"),
-	read.delim("Nm1.d2.n1000.fig.genepop.ci"),
-	read.delim("Nm1.d5.n100.fig.genepop.ci"),
-	read.delim("Nm1.d5.n500.fig.genepop.ci"),
-	read.delim("Nm1.d5.n1000.fig.genepop.ci"))
+	read.delim("Nm1.d2.n100.genepop.step.ci"),
+	read.delim("Nm1.d2.n500.genepop.step.ci"),
+	read.delim("Nm1.d2.n1000.genepop.step.ci"),
+	read.delim("Nm1.d5.n100.genepop.step.ci"),
+	read.delim("Nm1.d5.n500.genepop.step.ci"),
+	read.delim("Nm1.d5.n1000.genepop.step.ci"))
 
-png("FigS2_popsize.png",height=225,width=169,units="mm",res=300)
-pdf("FigS2_popsize.pdf")
+png("FigS2_popsize_14Dec2016.png",height=225,width=169,units="mm",res=300)
+pdf("FigS2_popsize_14Dec2016.pdf")
 par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
 	oma = c(4, 4.5, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
 for (i in 1:length(pop.list)) {
 	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
-	y.min<-min(min(pop.cis[[i]][,2]),min(pop.list[[i]]$WrightsFst))
-	y.max<-(max(pop.list[[i]]$WrightsFst)+2*sd(pop.list[[i]]$WrightsFst))
+	y.min<-min(min(pop.cis[[i]][,2]),min(pop.list[[i]]$Fst))
+	y.max<-(max(pop.list[[i]]$Fst)+2*sd(pop.list[[i]]$Fst))
 	if(y.max>1)
 		y.max<-1
-	plot(pop.list[[i]]$Ht,pop.list[[i]]$WrightsFst,las=1,,xlab="",ylab="",
-		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
+	plot(pop.list[[i]]$Het,pop.list[[i]]$Fst,las=1,xlab="",ylab="",
+		col="black",pch=19,xaxt="n", xlim=c(0,1),ylim=c(0,y.max))
 	points(pop.cis[[i]]$Het,pop.cis[[i]][,2],col="red",type="l")
 	points(pop.cis[[i]]$Het, pop.cis[[i]][,4],col="red",type="l")
 
 	Nm<-strsplit(strsplit(names(pop.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
-	avg.fst<-round(mean(pop.list[[i]]$WrightsFst),digits=4)
+	avg.fst<-round(mean(pop.list[[i]]$Fst[pop.list[[i]]$Het > 0]),digits=4)
 	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
 		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
 
 	if (i %in% c(4,5,6))
-		axis(1, at = seq(0,0.6,0.1))
+		axis(1, at = seq(0,1,0.1))
 	if(i==1){
 		mtext("N = 100", 3,cex=.75)
 		mtext("2 Demes",2,line=1.75,cex=.75)}
@@ -985,16 +985,16 @@ for (i in 1:length(pop.list)) {
 	if(i==4)
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
-mtext(expression(italic(H)[italic(T)]),1,outer=T,line=2,cex=.75)
-mtext(expression(Wright~"'"~s~italic(F)[ST]),2,outer=T,line=3,cex=.75)
+mtext(expression(italic(H)[italic(B)]),1,outer=T,line=2,cex=.75)
+mtext(expression(italic(hat(beta))),2,outer=T,line=2.5,cex=.75)
 dev.off()
 
 ############################################################################
 #PLOT FIGS S3-S6-REVISIONS (FORMER S1-S4)
 ############################################################################
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
-ci.files<-list.files(pattern="genepop.ci")
-loci.files<-list.files(pattern="genepop.loci")
+ci.files<-list.files(pattern="genepop.step.ci")
+loci.files<-list.files(pattern="genepop.step.loci")
 plot.ci.files<-ci.files[c(grep(".d2.",ci.files,fixed=T),
 	grep(".d5.",ci.files,fixed=T), grep(".d10.",ci.files,fixed=T),
 	grep(".d50.",ci.files,fixed=T))]
@@ -1088,8 +1088,8 @@ plot.lositan<-function(ci.list,loci.list,out.name,colgroups,rowgroups,pdf=F){
 				axis(2,las=1)
 		}
 	}
-	mtext(expression(italic(H)[italic(T)]),1,line=0.5,outer=T,cex=0.5)
-	mtext(expression(italic(F)[ST]),2,outer=T,line=2,cex=0.5)
+	mtext(expression(italic(H)[italic(B)]),1,line=0.5,outer=T,cex=0.5)
+	mtext(expression(italic(hat(beta))),2,outer=T,line=1.5,cex=0.5)
 	dev.off()
 }
 
