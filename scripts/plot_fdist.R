@@ -396,44 +396,54 @@ for(i in 1:length(samp.files)){
 ############################################################################
 #PLOT FIG 3-REVISIONS
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
+setwd("B://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
 
 
+#nm.list<-list(
+#	read.delim("Nm0.1.d2.s2.fig.output.txt"),
+#	read.delim("Nm1.d2.s2.fig.output.txt"),
+#	read.delim("Nm10.d2.s2.fig.output.txt"),
+#	read.delim("Nm0.1.d5.s5.fig.output.txt"),
+#	read.delim("Nm1.d5.s5.fig.output.txt"),
+#	read.delim("Nm10.d5.s5.fig.output.txt"))
+#names(nm.list)<-c("Nm0.1.d2.s2","Nm1.d2.s2","Nm10.d2.s2",
+#	"Nm0.1.d5.s5","Nm1.d5.s5","Nm10.d5.s5")
 nm.list<-list(
-	read.delim("Nm0.1.d2.s2.fig.output.txt"),
-	read.delim("Nm1.d2.s2.fig.output.txt"),
-	read.delim("Nm10.d2.s2.fig.output.txt"),
-	read.delim("Nm0.1.d5.s5.fig.output.txt"),
-	read.delim("Nm1.d5.s5.fig.output.txt"),
-	read.delim("Nm10.d5.s5.fig.output.txt"))
+	read.delim("Nm0.1.d2.s2.genepop.step.loci"),
+	read.delim("Nm1.d2.s2.genepop.step.loci"),
+	read.delim("Nm10.d2.s2.genepop.step.loci"),
+	read.delim("Nm0.1.d5.s5.genepop.step.loci"),
+	read.delim("Nm1.d5.s5.genepop.step.loci"),
+	read.delim("Nm10.d5.s5.genepop.step.loci"))
 names(nm.list)<-c("Nm0.1.d2.s2","Nm1.d2.s2","Nm10.d2.s2",
 	"Nm0.1.d5.s5","Nm1.d5.s5","Nm10.d5.s5")
 Nms<-c(0.1,1,10,0.1,1,10)
 nm.cis<-list(
-	read.delim("Nm0.1.d2.s2.fig.genepop.ci"),
-	read.delim("Nm1.d2.s2.fig.genepop.ci"),
-	read.delim("Nm10.d2.s2.fig.genepop.ci"),
-	read.delim("Nm0.1.d5.s5.fig.genepop.ci"),
-	read.delim("Nm1.d5.s5.fig.genepop.ci"),
-	read.delim("Nm10.d5.s5.fig.genepop.ci"))
+	read.delim("Nm0.1.d2.s2.genepop.step.ci"),
+	read.delim("Nm1.d2.s2.genepop.step.ci"),
+	read.delim("Nm10.d2.s2.genepop.step.ci"),
+	read.delim("Nm0.1.d5.s5.genepop.step.ci"),
+	read.delim("Nm1.d5.s5.genepop.step.ci"),
+	read.delim("Nm10.d5.s5.genepop.step.ci"))
 
-png("../Fig3_NmDemes.png",width=169,height=169,units="mm",res=300)
-pdf("../Fig3_NmDemes.pdf")
+png("../Fig3_NmDemes_13Dec2016.png",width=169,height=169,units="mm",res=300)
+pdf("../Fig3_NmDemes_13Dec2016.pdf")
 par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
 	oma = c(4, 4.5,1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
 for (i in 1:length(nm.list)) {
 	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
-	y.min<-min(min(nm.cis[[i]][,2]),min(nm.list[[i]]$WrightsFst))
-	y.max<-(max(nm.list[[i]]$WrightsFst)+2*sd(nm.list[[i]]$WrightsFst))
+	nm.list[[i]]<-nm.list[[i]][nm.list[[i]]$Fst > -100,]
+	y.min<-min(min(nm.cis[[i]][,2]),min(nm.list[[i]]$Fst))
+	y.max<-(max(nm.list[[i]]$Fst)+2*sd(nm.list[[i]]$Fst))
 	if(y.max>1)
 		y.max<-1
-	plot(nm.list[[i]]$Ht,nm.list[[i]]$WrightsFst,las=1,ylab="",xlab="",
+	plot(nm.list[[i]]$Het,nm.list[[i]]$Fst,las=1,ylab="",xlab="",
 		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(y.min,y.max))
 	points(nm.cis[[i]]$Het,nm.cis[[i]][,2],col="red",type="l")
 	points(nm.cis[[i]]$Het, nm.cis[[i]][,4],col="red",type="l")
 	Nm<-Nms[i]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=3)
-	avg.fst<-round(mean(nm.list[[i]]$WrightsFst),digits=3)
+	avg.fst<-round(mean(nm.list[[i]]$Fst),digits=3)
 	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
 		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
@@ -450,49 +460,56 @@ for (i in 1:length(nm.list)) {
 	if(i==4)
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
-mtext(expression(italic(H)[italic(T)]),1,outer=T,line=2,cex=.75)
-mtext(expression(Wright~"'"~s~italic(F)[ST]),2,outer=T,line=3,cex=.75)
+mtext(expression(italic(H)[italic(B)]),1,outer=T,line=2,cex=.75)
+mtext(expression(italic(beta)),2,outer=T,line=3,cex=.75)
 dev.off()
 
 ############################################################################
 #PLOT FIG 4-REVISIONS (FORMER FIG 5)
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
+setwd("B://ubuntushare//fst_outliers//results//numerical_analysis")
 
+#smp.list<-list(
+#	read.delim("Nm1.d2.s2.fig.sampledpops.txt"),
+#	read.delim("Nm1.d2.s4.fig.sampledpops.txt"),
+#	read.delim("Nm1.d2.s8.fig.sampledpops.txt"),
+#	read.delim("Nm1.d5.s5.fig.sampledpops.txt"),
+#	read.delim("Nm1.d5.s10.fig.sampledpops.txt"),
+#	read.delim("Nm1.d5.s20.figs.sampledpops.txt"))
 smp.list<-list(
-	read.delim("Nm1.d2.s2.fig.sampledpops.txt"),
-	read.delim("Nm1.d2.s4.fig.sampledpops.txt"),
-	read.delim("Nm1.d2.s8.fig.sampledpops.txt"),
-	read.delim("Nm1.d5.s5.fig.sampledpops.txt"),
-	read.delim("Nm1.d5.s10.fig.sampledpops.txt"),
-	read.delim("Nm1.d5.s20.figs.sampledpops.txt"))
+	read.delim("Nm1.d2.s2.genepop.step.loci"),
+	read.delim("Nm1.d2.s4.genepop.step.loci"),
+	read.delim("Nm1.d2.s8.genepop.step.loci"),
+	read.delim("Nm1.d5.s5.genepop.step.loci"),
+	read.delim("Nm1.d5.s10.genepop.step.loci"),
+	read.delim("Nm1.d5.s20.genepop.step.loci"))
 names(smp.list)<-c("Nm1.d2.s2.fig","Nm1.d2.s4.fig","Nm1.d2.s8.fig",
 	"Nm1.d5.s5.fig","Nm1.d5.s10.fig","Nm1.d5.s20.fig")
 smp.cis<-list(
-	read.delim("Nm1.d2.s2.fig.genepop.ci"),
-	read.delim("Nm1.d2.s4.fig.genepop.ci"),
-	read.delim("Nm1.d2.s8.fig.genepop.ci"),
-	read.delim("Nm1.d5.s5.fig.genepop.ci"),
-	read.delim("Nm1.d5.s10.fig.genepop.ci"),
-	read.delim("Nm1.d5.s20.figs.genepop.ci"))
+	read.delim("Nm1.d2.s2.genepop.step.ci"),
+	read.delim("Nm1.d2.s4.genepop.step.ci"),
+	read.delim("Nm1.d2.s8.genepop.step.ci"),
+	read.delim("Nm1.d5.s5.genepop.step.ci"),
+	read.delim("Nm1.d5.s10.genepop.step.ci"),
+	read.delim("Nm1.d5.s20.genepop.step.ci"))
 
-png("../Fig4_samplesize.png",width=169,height=169,units="mm",res=300)
-pdf("../Fig4_samplesize.pdf")
+png("../Fig4_samplesize_13Dec2016.png",width=169,height=169,units="mm",res=300)
+pdf("../Fig4_samplesize_13Dec2016.pdf")
 par(mfrow = c(2, 3),cex = 0.6,mar = c(0, 0, 0, 0), 
 	oma = c(4, 4.5, 1.5, 0.5), tcl = -0.25,mgp = c(2, 0.6, 0))
 for (i in 1:length(smp.list)) {
 	#plot(seq(0,0.6,0.06),seq(0,1,0.1), axes = FALSE, type = "n")
-	y.min<-min(min(smp.cis[[i]][,2]),min(smp.list[[i]]$WrightsFst))
-	y.max<-(max(smp.list[[i]]$WrightsFst)+2*sd(smp.list[[i]]$WrightsFst))
+	y.min<-min(min(smp.cis[[i]][,2]),min(smp.list[[i]]$Fst))
+	y.max<-(max(smp.list[[i]]$Fst)+2*sd(smp.list[[i]]$Fst))
 	if(y.max>1)
 		y.max<-1
-	plot(smp.list[[i]]$Ht,smp.list[[i]]$WrightsFst,las=1,xlab="",ylab="",
+	plot(smp.list[[i]]$Het,smp.list[[i]]$Fst,las=1,xlab="",ylab="",
 		col="black",pch=19,xaxt="n", xlim=c(0,0.6),ylim=c(0,y.max))
 	points(smp.cis[[i]]$Het,smp.cis[[i]][,2],col="red",type="l")
 	points(smp.cis[[i]]$Het, smp.cis[[i]][,4],col="red",type="l")
 	Nm<-strsplit(strsplit(names(smp.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
-	avg.fst<-round(mean(smp.list[[i]]$WrightsFst),digits=4)
+	avg.fst<-round(mean(smp.list[[i]]$Fst),digits=4)
 	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
 		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
@@ -510,15 +527,15 @@ for (i in 1:length(smp.list)) {
 	if(i==4)
 		mtext("5 Demes",2,line=1.75,cex=.75)
 }
-mtext(expression(italic(H)[italic(T)]),1,outer=T,line=2,cex=.75)
-mtext(expression(Wright~"'"~s~italic(F)[ST]),2,outer=T,line=3,cex=.75)
+mtext(expression(italic(H)[italic(B)]),1,outer=T,line=2,cex=.75)
+mtext(expression(italic(beta)),2,outer=T,line=3,cex=.75)
 
 dev.off()
 
 ############################################################################
 #PLOT FIG 5-REVISIONS (FORMERLY PART OF S1-4)
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
+setwd("B://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
 
 find.los.sig<-function(ci.dat,loci.dat){
 	bal<-NULL
@@ -537,8 +554,8 @@ find.los.sig<-function(ci.dat,loci.dat){
 	return(props)
 }
 
-ci.files<-list.files(pattern="genepop.ci")
-loci.files<-list.files(pattern="genepop.loci")
+ci.files<-list.files(pattern="genepop.step.ci")
+loci.files<-list.files(pattern="genepop.step.loci")
 plot.ci.files<-ci.files[c(grep(".d2.",ci.files,fixed=T),
 	grep(".d5.",ci.files,fixed=T), grep(".d10.",ci.files,fixed=T),
 	grep(".d50.",ci.files,fixed=T))]

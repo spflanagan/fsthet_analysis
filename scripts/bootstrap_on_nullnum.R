@@ -46,7 +46,7 @@ for(i in 1:length(stp.ci)){
   locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[i]),"loci",sep=".")
   loc.name<-stp.loci[stp.loci %in% locus.name]
   loc.dat<-read.delim(loc.name)
-  loc.dat<-loc.dat[loc.dat$Fst>0,]
+  loc.dat<-loc.dat[loc.dat$Fst>-100 & loc.dat$Het > 0,]
   out<-data.frame(t(apply(loc.dat,1,function(x){
 	pos<-0
 	bal<-0
