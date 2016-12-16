@@ -33,8 +33,10 @@ proportions<-do.call(rbind,lapply(all.files, function(x) {
 		file.name=x)
 	wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
 	wcc.prop<-nrow(wcc.outliers)/(ncol(gpop)-2)
+	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
+	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(wcc.prop)
+	return(wcc.prop.out,wcc.prop.sig)
 }))
 rownames(proportions)<-all.files
 write.table(proportions,"ProportionOutliers_WCC.txt",sep="\t",quote=F,row.names=T,

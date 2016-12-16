@@ -167,6 +167,7 @@ freq.normal<-freq.normal[,as.character(deme.order)]
 n.normal<-rowSums(table(dat$PopsCategory[dat$Lositan.Pattern=="Normal"],dat$DemeCategory[dat$Lositan.Pattern=="Normal"]))
 color.scheme<-c('#40004b','#762a83','#9970ab','#c2a5cf','#e7d4e8','#d9f0d3','#a6dba0','#5aae61','#1b7837','#00441b')
 ####################PLOTTING
+setwd("B://ubuntushare//fst_outliers//results//data_from_literature")
 normal.loci<-read.delim("Hess_2013_data_Genepop.genepop.loci")#Hess et al. 2013
 normal.ci<-read.delim("Hess_2013_data_Genepop.genepop.ci")
 #incline.loci<- read.delim("TrieralpsmaleNEWnosingletons.genepop.loci")#Trier et al. 2014
@@ -180,12 +181,13 @@ skewed<-read.delim("dann.2012.traced.txt")
 
 pdf("../Fig1_literature.pdf",height=7,width=10)
 png("../Fig1_literature.png",height=10,width=7,units="in",res=300)
-par(mfrow=c(3,2),oma=c(2,2,2,2),mar=c(2,2,2,2),xpd=T)
+par(mfrow=c(3,2),oma=c(2,2.75,2,2),mar=c(2,2.75,2,2),xpd=T)
 plot(normal.loci$Het, normal.loci$Fst,xlab="",ylab="",pch=19,las=1)
 clip(0,0.5,0,1)
 points(normal.ci$Het,normal.ci[,2],col="red",type="l",lwd=2)
 points(normal.ci$Het, normal.ci[,4],col="red",type="l",lwd=2)
-text(x=0.115,y=0.55,"A. Well-behaved")
+#mtext(x=0.115,y=0.55,"A. Well-behaved")
+mtext("Well-behaved",2,outer=F,cex=0.8,line=2.25)
 
 bp<-barplot(t(count.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,
 	border=NA,las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
@@ -200,25 +202,27 @@ plot(jaggedci.loci$Het, jaggedci.loci$Fst,xlab="",	ylab="",pch=19,las=1)
 clip(0,0.9,0,1)
 points(jaggedci.ci$Het,jaggedci.ci[,2],col="red",type="l",lwd=2)
 points(jaggedci.ci$Het, jaggedci.ci[,4],col="red",type="l",lwd=2)
-text(x=0.25,y=0.85,"B. Incline, Jagged CI")
+#text(x=0.25,y=0.85,"B. Incline, Jagged CI")
+mtext("Incline",2,outer=F,cex=0.8,line=2.25)
 
 bp<-barplot(t(count.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,
 	border=NA,las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
-mtext("Number of Populations",2,outer=F,line=2,cex=0.8)
+mtext("Number of Studies",2,outer=F,line=2,cex=0.8)
 
 
 plot(skewed$points.x, skewed$points.y,xlab="",	ylab="",pch=19,las=1)
 clip(0,0.5,0,1)
 points(skewed$lower.x,skewed$lower.y,col="red",type="l",lwd=2)
 points(skewed$upper.x, skewed$upper.y,col="red",type="l",lwd=2)
-text(x=0.095,y=0.27,"C. Skewed")
-mtext(expression(italic(H)[italic(T)]),1,outer=F,line=2,cex=0.85)
+#text(x=0.095,y=0.27,"C. Skewed")
+mtext("Skewed",2,outer=F,cex=0.8,line=2.25)
+mtext(expression(italic(H)[B]),1,outer=F,line=2,cex=0.85)
 
 bp<-barplot(t(count.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,border=NA,
 	las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
 
 mtext("Number of Populations",1,outer=F,line=2,cex=0.8)
-mtext(expression(italic(F)[ST]),2,outer=T,cex=0.85)
+mtext(expression(italic(hat(beta))),2,line=0.8,outer=T,cex=0.85)
 
 dev.off()
 ###NOW the literature review
@@ -277,7 +281,7 @@ mtext("10",2,outer=F,line=4,las=1)
 plot(tr$V1, tr$V2, pch=19, ylab="",xlab="",las=1)
 mtext(expression(Estimated~italic(F)[ST]:~0.8),outer=F)
 plot(bl$V1, bl$V2, pch=19, ylab="",xlab="",las=1)
-mtext(expression(italic(hat(beta))),2,outer=T)
+mtext(expression(italic(hat(beta))),2,outer=T,line=2)
 mtext("75",2,outer=F,line=4,las=1)
 plot(br$V1, br$V2, pch=19, ylab="",xlab="",las=1)
 mtext(expression(italic(H[B])),1,outer=T)
@@ -509,7 +513,7 @@ for (i in 1:length(smp.list)) {
 	points(smp.cis[[i]]$Het, smp.cis[[i]][,4],col="red",type="l")
 	Nm<-strsplit(strsplit(names(smp.list)[i], "Nm")[[1]][2],"[._]")[[1]][1]
 	exp.fst<-round(1/((4*as.numeric(Nm))+1),digits=4)
-	avg.fst<-round(mean(smp.list[[i]]$Fst),digits=4)
+	avg.fst<-round(mean(smp.list[[i]]$Fst[smp.list[[i]]$Het>0]),digits=4)
 	leg.nms<-c(bquote(Exp.~italic(F)[ST]~"="~.(exp.fst)),
 		bquote(Mean~italic(F)[ST]~"="~.(avg.fst)))
 	legend("topleft",legend=as.expression(leg.nms),bty="n")
@@ -931,7 +935,7 @@ dev.off()
 ############################################################################
 #PLOT FIG S2-REVISIONS (FORMER FIG 4)
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis")
+setwd("B://ubuntushare//fst_outliers//results//numerical_analysis")
 
 pop.list<-list(
   read.delim("Nm1.d2.n100.genepop.step.loci"),

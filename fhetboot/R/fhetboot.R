@@ -233,15 +233,20 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,num.breaks=25){
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
-	breaks<-hist(boot.out$Ht,breaks=num.breaks,plot=F)$breaks
+	breaks<-hist(boot.out$Ht,breaks=(num.breaks/2),plot=F)$breaks
+	low.breaks<-breaks[1:(length(breaks)-1)]
+	upp.breaks<-breaks[2:length(breaks)]
 	br.rate<-breaks[2]-breaks[1]
 	newbreaks<-breaks-(br.rate/2)
-	bins<-as.data.frame(cbind(newbreaks,breaks))
+	low.breaks<-c(low.breaks,newbreaks[1:(length(breaks)-1)])
+	upp.breaks<-c(upp.breaks,newbreaks[2:length(breaks)])
+	bins<-data.frame(low.breaks=sort(low.breaks),upp.breaks=sort(upp.breaks))
+	bins<-bins[bins[,1]>=0 & bins[,2]>=0,]
 	mids<-apply(bins,1,mean)
 	#bin fsts
 	bin.fst<-apply(bins, 1, function(x){ #this returns a list of Fst vectors
 		out<-boot.out[boot.out$Ht > x[1] &	boot.out$Ht < x[2],"Fst"] })
-	names(bin.fst)<-bins$breaks
+	names(bin.fst)<-bins$upp.breaks
 	#merge those with too few with the next bin up
 	rmvec<-NULL
 	for(i in 1:(length(bin.fst)-1)){
@@ -257,12 +262,12 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,num.breaks=25){
 		}
 	}
 	#remove bins with too few
-	bin.fst<-bin.fst[-rmvec]
+	if(!is.null(rmvec)){	bin.fst<-bin.fst[-rmvec] }
 	bin.fst<-lapply(bin.fst,sort)
 	for(i in 1:length(rmvec)){
 		bins[(rmvec[i]+1),1]<-bins[rmvec[i],1]
 	}
-	bins<-bins[-rmvec,]
+	if(!is.null(rmvec)){ bins<-bins[-rmvec,] }
 	#final.bins<-bins[bins$breaks %in% as.numeric(names(bin.fst)),]#no good
 
 	#find quantile
@@ -280,11 +285,15 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,num.breaks=25){
 				names(fst.thresh)<-c("Low","Upp")
 			}
 			return(fst.thresh)
-		})
+		})		
 		ci.name<-paste("CI",(1-ci[j]),sep="")
-		fst.CI[[j]]<-do.call(rbind,fstCI)
+		cis<-data.frame(do.call(rbind,fstCI))
+		cis$UppHet<-as.numeric(rownames(cis))
+		cis<-merge(cis,bins,by.x="UppHet",by.y="upp.breaks")
+		fst.CI[[j]]<-data.frame(Low=cis$Low,Upp=cis$Upp,LowHet=cis$low.breaks,UppHet=cis$UppHet)
 		names(fst.CI)[j]<-ci.name
 		}
+	
 
 	return(list(Fsts=boot.out,Bins=bins,fst.CI))
 }
@@ -322,7 +331,7 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 	boot.means$real.means<-apply(boot.means,1,function(x){
 		rmu<-mean(as.numeric(actual.fsts[
 			as.numeric(actual.fsts$Ht) >= as.numeric(x[4]) & 
-			as.numeric(actual.fsts$Ht) <= as.numeric(x[5]),"Fst"]))
+			as.numeric(actual.fsts$Ht) <= as.numeric(x[5]),"Fst"]),na.rm=T)
 		return(rmu)
 	})
 	boot.means$unitsaway<-abs(boot.means$real.means - boot.means$Fst)
@@ -330,18 +339,18 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 	boot.means$upp<-boot.means$Fst+boot.means$unitsaway
 	pvals<-apply(actual.fsts,1, function(x){
 		bin<-boot.means[
-			as.numeric(boot.means$LowBin) <= as.numeric(x[2])
-			& as.numeric(boot.means$UppBin) >= as.numeric(x[2]),]
+			as.numeric(boot.means$LowBin) <= as.numeric(x["Ht"])
+			& as.numeric(boot.means$UppBin) >= as.numeric(x["Ht"]),]
 		fsts.in.bin<-apply(bin,1,function(y){
 			actual.fsts[actual.fsts$Ht >= y["LowBin"] 
 				& actual.fsts$Ht <= y["UppBin"],]
 		})
 		unitsaway<-apply(bin,1,function(y){ 
-			abs(as.numeric(x[3]) - as.numeric(y["Fst"])) })
+			abs(as.numeric(x["Fst"]) - as.numeric(y["Fst"])) })
 		low<-apply(bin,1,function(y){ 
-			as.numeric(y["Fst"]) - as.numeric(x[3])  })
+			as.numeric(y["Fst"]) - as.numeric(unitsaway)  })
 		upp<-apply(bin,1,function(y){ 
-			as.numeric(y["Fst"]) + as.numeric(x[3])  })
+			as.numeric(y["Fst"]) + as.numeric(unitsaway)  })
 		n<-lapply(fsts.in.bin, nrow)
 		p<-NULL
 		for(i in 1:length(fsts.in.bin)){
@@ -363,40 +372,41 @@ ci.means<-function(boot.out.list){ #boot.out[[3]]
 		boot.ci<-as.data.frame(do.call(rbind,
 			lapply(boot.out.list,function(x){
 				y<-as.data.frame(x[[1]])
-				y$Het<-as.numeric(rownames(y))
 				return(y)
 			})))
 	} else {
 		boot.ci<-as.data.frame(boot.out.list[[1]])
 	}
-	avg.cil<-tapply(boot.ci[,1],boot.ci$Het,mean)
-	avg.ciu<-tapply(boot.ci[,2],boot.ci$Het,mean)
-	return(list(low=avg.cil,upp=avg.ciu))
+	avg.cil<-tapply(boot.ci[,1],boot.ci$UppHet,mean)
+	avg.ciu<-tapply(boot.ci[,2],boot.ci$UppHet,mean)
+	low.het<-tapply(boot.ci$LowHet,boot.ci$UppHet,mean)
+	return(data.frame(low=avg.cil,upp=avg.ciu, LowHet=low.het,
+		UppHet=as.numeric(levels(as.factor(boot.ci$UppHet)))))
 }
 
-plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
+plotting.cis<-function(df,boot.out=NULL,ci.df=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
 	ci.col="red", pt.pch=1,file.name=NULL,sig.col=ci.col,make.file=TRUE) {
 #This function takes a dataframe with empirical Fst and Ht measurements
 #It must have at least two columns, one named "Ht" and one named "Fst"
 #Or you must pass the column names to the function
 #You must give it bootstrap output or a list of confidence interval values.
 #updated 5 Dec 2016
-	if(is.null(boot.out) & is.null(ci.list)){
+	if(is.null(boot.out) & is.null(ci.df)){
 		 stop("Must provide bootstrap output or a list of CI values") 
-	} else if(is.null(ci.list)){
+	} else if(is.null(ci.df)){
 		avg.ci<-ci.means(boot.out[[3]])
 	} else {
-		avg.ci<-ci.list
+		avg.ci<-ci.df
 	}
-  if(smooth.ci==TRUE){
-    avg.ci<-smooth.cis(avg.ci,smoothing.rate)
-  }
-	if(names(avg.ci[[1]])[1] != "0"){ #need to extend the CIs to 0
-		avg.ci[[1]]<-c(0,avg.ci[[1]])
-		avg.ci[[2]]<-c(0,avg.ci[[2]])
-		names(avg.ci[[1]])[1]<-0
-		names(avg.ci[[2]])[1]<-0
-	}
+  #if(smooth.ci==TRUE){
+   # avg.ci<-smooth.cis(avg.ci,smoothing.rate)
+  #}
+	#if(names(avg.ci[[1]])[1] != "0"){ #need to extend the CIs to 0
+	#	avg.ci[[1]]<-c(0,avg.ci[[1]])
+	#	avg.ci[[2]]<-c(0,avg.ci[[2]])
+	#	names(avg.ci[[1]])[1]<-0
+	#	names(avg.ci[[2]])[1]<-0
+	#}
 	if(make.file==TRUE){
 		if(!is.null(file.name)) {
 			png(file.name,height=8,width=9,units="in",res=300) }
@@ -413,8 +423,8 @@ plotting.cis<-function(df,boot.out=NULL,ci.list=NULL,sig.list=NULL,Ht.name="Ht",
 	if(!is.null(sig.list)){
 	  points(df[df[,1] %in% sig.list,Ht.name],df[df[,1] %in% sig.list,Fst.name],col=sig.col,pch=pt.pch)
 	}
-	points(names(avg.ci[[1]]),avg.ci[[1]],type="l",col=ci.col)
-	points(names(avg.ci[[2]]),avg.ci[[2]],type="l",col=ci.col)
+	points(avg.ci$LowHet,avg.ci$low,type="l",col=ci.col)
+	points(avg.ci$UppHet,avg.ci$upp,type="l",col=ci.col)
 	if(make.file==TRUE) dev.off()
 	
 }
@@ -425,10 +435,8 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	if(is.null(boot.out) & is.null(ci.df)){
 		stop("Must provide bootstrap output or a list of CI values") 
 	} else if(is.null(ci.df)){ #need to calculate the mean ci values
-		avg.ci<-ci.means(boot.out[[3]])
+		ci.df<-ci.means(boot.out[[3]])
 	}
-  ci.df<-as.data.frame(t(do.call(rbind,avg.ci)))
-  ci.df$Ht<-as.numeric(rownames(ci.df))
 	if(class(boot.out[[2]])=="list"){
 	  bin<-boot.out[[2]][[1]] }
 	if(class(boot.out[[2]])=="data.frame"){
@@ -436,26 +444,30 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	#match Fst and Ht
 	#I want to find the outliers. 
 	#For each df, find its closest cis
-	outliers<-NULL
-	for(i in 1: nrow(df)){
-		x<-df[i,]
-		#get the closest ones to the ht
-		this.ci<-ci.df[which.min(abs(as.numeric(ci.df$Ht)-as.numeric(x["Ht"]))),]
-		if(x["Fst"] > this.ci$upp | x["Fst"] < this.ci$low){		
-			outliers<-rbind(outliers,x) }
-	}
-	if(!is.null(file.name)){
-		write.csv(outliers,paste(file.name,".csv",sep=""))
-	}
-	return(outliers)
-}
+	actual.bin<-apply(ci.df, 1, function(x){ #this returns a list of Fst vectors
+		out<-df[df$Ht >= x["LowHet"] &	df$Ht < x["UppHet"],] })
+	out<-NULL
 
-smooth.cis<-function(ci.list, smoothing.rate=0.025){
-    hts<-seq(0,1,smoothing.rate)
-    new.low<-ci.list[[1]][as.numeric(names(ci.list[[1]])) %in% hts]
-    new.upp<-ci.list[[2]][as.numeric(names(ci.list[[2]])) %in% hts]
-    new.cis<-list(new.low,new.upp)
-    return(new.cis)
+	for(i in 1:nrow(ci.df)){
+		out<-rbind(out,actual.bin[[i]][
+			actual.bin[[i]]$Fst< ci.df[i,"low"] | 
+			actual.bin[[i]]$Fst> ci.df[i,"upp"],])
+		
+	}
+	out<-out[!duplicated(out$Locus),]
+
+#	outliers<-NULL
+#	for(i in 1: nrow(df)){
+#		x<-df[i,]
+#		#get the closest ones to the ht
+#		this.ci<-ci.df[which.min(abs(as.numeric(ci.df$Ht)-as.numeric(x["Ht"]))),]
+#		if(x["Fst"] > this.ci$upp | x["Fst"] < this.ci$low){		
+#			outliers<-rbind(outliers,x) }
+#	}
+#	if(!is.null(file.name)){
+#		write.csv(outliers,paste(file.name,".csv",sep=""))
+#	}
+	return(out)
 }
 
 calc.actual.fst<-function(df, fst.choice="N"){
@@ -491,10 +503,8 @@ fhetboot<-function(gpop, fst.choice,alpha=0.05,nreps=10){
   boot.pvals<-p.boot(fsts,boot.out=boot.out)
   boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
   boot.sig<-boot.cor.pvals[boot.cor.pvals <= alpha]
-  plotting.cis(fsts,boot.out,make.file=F,sig.list=names(boot.sig),smooth.ci = TRUE,
-               smoothing.rate = 0.01,pt.pch = 19)
-  new.cis<-smooth.cis(ci.means(boot.out[[3]]),smoothing.rate = 0.01)
-  outliers<-find.outliers(fsts,boot.out,ci.df=new.cis)
+  plotting.cis(fsts,boot.out,make.file=F,sig.list=names(boot.sig),pt.pch = 19)
+  outliers<-find.outliers(fsts,boot.out)
   fsts$P.value<-boot.pvals
   fsts$Corr.P.value<-boot.cor.pvals
   fsts$Outlier<-FALSE
