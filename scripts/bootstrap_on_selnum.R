@@ -20,7 +20,7 @@ sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
 	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(wcc.prop.out,wcc.prop.sig)
+	return(cbind(wcc.prop.out,wcc.prop.sig))
 }))
 rownames(sel.proportions)<-sel.all.files
 write.table(sel.proportions,"SelectedProportionOutliers.txt",sep="\t",quote=F,row.names=T,
