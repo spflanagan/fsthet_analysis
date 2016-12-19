@@ -289,7 +289,9 @@ fst.boot<-function(df, fst.choice="nei", ci=0.05,num.breaks=25){
 		ci.name<-paste("CI",(1-ci[j]),sep="")
 		cis<-data.frame(do.call(rbind,fstCI))
 		cis$UppHet<-as.numeric(rownames(cis))
-		cis<-merge(cis,bins,by.x="UppHet",by.y="upp.breaks")
+		cis<-apply(cis,c(1,2),round,3)
+		bins<-apply(bins,c(1,2),round,3)
+		cis<-merge(cis,bins,by.x="UppHet",by.y="upp.breaks",keep=T)
 		fst.CI[[j]]<-data.frame(Low=cis$Low,Upp=cis$Upp,LowHet=cis$low.breaks,UppHet=cis$UppHet)
 		names(fst.CI)[j]<-ci.name
 		}
@@ -450,8 +452,8 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 
 	for(i in 1:nrow(ci.df)){
 		out<-rbind(out,actual.bin[[i]][
-			actual.bin[[i]]$Fst< ci.df[i,"low"] | 
-			actual.bin[[i]]$Fst> ci.df[i,"upp"],])
+			as.numeric(actual.bin[[i]]$Fst) < as.numeric(ci.df[i,"low"]) | 
+			as.numeric(actual.bin[[i]]$Fst)> as.numeric(ci.df[i,"upp"]),])
 		
 	}
 	out<-out[!duplicated(out$Locus),]
@@ -464,9 +466,9 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 #		if(x["Fst"] > this.ci$upp | x["Fst"] < this.ci$low){		
 #			outliers<-rbind(outliers,x) }
 #	}
-#	if(!is.null(file.name)){
-#		write.csv(outliers,paste(file.name,".csv",sep=""))
-#	}
+	if(!is.null(file.name)){
+		write.csv(out,paste(file.name,".csv",sep=""))
+	}
 	return(out)
 }
 

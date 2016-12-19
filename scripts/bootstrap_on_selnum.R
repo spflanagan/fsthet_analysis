@@ -2,7 +2,7 @@ source("B:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
 setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
 
 rm(list=ls())
-sel.all.files<-list.files(pattern=".genepop$")
+sel.all.files<-list.files(pattern="d20.s20.ds.*.genepop$")
 
 sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	gpop<-my.read.genepop(x)
@@ -28,8 +28,8 @@ write.table(sel.proportions,"SelectedProportionOutliers.txt",sep="\t",quote=F,ro
 
 ####If you already made the files:
 out.files<-list.files(pattern=".genepop.csv")
-ds0.files<-out.files[grep("ds0.genepop",out.files)]
-out.files<-out.files[!(out.files %in% ds0.files)]
+#ds0.files<-out.files[grep("ds0.genepop",out.files)]
+#out.files<-out.files[!(out.files %in% ds0.files)]
 
 proportions<-do.call(rbind,lapply(out.files, function(x) {
 	prop.dat<-read.csv(x,row.names=1)

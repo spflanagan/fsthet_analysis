@@ -647,7 +647,7 @@ dev.off()
 ############################################################################
 #PLOT FIG 6-REVISIONS
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_selection")
+setwd("B://ubuntushare//fst_outliers//results//numerical_analysis_selection")
 source("../../fhetboot/R/fhetboot.R")
 sel.list<-c("Nm1.d2.s20.ds0.genepop.step.loci",
             "Nm1.d2.s20.ds0.01.genepop.step.loci",
@@ -674,7 +674,18 @@ sel.gpop<-list(
 	my.read.genepop("Nm1.d5.s20.ds0.01.genepop"),
 	my.read.genepop("Nm1.d5.s20.ds0.1.genepop"),
 	my.read.genepop("Nm1.d5.s20.ds0.5.genepop"))
+
+sel.gpop.names<-list(
+	"Nm1.d2.s20.ds0.genepop",
+	"Nm1.d2.s20.ds0.01.genepop",
+	"Nm1.d2.s20.ds0.1.genepop",
+	"Nm1.d2.s20.ds0.5.genepop",
+	"Nm1.d5.s20.ds0.genepop",
+	"Nm1.d5.s20.ds0.01.genepop",
+	"Nm1.d5.s20.ds0.1.genepop",
+	"Nm1.d5.s20.ds0.5.genepop")
 fsts<-lapply(sel.gpop,calc.actual.fst)
+names(fsts)<-sel.gpop.names
 names(fsts)<-c("Nm1.d2.s20.ds0.genepop","Nm1.d2.s20.ds0.01.genepop",
 	"Nm1.d2.s20.ds0.1.genepop","Nm1.d2.s20.ds0.5.genepop" ,
 	"Nm1.d5.s20.ds0.genepop","Nm1.d5.s20.ds0.01.genepop",
@@ -695,29 +706,29 @@ ds<-c(".d2.",".d5.")
 #calculate cis from fhetboot if they haven't already
 sel.ci<-as.list(rep("",length(sel.gpop)))
 for(i in 1:length(sel.gpop)){
-	gpop<-my.read.genepop(sel.gpop[i])
+	gpop<-sel.gpop[[i]]
 	fsts<-calc.actual.fst(gpop)
 	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
-	avg.ci95<-ci.means(boot.out[[2]])
-	outdat<-data.frame(Het=rownames(sel.ci[[i]][[1]]),
-		Low95=sel.ci[[i]][[1]],High95=sel.ci[[i]][[2]])
-	write.csv(outdat,paste(sel.gpop[i],"fhetboot.95ci.csv",sep="."))
-	sel.ci[[i]]<-avg.ci95
+	avg.ci<-ci.means(boot.out[[3]])
+	outdat<-data.frame(Het=rownames(avg.ci),
+		Low=avg.ci$low,High=avg.ci$upp)
+	write.csv(outdat,paste(sel.gpop.names[i],"fhetboot.ci.csv",sep="."))
+	sel.ci[[i]]<-avg.ci[,1:2]
 }
-names(sel.ci)<-sel.gpop
+names(sel.ci)<-sel.gpop.names
 
 
-ci.list<-c("Nm1.d2.s20.ds0.genepop.fhetboot.95ci.csv",
-	"Nm1.d2.s20.ds0.01.genepop.fhetboot.95ci.csv",
-	"Nm1.d2.s20.ds0.1.genepop.fhetboot.95ci.csv",
-	"Nm1.d2.s20.ds0.5.genepop.fhetboot.95ci.csv",
-	"Nm1.d5.s20.ds0.genepop.fhetboot.95ci.csv",
-	"Nm1.d5.s20.ds0.01.genepop.fhetboot.95ci.csv",
-	"Nm1.d5.s20.ds0.1.genepop.fhetboot.95ci.csv",
-	"Nm1.d5.s20.ds0.5.genepop.fhetboot.95ci.csv")
+ci.list<-c("Nm1.d2.s20.ds0.genepop.fhetboot.ci.csv",
+	"Nm1.d2.s20.ds0.01.genepop.fhetboot.ci.csv",
+	"Nm1.d2.s20.ds0.1.genepop.fhetboot.ci.csv",
+	"Nm1.d2.s20.ds0.5.genepop.fhetboot.ci.csv",
+	"Nm1.d5.s20.ds0.genepop.fhetboot.ci.csv",
+	"Nm1.d5.s20.ds0.01.genepop.fhetboot.ci.csv",
+	"Nm1.d5.s20.ds0.1.genepop.fhetboot.ci.csv",
+	"Nm1.d5.s20.ds0.5.genepop.fhetboot.ci.csv")
 
-png("../Fig6_fhetboot.png",height=169,width=225,units="mm",res=300)
-pdf("../Fig6_fhetboot.pdf")
+png("../Fig6_fhetboot_revised.png",height=169,width=225,units="mm",res=300)
+pdf("../Fig6_fhetboot_revised.pdf")
 par(mfrow=c(2,4), oma=c(2,3,3,1),mar=c(1,1.5,1,1),mgp=c(3,0.65,0),cex=1)
 for(i in 1:length(ds)){
 	for(j in 1:length(sels)){
@@ -732,8 +743,8 @@ for(i in 1:length(ds)){
 			grep(selsg[j],sel.gpop.cis,fixed=T)]])
 		plot(sig.dat$Ht,sig.dat$Fst,las=1,xlab="",ylab="",
 			pch=19,xaxt='n',yaxt='n')
-		points(ci.dat$Het,ci.dat$Low95,col="dodgerblue",type="l",lty=1,lwd=2)
-		points(ci.dat$Het,ci.dat$High95,col="dodgerblue",type="l",
+		points(ci.dat$Het,ci.dat$Low,col="dodgerblue",type="l",lty=1,lwd=2)
+		points(ci.dat$Het,ci.dat$High,col="dodgerblue",type="l",
 			lty=1,lwd=2)
 		points(gci.dat$Het,gci.dat[,2],col="red",type="l",
 			lty=2,lwd=2)
@@ -788,7 +799,7 @@ dev.off()
 ############################################################################
 #PLOT FIG 7-REVISIONS (HIGHER NM)
 ############################################################################
-setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_selection")
+setwd("B://ubuntushare//fst_outliers//results//numerical_analysis_selection")
 source("../../fhetboot/R/fhetboot.R")
 sel.list<-c("Nm10.d2.s20.ds0.output.txt",
 	"Nm10.d2.s20.ds0.01.output.txt",
@@ -844,11 +855,11 @@ for(i in 1:length(sel.gpop)){
 	gpop<-sel.gpop[[i]]
 	#fsts<-fsts[[i]]
 	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
-	avg.ci95<-ci.means(boot.out[[2]])
-	outdat<-data.frame(Het=rownames(avg.ci95[[1]]),
-		Low95=avg.ci95[[1]],High95=avg.ci95[[2]])
-	write.csv(outdat,paste(names[i],"fhetboot.95ci.csv",sep="."))
-	sel.ci[[i]]<-avg.ci95
+	avg.ci<-ci.means(boot.out[[3]])
+	outdat<-data.frame(Het=rownames(avg.ci),
+		Low=avg.ci,High=avg.ci)
+	write.csv(outdat,paste(names[i],"fhetboot.ci.csv",sep="."))
+	sel.ci[[i]]<-avg.ci
 }
 names(sel.ci)<-names
 
@@ -862,8 +873,8 @@ ci.list<-c("Nm10.d2.s20.ds0.genepop.fhetboot.95ci.csv",
 	"Nm10.d5.s20.ds0.1.genepop.fhetboot.95ci.csv",
 	"Nm10.d5.s20.ds0.5.genepop.fhetboot.95ci.csv")
 
-png("../Fig7_fhetboot_Nm10.png",height=169,width=225,units="mm",res=300)
-pdf("../Fig7_fhetboot_Nm10.pdf")
+png("../Fig7_fhetboot_Nm10_revised.png",height=169,width=225,units="mm",res=300)
+pdf("../Fig7_fhetboot_Nm10_revised.pdf")
 par(mfrow=c(2,4), oma=c(2,3,3,1),mar=c(1,1.5,1,1),mgp=c(3,0.65,0),cex=1)
 for(i in 1:length(ds)){
 	for(j in 1:length(sels)){

@@ -20,24 +20,37 @@ find.los.sig<-function(ci.dat,loci.dat){
 
 
 all.files<-list.files(pattern=".genepop$")
-proportions<-do.call(rbind,lapply(all.files, function(x) {
-	gpop<-my.read.genepop(x)
+proportions<-data.frame(wcc.prop=numeric(),wcc.prop.sig=numeric())
+
+#proportions<-do.call(rbind,lapply(all.files, function(x) {
+for(i in 1:length(all.files)){
+	print(all.files[i])
+	gpop<-my.read.genepop(all.files[i])
 	fsts.wcc<-calc.actual.fst(gpop,"WCC")
 	#fsts<-calc.actual.fst(gpop)
 	#boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
 	wcc.boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop,"WCC"))))
-	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(x,"wcc.png",sep=""))
+	print("plotting.cis")
+	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(all.files[i],"wcc.png",sep=""))
 #	outliers<-find.outliers(fsts,boot.out=boot.out, 
-#		file.name=x)
+#		file.name=all.files[i])
+	print("finding outliers")
 	wcc.outliers<-find.outliers(fsts.wcc,boot.out=wcc.boot.out, 
-		file.name=x)
-	wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
+		file.name=all.files[i])
+	if(nrow(wcc.outliers)>0){
+		wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
 	wcc.prop<-nrow(wcc.outliers)/(ncol(gpop)-2)
-	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
-	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
+	} else {
+		wcc.prop<-0
+	}
+#	print("p values")
+#	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
+#	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(cbind(wcc.prop,wcc.prop.sig))
-}))
+	print("return")
+	proportions[i,]<-cbind(wcc.prop,wcc.prop.sig)
+}
+
 rownames(proportions)<-all.files
 write.table(proportions,"ProportionOutliers_WCC.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
@@ -134,7 +147,7 @@ proportions$filename<-rownames(proportions)
 
 #step
 step.prop<-merge(s.ci,proportions,by="filename")
-t.test(x=step.prop$PropOutliers,y=step.prop$V1,paired=T,alternative="less")
+t.test(x=step.prop$PropOutliers,y=step.prop$wcc.prop,paired=T,alternative="less")
 
 
 #Correlation between fst and beta
