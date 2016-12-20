@@ -19,17 +19,20 @@ sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	wcc.prop.out<-nrow(wcc.outliers)/(ncol(gpop)-2)
 	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
 	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
+	sel<-read.table(gsub("genepop","sigloci.txt",x))
+	wcc.prop.sel.out<-nrow(wcc.outliers[wcc.outliers$Locus %in% sel$V1,])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(cbind(wcc.prop.out,wcc.prop.sig))
+	return(cbind(wcc.prop.out,wcc.prop.sel.out,wcc.prop.sig))
 }))
 rownames(sel.proportions)<-sel.all.files
-write.table(sel.proportions,"SelectedProportionOutliers.txt",sep="\t",quote=F,row.names=T,
+write.table(sel.proportions,"SelectedProportionOutliers19.12.2016.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
 ####If you already made the files:
 out.files<-list.files(pattern=".genepop.csv")
-#ds0.files<-out.files[grep("ds0.genepop",out.files)]
-#out.files<-out.files[!(out.files %in% ds0.files)]
+ds0.files<-out.files[grep("ds0.genepop",out.files)]
+out.files<-out.files[!(out.files %in% ds0.files)]
+out.files<-out.files[grep("ds",out.files)]
 
 proportions<-do.call(rbind,lapply(out.files, function(x) {
 	prop.dat<-read.csv(x,row.names=1)

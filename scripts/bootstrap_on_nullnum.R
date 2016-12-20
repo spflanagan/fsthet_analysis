@@ -52,7 +52,7 @@ for(i in 1:length(all.files)){
 }
 
 rownames(proportions)<-all.files
-write.table(proportions,"ProportionOutliers_WCC.txt",sep="\t",quote=F,row.names=T,
+write.table(proportions,"ProportionOutliers_WCC.19.12.2016.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
 
@@ -149,6 +149,16 @@ proportions$filename<-rownames(proportions)
 step.prop<-merge(s.ci,proportions,by="filename")
 t.test(x=step.prop$PropOutliers,y=step.prop$wcc.prop,paired=T,alternative="less")
 
+#        Paired t-test
+#
+#data:  step.prop$PropOutliers and step.prop$wcc.prop
+#t = 5.4663, df = 83, p-value = 2.363e-07
+#alternative hypothesis: true difference in means is greater than 0
+#95 percent confidence interval:
+# 0.06049898        Inf
+#sample estimates:
+#mean of the differences 
+#             0.08696166 
 
 #Correlation between fst and beta
 library(Hmisc)
