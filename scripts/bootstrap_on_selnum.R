@@ -2,7 +2,7 @@ source("B:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
 setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
 
 rm(list=ls())
-sel.all.files<-list.files(pattern="d20.s20.ds.*.genepop$")
+sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop$")
 
 sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	gpop<-my.read.genepop(x)
@@ -19,10 +19,10 @@ sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	wcc.prop.out<-nrow(wcc.outliers)/(ncol(gpop)-2)
 	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
 	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
-	sel<-read.table(gsub("genepop","sigloci.txt",x))
-	wcc.prop.sel.out<-nrow(wcc.outliers[wcc.outliers$Locus %in% sel$V1,])/(ncol(gpop)-2)
+	#sel<-read.table(gsub("genepop","sigloci.txt",x))
+	#wcc.prop.sel.out<-nrow(wcc.outliers[wcc.outliers$Locus %in% sel$V1,])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(cbind(wcc.prop.out,wcc.prop.sel.out,wcc.prop.sig))
+	return(cbind(wcc.prop.out,wcc.prop.sig))
 }))
 rownames(sel.proportions)<-sel.all.files
 write.table(sel.proportions,"SelectedProportionOutliers19.12.2016.txt",sep="\t",quote=F,row.names=T,
