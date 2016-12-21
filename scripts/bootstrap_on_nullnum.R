@@ -162,17 +162,55 @@ t.test(x=step.prop$PropOutliers,y=step.prop$wcc.prop,paired=T,alternative="less"
 
 #Correlation between fst and beta
 library(Hmisc)
-fst.cor<-data.frame(file=character(),Ht=numeric(),Fst=numeric(),Hb=numeric(),beta=numeric(),
-                    stringsAsFactors = FALSE)
-for(i in 1:length(all.files))
+fst.cor<-list()
+ht.cor<-list()
+h.plots<-list()
+f.plots<-list()
+  #data.frame(file=character(),Ht=numeric(),Fst=numeric(),Hb=numeric(),beta=numeric(),
+          #          stringsAsFactors = FALSE)
+nm1.files<-all.files[grep("Nm1\\..*",all.files)]
+png("Nm1_correlations_fst.png",height=10,width=7.5,units="in",res=300)
+par(mfrow=c(7,4),oma=c(1.5,1.5,1,1),mar=c(1,1,1,1))
+for(i in 1:length(nm1.files))
 {
-  gpop<-my.read.genepop(all.files[i])
+  gpop<-my.read.genepop(nm1.files[i])
   fsts.wcc<-calc.actual.fst(gpop,"WCC")
   fsts<-calc.actual.fst(gpop)
-  fst.cor<-rbind(fst.cor,cbind(file=rep(all.files[i],length(fsts$Ht)),
-    Ht=fsts$Ht,Fst=fsts$Fst,Hb=fsts.wcc$Ht,beta=fsts.wcc$Fst))
+  #hp<-plot(fsts$Ht,fsts.wcc$Ht,plot=FALSE)
+  plot(fsts$Fst,fsts.wcc$Fst,pch=19,axes=F,xlab="",ylab="")
+  axis(1)
+  axis(2)
+  text(0.35,0.8,nm1.files[i],col="red")
+  text(0.35,0.7,paste("r=",round(fst.cor[[i]][[1]][2],3),", p=",fst.cor[[i]][[3]][2]),col="red")
+  #h.plots[[i]]<-hp
+#  f.plots[[i]]<-fp
+#  ht.cor[[i]]<- rcorr(fsts$Ht,fsts.wcc$Ht)
+ # fst.cor[[i]]<-rcorr(as.numeric(fsts$Fst[fsts$Fst != NaN]),fsts.wcc$Fst[fsts.wcc$Fst != NaN])
 }
-rcorr(fst.cor$Ht,fst.cor$Hb)
+mtext(expression(italic(F)[HT]),1,outer=T,line=0.5)
+mtext(expression(italic(F)[HB]),2,outer=T,line=0.5)
+
+png("Nm1_correlations_ht.png",height=10,width=7.5,units="in",res=300)
+par(mfrow=c(7,4),oma=c(1.5,1.5,1,1),mar=c(1,1,1,1))
+for(i in 1:length(nm1.files))
+{
+  gpop<-my.read.genepop(nm1.files[i])
+  fsts.wcc<-calc.actual.fst(gpop,"WCC")
+  fsts<-calc.actual.fst(gpop)
+  #hp<-plot(fsts$Ht,fsts.wcc$Ht,plot=FALSE)
+  plot(fsts$Ht,fsts.wcc$Ht,pch=19,axes=F,xlab="",ylab="")
+  axis(1)
+  axis(2)
+  text(0.35,0.8,nm1.files[i],col="red")
+  text(0.35,0.7,paste("r=",round(ht.cor[[i]][[1]][2],3),", p=",ht.cor[[i]][[3]][2]),col="red")
+  #h.plots[[i]]<-hp
+  #  f.plots[[i]]<-fp
+  #  ht.cor[[i]]<- rcorr(fsts$Ht,fsts.wcc$Ht)
+  # fst.cor[[i]]<-rcorr(as.numeric(fsts$Fst[fsts$Fst != NaN]),fsts.wcc$Fst[fsts.wcc$Fst != NaN])
+}
+mtext(expression(italic(H)[T]),1,outer=T,line=0.5)
+mtext(expression(italic(H)[B]),2,outer=T,line=0.5)
+#rcorr(fst.cor$Ht,fst.cor$Hb)
 #los.sig<-read.table("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/sig.loci.sim.LOSITAN.txt",skip=1)
 #colnames(los.sig)<-c("file","bal","pos","total","balp","posp","totalp")
 #these are all at the 95% level
