@@ -857,21 +857,21 @@ for(i in 1:length(sel.gpop)){
 	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
 	avg.ci<-ci.means(boot.out[[3]])
 	outdat<-data.frame(Het=rownames(avg.ci),
-		Low=avg.ci,High=avg.ci)
+		Low=avg.ci$low,High=avg.ci$upp)
 	write.csv(outdat,paste(names[i],"fhetboot.ci.csv",sep="."))
 	sel.ci[[i]]<-avg.ci
 }
 names(sel.ci)<-names
 
 
-ci.list<-c("Nm10.d2.s20.ds0.genepop.fhetboot.95ci.csv",
-	"Nm10.d2.s20.ds0.01.genepop.fhetboot.95ci.csv",
-	"Nm10.d2.s20.ds0.1.genepop.fhetboot.95ci.csv",
-	"Nm10.d2.s20.ds0.5.genepop.fhetboot.95ci.csv",
-	"Nm10.d5.s20.ds0.genepop.fhetboot.95ci.csv",
-	"Nm10.d5.s20.ds0.01.genepop.fhetboot.95ci.csv",
-	"Nm10.d5.s20.ds0.1.genepop.fhetboot.95ci.csv",
-	"Nm10.d5.s20.ds0.5.genepop.fhetboot.95ci.csv")
+ci.list<-c("Nm10.d2.s20.ds0.genepop.fhetboot.ci.csv",
+	"Nm10.d2.s20.ds0.01.genepop.fhetboot.ci.csv",
+	"Nm10.d2.s20.ds0.1.genepop.fhetboot.ci.csv",
+	"Nm10.d2.s20.ds0.5.genepop.fhetboot.ci.csv",
+	"Nm10.d5.s20.ds0.genepop.fhetboot.ci.csv",
+	"Nm10.d5.s20.ds0.01.genepop.fhetboot.ci.csv",
+	"Nm10.d5.s20.ds0.1.genepop.fhetboot.ci.csv",
+	"Nm10.d5.s20.ds0.5.genepop.fhetboot.ci.csv")
 
 png("../Fig7_fhetboot_Nm10_revised.png",height=169,width=225,units="mm",res=300)
 pdf("../Fig7_fhetboot_Nm10_revised.pdf")
@@ -890,8 +890,8 @@ for(i in 1:length(ds)){
 		plot(sig.dat$Ht,sig.dat$Fst,las=1,xlab="",ylab="",
 			pch=19,xaxt='n',yaxt='n')
 		axis(2,las=1)
-		points(ci.dat$Het,ci.dat$Low95,col="dodgerblue",type="l",lty=1,lwd=2)
-		points(ci.dat$Het,ci.dat$High95,col="dodgerblue",type="l",
+		points(ci.dat$Het,ci.dat$Low,col="dodgerblue",type="l",lty=1,lwd=2)
+		points(ci.dat$Het,ci.dat$High,col="dodgerblue",type="l",
 			lty=1,lwd=2)
 		points(gci.dat$Het,gci.dat[,2],col="red",type="l",
 			lty=2,lwd=2)

@@ -4,17 +4,19 @@ setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
 rm(list=ls())
 sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop$")
 
-sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
-	gpop<-my.read.genepop(x)
+sel.proportions<-data.frame(wcc.prop.out=numeric(),wcc.prop.sig=numeric())
+#do.call(rbind,lapply(sel.all.files, function(x) {
+for(i in 1:length(sel.all.files)){
+	gpop<-my.read.genepop(sel.all.files[i])
 	fsts.wcc<-calc.actual.fst(gpop,"WCC")
 #	fsts<-calc.actual.fst(gpop)
 #	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
 	wcc.boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop,"WCC"))))
-	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(x,"wcc.png",sep=""))
+	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(sel.all.files[i],"wcc.png",sep=""))
 #	outliers<-find.outliers(fsts,boot.out=boot.out, 
-#		file.name=x)
+#		file.name=sel.all.files[i])
 	wcc.outliers<-find.outliers(fsts.wcc,boot.out=wcc.boot.out, 
-		file.name=x)
+		file.name=sel.all.files[i])
 	wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
 	wcc.prop.out<-nrow(wcc.outliers)/(ncol(gpop)-2)
 	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
@@ -22,8 +24,9 @@ sel.proportions<-do.call(rbind,lapply(sel.all.files, function(x) {
 	#sel<-read.table(gsub("genepop","sigloci.txt",x))
 	#wcc.prop.sel.out<-nrow(wcc.outliers[wcc.outliers$Locus %in% sel$V1,])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
-	return(cbind(wcc.prop.out,wcc.prop.sig))
-}))
+	sel.proportions[i,]<-cbind(wcc.prop.out,wcc.prop.sig)
+	#return(cbind(wcc.prop.out,wcc.prop.sig))
+}
 rownames(sel.proportions)<-sel.all.files
 write.table(sel.proportions,"SelectedProportionOutliers19.12.2016.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
@@ -35,7 +38,7 @@ out.files<-out.files[!(out.files %in% ds0.files)]
 out.files<-out.files[grep("ds",out.files)]
 
 proportions<-do.call(rbind,lapply(out.files, function(x) {
-	prop.dat<-read.csv(x,row.names=1)
+	prop.dat<-read.csv(x)
 	prop<-nrow(prop.dat)/2000
 	sig<-read.table(gsub("genepop.csv","sigloci.txt",x))
 	propSig<-length(sig$V1[sig$V1 %in% prop.dat$Locus])/nrow(sig)
@@ -227,6 +230,6 @@ sel.proportions<-read.table("SelectedProportionOutliers.txt")
 sel.proportions$filename<-rownames(sel.proportions)
 
 #step
-step.prop<-merge(ss.ci,sel.proportions,by="filename")
-t.test(step.prop$PropOutliers,step.prop$V1)
-#t = 4.571, df = 75.817, p-value = 1.852e-05
+step.prop<-merge(si.ci,sel.proportions,by="filename")
+t.test(step.prop$PropOutliers,step.prop$wcc.prop.out)
+#t = 76.727, df = 18, p-value < 2.2e-16
