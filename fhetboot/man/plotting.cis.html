@@ -16,7 +16,8 @@
 <h3>Usage</h3>
 
 <pre>
-plotting.cis(df, boot.out, ci.list, sig.list, Ht.name, Fst.name, ci.col, pt.pch,file.name,make.file, smoothing.rate=0.025, smooth.ci=TRUE)
+plotting.cis(df,boot.out,ci.df=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
+	ci.col="red", pt.pch=1,file.name=NULL,sig.col=ci.col,make.file=TRUE)
 </pre>
 
 
@@ -31,9 +32,9 @@ plotting.cis(df, boot.out, ci.list, sig.list, Ht.name, Fst.name, ci.col, pt.pch,
 <td>
 <p>Bootstrap output. You must either provide this or a list of confidence interval values.</p>
 </td></tr>
-<tr valign="top"><td><code>ci.list</code></td>
+<tr valign="top"><td><code>ci.df</code></td>
 <td>
-<p>List of confidence intervals. You must either provide this or bootstrap output.</p>
+<p>Data frame of confidence intervals. You must either provide this or bootstrap output.</p>
 </td></tr>
 <tr valign="top"><td><code>sig.list</code></td>
 <td>
@@ -58,14 +59,6 @@ plotting.cis(df, boot.out, ci.list, sig.list, Ht.name, Fst.name, ci.col, pt.pch,
 <tr valign="top"><td><code>sig.col</code></td>
 <td>
 <p>The color of the significant loci, if that option is taken. The default is the same color as the confidence interval.</p>
-</td></tr>
-<tr valign="top"><td><code>smooth.ci</code></td>
-<td>
-<p>Implements a smoothing algorithm (smooth.cis) to make the confidence intervals less jagged. Default is true.</p>
-</td></tr>
-<tr valign="top"><td><code>smoothing.rate</code></td>
-<td>
-<p>If smooth.ci=TRUE, smoothing.rate determines the number of points in the plotted CI (smoothing.rate determines the by= in seq(0,1,by).</p>
 </td></tr>
 <tr valign="top"><td><code>file.name</code></td>
 <td>

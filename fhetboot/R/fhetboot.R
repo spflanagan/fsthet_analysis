@@ -122,7 +122,8 @@ calc.fst<-function(df,i){
 	df.split<-split(df[,i],df[,1])
 	af<-do.call("rbind",lapply(df.split,calc.allele.freq))
 	hexp<-apply(af,1,calc.exp.het)
-	hs<-mean(hexp)
+	ns<-unlist(lapply(df.split,length))
+	hs<-(hexp*ns)/sum(ns)
 	ht<-calc.exp.het(calc.allele.freq(df[,i]))
 	fst<-(ht-hs)/ht
 	return(c(ht,fst))

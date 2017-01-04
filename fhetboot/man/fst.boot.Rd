@@ -11,7 +11,7 @@
 	This function can be slow. We recommend running it 10 times to generate confidence intervals for analysis.
 }
 \usage{
-fst.boot(df,fst.choice="nei",ci=0.05,smooth.rate=0.1)
+fst.boot(df,fst.choice="nei",ci=0.05,num.breaks=25)
 }
 \arguments{
   \item{df}{A dataframe containing the genepop information, where the first column is the population ID.}
@@ -23,7 +23,7 @@ fst.boot(df,fst.choice="nei",ci=0.05,smooth.rate=0.1)
 		Corrected Weir and Cockerham 1993's beta from Beaumont and Nichols 1996 (WeirCockerhamCorrected, weircockerhamcorrected,corrected,wcc,WCC)
 	Default is Nei's.}
   \item{ci}{A value for the confidence intervals alpha (default is 0.05).}
-  \item{smooth.rate}{The distance between the start of bins (default is 0.1)}
+  \item{num.breaks}{The number of breaks used to create bins (default is 25)}
 }
 \value{
 	\item{Fsts}{The bootstrapped Fst and Ht values}

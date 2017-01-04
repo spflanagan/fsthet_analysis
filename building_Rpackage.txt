@@ -1,5 +1,24 @@
 ####################################################################################################
 
+#########OVERVIEW
+#THIS WORKED AS OF 3 Jan 2017
+#vignette .Rmd saved in inst/doc
+
+cd fhetboot/man/
+for file in *.Rd
+do
+	base=${file%.Rd}
+	R CMD Rdconv --type=pdf --output=$base.pdf $base.Rd 
+done
+
+cd ../../
+R CMD check fhetboot
+R CMD build --resave-data fhetboot
+
+
+R CMD INSTALL -l ./fhetboot/ fhetboot
+R CMD check fhetboot 
+R CMD build --resave-data fhetboot
 #########BUILDING
 Wrote the .Rd files and then checked the with R CMD Rd2txt
 

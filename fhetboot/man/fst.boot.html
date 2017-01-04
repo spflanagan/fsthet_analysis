@@ -22,7 +22,7 @@ This function can be slow. We recommend running it 10 times to generate confiden
 <h3>Usage</h3>
 
 <pre>
-fst.boot(df)
+fst.boot(df,fst.choice="nei",ci=0.05,num.breaks=25)
 </pre>
 
 
@@ -47,9 +47,9 @@ Default is Nei's.</p>
 <td>
 <p>A value for the confidence intervals alpha (default is 0.05).</p>
 </td></tr>
-<tr valign="top"><td><code>smooth.rate</code></td>
+<tr valign="top"><td><code>num.breaks</code></td>
 <td>
-<p>The distance between the start of bins (default is 0.1)</p>
+<p>The number of breaks used to create bins (default is 25)</p>
 </td></tr>
 </table>
 
