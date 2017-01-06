@@ -7,4 +7,4 @@ Maintainer: Sarah P. Flanagan <spflanagan.phd@gmail.com>
 License: GPL-2
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr
-Built: R 3.2.3; ; 2017-01-04 02:36:36 UTC; unix
+Built: R 3.2.3; ; 2017-01-06 12:30:33 UTC; unix

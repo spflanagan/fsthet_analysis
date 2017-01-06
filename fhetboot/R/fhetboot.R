@@ -123,7 +123,7 @@ calc.fst<-function(df,i){
 	af<-do.call("rbind",lapply(df.split,calc.allele.freq))
 	hexp<-apply(af,1,calc.exp.het)
 	ns<-unlist(lapply(df.split,length))
-	hs<-(hexp*ns)/sum(ns)
+	hs<-sum(hexp*ns)/sum(ns)
 	ht<-calc.exp.het(calc.allele.freq(df[,i]))
 	fst<-(ht-hs)/ht
 	return(c(ht,fst))
@@ -220,7 +220,7 @@ fst.options.print<-function(){
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
-fst.boot<-function(df, fst.choice="nei", ci=0.05,num.breaks=25){	
+fst.boot<-function(df, fst.choice="WCC", ci=0.05,num.breaks=25){	
 		#updated 2 Dec 2016
   #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
@@ -340,14 +340,15 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 	boot.means$unitsaway<-abs(boot.means$real.means - boot.means$Fst)
 	boot.means$low<-boot.means$Fst-boot.means$unitsaway
 	boot.means$upp<-boot.means$Fst+boot.means$unitsaway
-	pvals<-apply(actual.fsts,1, function(x){
+	pvals<-unlist(apply(actual.fsts,1, function(x){
 		bin<-boot.means[
 			as.numeric(boot.means$LowBin) <= as.numeric(x["Ht"])
 			& as.numeric(boot.means$UppBin) >= as.numeric(x["Ht"]),]
 		fsts.in.bin<-apply(bin,1,function(y){
-			actual.fsts[actual.fsts$Ht >= y["LowBin"] 
-				& actual.fsts$Ht <= y["UppBin"],]
+			actual.fsts[actual.fsts$Ht >= as.numeric(y["LowBin"] )
+				& actual.fsts$Ht <= as.numeric(y["UppBin"]),]
 		})
+		
 		unitsaway<-apply(bin,1,function(y){ 
 			abs(as.numeric(x["Fst"]) - as.numeric(y["Fst"])) })
 		low<-apply(bin,1,function(y){ 
@@ -356,15 +357,21 @@ p.boot<-function(actual.fsts, boot.out=NULL,boot.means=NULL){
 			as.numeric(y["Fst"]) + as.numeric(unitsaway)  })
 		n<-lapply(fsts.in.bin, nrow)
 		p<-NULL
-		for(i in 1:length(fsts.in.bin)){
-			p[i]<-(nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) < 
-				as.numeric(low[i]),]) + 
-				nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) > 
-				as.numeric(upp[i]),]))/as.numeric(n[i])
+		if(length(fsts.in.bin)>0){
+  		for(i in 1:length(fsts.in.bin)){
+  			p[i]<-(nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) < 
+  				as.numeric(low[i]),]) + 
+  				nrow(fsts.in.bin[[i]][as.numeric(fsts.in.bin[[i]]$Fst) > 
+  				as.numeric(upp[i]),]))/as.numeric(n[i])
+  		}
+  		p<-max(p)	#Some of these loci are in multiple bins.
+		}else{
+		  p<-NA
+		  print("No bins found. Were actual.fsts and boot.out/boot.means calculated with the same Fst method?")
 		}
-		p<-max(p)
-		#Some of these loci are in multiple bins.
-	})
+		return(p)
+	
+	}))
 	names(pvals)<-actual.fsts$Locus
 	return(pvals)
 }
@@ -473,7 +480,7 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	return(out)
 }
 
-calc.actual.fst<-function(df, fst.choice="N"){
+calc.actual.fst<-function(df, fst.choice="WCC"){
 	fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
 	               "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
 	if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}

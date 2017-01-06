@@ -2,7 +2,9 @@
 
 #########OVERVIEW
 #THIS WORKED AS OF 3 Jan 2017
-#vignette .Rmd saved in inst/doc
+#vignette .Rmd saved in inst/doc and vignettes/
+#ALSO: no lib.loc in library("fhetboot") call!
+#Needed to update my namespace
 
 cd fhetboot/man/
 for file in *.Rd
