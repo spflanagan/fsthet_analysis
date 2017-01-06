@@ -221,3 +221,24 @@ mtext(expression(italic(H)[B]),2,outer=T,line=0.5)
 #t.test(los.sig$totalp,proportions[,2],paired=T,alternative="greater")
 #max.boot<-read.csv("Nm10.d50.s2.genepop95.csv")
 
+## Does bootstrapping reduce the influence of outlier clusters?
+par(mfrow=c(1,2),oma=c(2,2,2,2))
+
+gpop<-my.read.genepop("Nm0.1.d5.s20.genepop")
+fsts.wcc<-calc.actual.fst(gpop,"wcc")
+boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
+boot.pvals<-p.boot(fsts.wcc,boot.out=boot.out)
+boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
+boot.sig<-boot.cor.pvals[boot.cor.pvals <= 0.05]
+boot.outliers<-find.outliers(fsts.wcc,boot.out)
+non.boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap = FALSE))))
+non.boot.pvals<-p.boot(fsts.wcc,boot.out=non.boot.out)
+non.boot.cor.pvals<-p.adjust(non.boot.pvals,method="BH")
+non.boot.sig<-non.boot.cor.pvals[non.boot.cor.pvals <= 0.05]
+non.boot.outliers<-find.outliers(fsts.wcc,non.boot.out)
+
+plotting.cis(fsts.wcc,boot.out,make.file=F,sig.list=names(boot.sig))
+plotting.cis(fsts.wcc,non.boot.out,make.file=F,sig.list=names(non.boot.sig))
+dim(boot.outliers)
+dim(non.boot.outliers)
+

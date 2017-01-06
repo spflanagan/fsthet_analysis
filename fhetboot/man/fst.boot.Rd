@@ -11,7 +11,7 @@
 	This function can be slow. We recommend running it 10 times to generate confidence intervals for analysis.
 }
 \usage{
-fst.boot(df,fst.choice="WCC",ci=0.05,num.breaks=25)
+fst.boot(df,fst.choice="WCC",ci=0.05,num.breaks=25, bootstrap = TRUE)
 }
 \arguments{
   \item{df}{A dataframe containing the genepop information, where the first column is the population ID.}
@@ -24,6 +24,7 @@ fst.boot(df,fst.choice="WCC",ci=0.05,num.breaks=25)
 	Default is Nei's.}
   \item{ci}{A value for the confidence intervals alpha (default is 0.05).}
   \item{num.breaks}{The number of breaks used to create bins (default is 25)}
+  \item{bootstrap}{A TRUE/FALSE statement telling the program whether to bootstrap and then determine the bins or to calculate bins and confidence intervals from the empirical dataset without bootstrapping. The default is TRUE, which means bootstrapping occurs.}
 }
 \value{
 	\item{Fsts}{The bootstrapped Fst and Ht values}

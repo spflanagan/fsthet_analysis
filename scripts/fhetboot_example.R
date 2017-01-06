@@ -28,28 +28,10 @@ test<-fst.boot(gpop)
 plotting.cis(fsts, ci.list=test[[3]])
 out1<-find.outliers(fsts,ci.df=ci.df)
 
-#example with 100 replicates
-boot100<-as.data.frame(t(replicate(100, fst.boot(gpop))))
-plotting.cis(fsts,boot100)
-boot100.ci95<-ci.means(boot100[[3]])
-cis100<-as.data.frame(t(do.call(rbind,boot100.ci95)))
-colnames(cis100)<-c("low95","upp95")
-cis100$Ht<-as.numeric(rownames(cis100))
-write.csv(cis100,"Bootstrapping100CIs.csv")
-
-#example with 100 replicates
-boot1000<-as.data.frame(t(replicate(1000, fst.boot(gpop))))
-plotting.cis(fsts,boot1000)
-boot1000.ci95<-ci.means(boot1000[[3]])
-cis1000<-as.data.frame(t(do.call(rbind,boot1000.ci95)))
-colnames(cis1000)<-c("low95","upp95")
-cis1000$Ht<-as.numeric(rownames(cis1000))
-write.csv(cis1000,"Bootstrapping1000CIs.csv")
-
-#recalculate bins
-outliers1000<-find.outliers(fsts,boot.out=boot1000)
-outliers100<-find.outliers(fsts,boot.out=boot100)
-plot.cis(fsts,boot100)
-
-
-
+#running it without bootstrapping
+non.boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap = FALSE))))
+non.boot.pvals<-p.boot(fsts.wcc,boot.out=non.boot.out)
+non.boot.cor.pvals<-p.adjust(non.boot.pvals,method="BH")
+non.boot.sig<-non.boot.cor.pvals[non.boot.cor.pvals <= 0.05]
+non.boot.outliers<-find.outliers(fsts.wcc,non.boot.out)
+plotting.cis(fsts.wcc,non.boot.out,make.file=F,sig.list=names(non.boot.sig))

@@ -220,17 +220,27 @@ fst.options.print<-function(){
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
-fst.boot<-function(df, fst.choice="WCC", ci=0.05,num.breaks=25){	
+fst.boot<-function(df, fst.choice="WCC", ci=0.05,num.breaks=25,bootstrap=TRUE){	
 		#updated 2 Dec 2016
   #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	nloci<-(ncol(df)-2)
-	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df,fst.choice))))
-	colnames(boot.out)<-c("Ht","Fst")
-	boot.out$Fst[boot.out$Fst=="NaN"]<-0
-	print("Bootstrapping done. Now Calculating CIs")
+	if(bootstrap == TRUE)
+	{
+  	boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(df,fst.choice))))
+  	colnames(boot.out)<-c("Ht","Fst")
+  	boot.out$Fst[boot.out$Fst=="NaN"]<-0
+  	print("Bootstrapping done. Now Calculating CIs")
+	} else{
+	  boot.out<-calc.actual.fst(gpop,"WCC")
+	  rownames(boot.out)<-boot.out$Locus
+	  boot.out<-data.frame(cbind(as.numeric(boot.out$Ht),as.numeric(boot.out$Fst)))
+	  colnames(boot.out)<-c("Ht","Fst")
+	  boot.out$Fst[boot.out$Fst=="NaN"]<-0
+	  print("Fsts calculated. Now Calculating CIs")
+	}
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
@@ -387,6 +397,7 @@ ci.means<-function(boot.out.list){ #boot.out[[3]]
 	} else {
 		boot.ci<-as.data.frame(boot.out.list[[1]])
 	}
+  colnames(boot.ci)<-c("Low","Upp","LowHet","UppHet")
 	avg.cil<-tapply(boot.ci[,1],boot.ci$UppHet,mean)
 	avg.ciu<-tapply(boot.ci[,2],boot.ci$UppHet,mean)
 	low.het<-tapply(boot.ci$LowHet,boot.ci$UppHet,mean)
