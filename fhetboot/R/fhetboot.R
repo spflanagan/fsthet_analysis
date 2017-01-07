@@ -234,7 +234,7 @@ fst.boot<-function(df, fst.choice="WCC", ci=0.05,num.breaks=25,bootstrap=TRUE){
   	boot.out$Fst[boot.out$Fst=="NaN"]<-0
   	print("Bootstrapping done. Now Calculating CIs")
 	} else{
-	  boot.out<-calc.actual.fst(gpop,"WCC")
+	  boot.out<-calc.actual.fst(df,fst.choice)
 	  rownames(boot.out)<-boot.out$Locus
 	  boot.out<-data.frame(cbind(as.numeric(boot.out$Ht),as.numeric(boot.out$Fst)))
 	  colnames(boot.out)<-c("Ht","Fst")

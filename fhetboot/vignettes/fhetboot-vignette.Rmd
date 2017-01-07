@@ -2,7 +2,7 @@
 title: "Using fhetboot"
 author: "Sarah P. Flanagan"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Using fhetboot}
   %\VignetteEngine{knitr::rmarkdown}
@@ -68,20 +68,6 @@ plotting.cis(df=fsts,ci.df=ci.list,make.file=F)
 
 ```
 
-Clearly, these confidence intervals are not ideally smoothed (since they only represent a single replicate), but you can see that they generally follow the shape of the distribution.  
-
-The function `smooth.cis` can also be used to smooth the confidence intervals. All this does is remove some of the intermediate points from the confidence intervals.
-
-**fhetboot** also contains the option for calculating p-values. To calculate p-values, run `p.boot` on the bootstrapping output. For this function to work, the output of `fst.boot` must be in the format it's in when you've run multiple bootstrapping replicates. It takes the data.frame of actual Fst values and either the bootstrapping output or the output from running `fst.boot.means`. You can then use a false discovery rate or p-value correction to coorect for multiple testing.
-
-```{r}
-#run bootstrapping 1 time using replicate to get it in the right format
-boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop))))
-boot.pvals<-p.boot(fsts,boot.out=boot.out)
-head(boot.pvals)
-boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
-boot.sig<-boot.cor.pvals[boot.cor.pvals <= 0.05]
-```
 
 ### Running the actual analysis
 
@@ -102,15 +88,24 @@ head(outliers)#the CI outliers
 
 ```
 
+**fhetboot** allows you to calculate p-values. To calculate p-values, run `p.boot` on the bootstrapping output. For this function to work, the output of `fst.boot` must be in the format it's in when you've run multiple bootstrapping replicates. It takes the data.frame of actual Fst values and either the bootstrapping output or the output from running `fst.boot.means`. You can then use a false discovery rate or p-value correction to coorect for multiple testing.
+
+```{r}
+boot.pvals<-p.boot(fsts,boot.out=boot.out)
+head(boot.pvals)
+boot.cor.pvals<-p.adjust(boot.pvals,method="BH")
+boot.sig<-boot.cor.pvals[boot.cor.pvals <= 0.05]
+```
+
 #### Using the empirical data without bootstrapping
 In some cases you may prefer to calculate confidence intervals and p-values from the empirical dataset iteslf, without performing bootstrapping. For these cases, run `fst.boot` with `bootstrap = FALSE`.
 ```{r}
 non.boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap = FALSE))))
-non.boot.pvals<-p.boot(fsts.wcc,boot.out=non.boot.out)
+non.boot.pvals<-p.boot(fsts,boot.out=non.boot.out)
 non.boot.cor.pvals<-p.adjust(non.boot.pvals,method="BH")
 non.boot.sig<-non.boot.cor.pvals[non.boot.cor.pvals <= 0.05]
-non.boot.outliers<-find.outliers(fsts.wcc,non.boot.out)
-plotting.cis(fsts.wcc,non.boot.out,make.file=F,sig.list=names(non.boot.sig))
+non.boot.outliers<-find.outliers(fsts,non.boot.out)
+plotting.cis(fsts,non.boot.out,make.file=F,sig.list=names(non.boot.sig))
 ```
 
 ## Customizing the Figures

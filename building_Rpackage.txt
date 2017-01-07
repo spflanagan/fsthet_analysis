@@ -1,24 +1,24 @@
 ####################################################################################################
 
 #########OVERVIEW
-#THIS WORKED AS OF 3 Jan 2017
+#THIS WORKED AS OF 7 Jan 2017
 #vignette .Rmd saved in inst/doc and vignettes/
 #ALSO: no lib.loc in library("fhetboot") call!
 #Needed to update my namespace
 
-cd fhetboot/man/
-for file in *.Rd
-do
-	base=${file%.Rd}
-	R CMD Rdconv --type=pdf --output=$base.pdf $base.Rd 
-done
-
-cd ../../
+cd fst_outliers/
 R CMD check fhetboot
 R CMD build --resave-data fhetboot
-
-
 R CMD INSTALL -l ./fhetboot/ fhetboot
+
+cd fhetboot/
+R
+>library("fhetboot")
+>library(rmarkdown)
+>render("vignettes/fhetboot-vignette.Rmd")
+#then change it from rmarkdown::pdf_document to rmarkdown::html_vignette 
+>render("vignettes/fhetboot-vignette.Rmd")
+>q()
 R CMD check fhetboot 
 R CMD build --resave-data fhetboot
 #########BUILDING
