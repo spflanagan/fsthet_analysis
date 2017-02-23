@@ -11,8 +11,8 @@ for(i in 1:length(sel.all.files)){
 	fsts.wcc<-calc.actual.fst(gpop,"WCC")
 #	fsts<-calc.actual.fst(gpop)
 #	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
-	wcc.boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop,"WCC"))))
-	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(sel.all.files[i],"wcc.png",sep=""))
+	wcc.boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
+	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(sel.all.files[i],"wcc.noboot.png",sep=""))
 #	outliers<-find.outliers(fsts,boot.out=boot.out, 
 #		file.name=sel.all.files[i])
 	wcc.outliers<-find.outliers(fsts.wcc,boot.out=wcc.boot.out, 
@@ -28,7 +28,20 @@ for(i in 1:length(sel.all.files)){
 	#return(cbind(wcc.prop.out,wcc.prop.sig))
 }
 rownames(sel.proportions)<-sel.all.files
-write.table(sel.proportions,"SelectedProportionOutliers19.12.2016.txt",sep="\t",quote=F,row.names=T,
+sel.proportions$Demes<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\2",rownames(sel.proportions)))
+sel.proportions$Nm<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\1",rownames(sel.proportions)))
+sel.proportions$Selection<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d+.*).genepop","\\4",rownames(sel.proportions)))
+props<-data.frame(#Selection0=sel.proportions[sel.proportions$Selection == 0,],
+                  Selection0.01=sel.proportions[sel.proportions$Selection == 0.01,],
+                  Selection0.1=sel.proportions[sel.proportions$Selection == 0.1,],
+                  Selection0.5=sel.proportions[sel.proportions$Selection == 0.5,],
+                  Selection1=sel.proportions[sel.proportions$Selection == 1,])
+props.out<-data.frame(Demes=props$Selection0.01.Demes,Nm=props$Selection0.01.Nm,
+                      props[,grep("wcc.prop",colnames(props))])
+
+props.out<-props.out[order(props.out$Demes,props.out$Nm),]
+
+write.table(sel.proportions,"SelectedProportionOutliers.23.02.2017.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
 ####If you already made the files:

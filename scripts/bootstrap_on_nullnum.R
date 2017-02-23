@@ -1,5 +1,5 @@
-source("B:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
-setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop")
+library("fhetboot",lib.loc = "~/Projects/fst_outliers/fhetboot")
+setwd("~/Projects/fst_outliers/results/numerical_analysis_genepop")
 
 find.los.sig<-function(ci.dat,loci.dat){
   bal<-NULL
@@ -20,7 +20,7 @@ find.los.sig<-function(ci.dat,loci.dat){
 
 
 all.files<-list.files(pattern=".genepop$")
-proportions<-data.frame(wcc.prop=numeric(),wcc.prop.sig=numeric())
+proportions<-data.frame(wcc.prop=numeric())
 
 #proportions<-do.call(rbind,lapply(all.files, function(x) {
 for(i in 1:length(all.files)){
@@ -29,9 +29,9 @@ for(i in 1:length(all.files)){
 	fsts.wcc<-calc.actual.fst(gpop,"WCC")
 	#fsts<-calc.actual.fst(gpop)
 	#boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
-	wcc.boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop,"WCC"))))
+	wcc.boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
 	print("plotting.cis")
-	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(all.files[i],"wcc.png",sep=""))
+	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(all.files[i],"wcc.noboot.png",sep=""))
 #	outliers<-find.outliers(fsts,boot.out=boot.out, 
 #		file.name=all.files[i])
 	print("finding outliers")
@@ -48,11 +48,24 @@ for(i in 1:length(all.files)){
 #	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
 #	prop<-nrow(outliers)/(ncol(gpop)-2)
 	print("return")
-	proportions[i,]<-cbind(wcc.prop,wcc.prop.sig)
+	proportions[i,]<-wcc.prop
 }
 
 rownames(proportions)<-all.files
-write.table(proportions,"ProportionOutliers_WCC.19.12.2016.txt",sep="\t",quote=F,row.names=T,
+proportions$Demes<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).genepop","\\2",rownames(proportions)))
+proportions$Nm<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).genepop","\\1",rownames(proportions)))
+proportions$Samples<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).genepop","\\3",rownames(proportions)))
+props<-data.frame(Samples2=proportions[proportions$Samples == 2,],
+                  Samples5=proportions[proportions$Samples == 5,],
+                  Samples10=proportions[proportions$Samples == 10,],
+                  Samples20=proportions[proportions$Samples == 20,])
+props.out<-data.frame(Demes=props$Samples2.Demes,Nm=props$Samples2.Nm,
+                        Samples2=props$Samples2.wcc.prop,Samples5=props$Samples5.wcc.prop,
+                        Samples10=props$Samples10.wcc.prop,Samples20=props$Samples20.wcc.prop)
+
+props.out<-props.out[order(props.out$Demes,props.out$Nm),]
+
+write.table(props.out,"ProportionOutliers_WCC.23.02.2017.txt",sep="\t",quote=F,row.names=T,
 	col.names=T)
 
 
