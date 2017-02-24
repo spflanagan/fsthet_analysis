@@ -3,8 +3,10 @@ setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
 
 rm(list=ls())
 sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop$")
+ds0.files<-sel.all.files[grep("ds0.genepop",sel.all.files)]
 
 sel.proportions<-data.frame(wcc.prop.out=numeric(),wcc.prop.sig=numeric())
+
 #do.call(rbind,lapply(sel.all.files, function(x) {
 for(i in 1:length(sel.all.files)){
 	gpop<-my.read.genepop(sel.all.files[i])
@@ -19,12 +21,13 @@ for(i in 1:length(sel.all.files)){
 		file.name=sel.all.files[i])
 	wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
 	wcc.prop.out<-nrow(wcc.outliers)/(ncol(gpop)-2)
-	wcc.sig<-p.adjust(p.boot(fsts.wcc,wcc.boot.out),"BH")
-	wcc.prop.sig<-length(wcc.sig[wcc.sig<=0.05])/(ncol(gpop)-2)
-	#sel<-read.table(gsub("genepop","sigloci.txt",x))
-	#wcc.prop.sel.out<-nrow(wcc.outliers[wcc.outliers$Locus %in% sel$V1,])/(ncol(gpop)-2)
-#	prop<-nrow(outliers)/(ncol(gpop)-2)
-	sel.proportions[i,]<-cbind(wcc.prop.out,wcc.prop.sig)
+	if(sel.all.files[i] %in% ds0.files){
+	  wcc.prop.Sig<-0
+	} else {
+  	sig<-read.table(gsub("genepop","sigloci.txt",sel.all.files[i]))
+  	wcc.prop.Sig<-length(sig$V1[sig$V1 %in% wcc.outliers$Locus])/nrow(sig)
+	}
+	sel.proportions[i,]<-cbind(wcc.prop.out,wcc.prop.Sig)
 	#return(cbind(wcc.prop.out,wcc.prop.sig))
 }
 rownames(sel.proportions)<-sel.all.files
@@ -41,7 +44,7 @@ props.out<-data.frame(Demes=props$Selection0.01.Demes,Nm=props$Selection0.01.Nm,
 
 props.out<-props.out[order(props.out$Demes,props.out$Nm),]
 
-write.table(sel.proportions,"SelectedProportionOutliers.23.02.2017.txt",sep="\t",quote=F,row.names=T,
+write.table(props.out,"SelectedProportionOutliers.24.02.2017.txt",sep="\t",quote=F,row.names=F,
 	col.names=T)
 
 ####If you already made the files:

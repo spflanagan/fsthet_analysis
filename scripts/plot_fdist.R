@@ -708,23 +708,23 @@ sel.ci<-as.list(rep("",length(sel.gpop)))
 for(i in 1:length(sel.gpop)){
 	gpop<-sel.gpop[[i]]
 	fsts<-calc.actual.fst(gpop)
-	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
+	boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
 	avg.ci<-ci.means(boot.out[[3]])
 	outdat<-data.frame(Het=rownames(avg.ci),
 		Low=avg.ci$low,High=avg.ci$upp)
-	write.csv(outdat,paste(sel.gpop.names[i],"fhetboot.ci.csv",sep="."))
+	write.csv(outdat,paste(sel.gpop.names[i],"fsthet.ci.csv",sep="."))
 	sel.ci[[i]]<-avg.ci[,1:2]
 }
 names(sel.ci)<-sel.gpop.names
 
 
-ci.list<-c("Nm1.d2.s20.ds0.genepop.fhetboot.ci.csv",
-	"Nm1.d2.s20.ds0.01.genepop.fhetboot.ci.csv",
-	"Nm1.d2.s20.ds0.1.genepop.fhetboot.ci.csv",
-	"Nm1.d2.s20.ds0.5.genepop.fhetboot.ci.csv",
-	"Nm1.d5.s20.ds0.genepop.fhetboot.ci.csv",
-	"Nm1.d5.s20.ds0.01.genepop.fhetboot.ci.csv",
-	"Nm1.d5.s20.ds0.1.genepop.fhetboot.ci.csv",
+ci.list<-c("Nm1.d2.s20.ds0.genepop.fsthet.ci.csv",
+	"Nm1.d2.s20.ds0.01.genepop.fsthet.ci.csv",
+	"Nm1.d2.s20.ds0.1.genepop.fsthet.ci.csv",
+	"Nm1.d2.s20.ds0.5.genepop.fsthet.ci.csv",
+	"Nm1.d5.s20.ds0.genepop.fsthet.ci.csv",
+	"Nm1.d5.s20.ds0.01.genepop.fsthet.ci.csv",
+	"Nm1.d5.s20.ds0.1.genepop.fsthet.ci.csv",
 	"Nm1.d5.s20.ds0.5.genepop.fhetboot.ci.csv")
 
 png("../Fig6_fhetboot_revised.png",height=169,width=225,units="mm",res=300)
