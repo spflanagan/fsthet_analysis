@@ -725,13 +725,13 @@ ci.list<-c("Nm1.d2.s20.ds0.genepop.fsthet.ci.csv",
 	"Nm1.d5.s20.ds0.genepop.fsthet.ci.csv",
 	"Nm1.d5.s20.ds0.01.genepop.fsthet.ci.csv",
 	"Nm1.d5.s20.ds0.1.genepop.fsthet.ci.csv",
-	"Nm1.d5.s20.ds0.5.genepop.fhetboot.ci.csv")
+	"Nm1.d5.s20.ds0.5.genepop.fsthet.ci.csv")
 
-png("../Fig6_fhetboot_revised.png",height=169,width=225,units="mm",res=300)
-pdf("../Fig6_fhetboot_revised.pdf")
+png("../Fig6_fsthet.png",height=7,width=10.5,units="in",res=300)
+pdf("../Fig6_fsthet.pdf", height=7,width=10.5)
 par(mfrow=c(2,4), oma=c(2,3,3,1),mar=c(1,1.5,1,1),mgp=c(3,0.65,0),cex=1)
 for(i in 1:length(ds)){
-	for(j in 1:length(sels)){
+	for(j in 1:length(selsg)){
 		ci.dat<-read.csv(ci.list[grep(ds[i], ci.list,fixed=T)[
 			grep(ds[i], ci.list,fixed=T) %in% 
 			grep(selsg[j],ci.list,fixed=T)]])
@@ -791,7 +791,7 @@ par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top",col=c("dodgerblue","red","red"),pch=c("","","*"),lty=c(1,2,0),
-	c("fhetboot","LOSITAN","Selected Loci"),cex=1,
+	c("fsthet","LOSITAN","Selected Loci"),cex=1,
 	bg="white",ncol=3,box.lty=0)
 
 dev.off()
@@ -854,27 +854,27 @@ sel.ci<-as.list(rep("",length(sel.gpop)))
 for(i in 1:length(sel.gpop)){
 	gpop<-sel.gpop[[i]]
 	#fsts<-fsts[[i]]
-	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
+	boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"wcc",bootstrap = FALSE))))
 	avg.ci<-ci.means(boot.out[[3]])
 	outdat<-data.frame(Het=rownames(avg.ci),
 		Low=avg.ci$low,High=avg.ci$upp)
-	write.csv(outdat,paste(names[i],"fhetboot.ci.csv",sep="."))
+	write.csv(outdat,paste(names[i],"fsthet.ci.csv",sep="."))
 	sel.ci[[i]]<-avg.ci
 }
 names(sel.ci)<-names
 
 
-ci.list<-c("Nm10.d2.s20.ds0.genepop.fhetboot.ci.csv",
-	"Nm10.d2.s20.ds0.01.genepop.fhetboot.ci.csv",
-	"Nm10.d2.s20.ds0.1.genepop.fhetboot.ci.csv",
-	"Nm10.d2.s20.ds0.5.genepop.fhetboot.ci.csv",
-	"Nm10.d5.s20.ds0.genepop.fhetboot.ci.csv",
-	"Nm10.d5.s20.ds0.01.genepop.fhetboot.ci.csv",
-	"Nm10.d5.s20.ds0.1.genepop.fhetboot.ci.csv",
-	"Nm10.d5.s20.ds0.5.genepop.fhetboot.ci.csv")
+ci.list<-c("Nm10.d2.s20.ds0.genepop.fsthet.ci.csv",
+	"Nm10.d2.s20.ds0.01.genepop.fsthet.ci.csv",
+	"Nm10.d2.s20.ds0.1.genepop.fsthet.ci.csv",
+	"Nm10.d2.s20.ds0.5.genepop.fsthet.ci.csv",
+	"Nm10.d5.s20.ds0.genepop.fsthet.ci.csv",
+	"Nm10.d5.s20.ds0.01.genepop.fsthet.ci.csv",
+	"Nm10.d5.s20.ds0.1.genepop.fsthet.ci.csv",
+	"Nm10.d5.s20.ds0.5.genepop.fsthet.ci.csv")
 
-png("../Fig7_fhetboot_Nm10_revised.png",height=169,width=225,units="mm",res=300)
-pdf("../Fig7_fhetboot_Nm10_revised.pdf")
+png("../Fig7_fsthet_Nm10_revised.png",height=7,width=10.5,units="in",res=300)
+pdf("../Fig7_fsthet_Nm10_revised.pdf",height=7,width=10.5)
 par(mfrow=c(2,4), oma=c(2,3,3,1),mar=c(1,1.5,1,1),mgp=c(3,0.65,0),cex=1)
 for(i in 1:length(ds)){
 	for(j in 1:length(sels)){
@@ -937,7 +937,7 @@ par(fig = c(0, 1, 0, 1), oma=c(2,1,0,1), mar = c(0, 0, 0, 0), new = TRUE,
 	cex=1)
 plot(0, 0, type = "n", bty = "n", xaxt = "n", yaxt = "n")
 legend("top",col=c("dodgerblue","red","red"),pch=c("","","*"),lty=c(1,2,0),
-	c("fhetboot","LOSITAN","Selected Loci"),cex=1,
+	c("fsthet","LOSITAN","Selected Loci"),cex=1,
 	bg="white",ncol=3,box.lty=0)
 
 dev.off()
