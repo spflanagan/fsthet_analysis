@@ -155,7 +155,7 @@ s.ci<-read.csv("StepwiseLositanOutliers.csv")
 s.ci$filename<-gsub("(Nm\\d+.*.genepop).step.loci","\\1",s.ci$filename)
 i.ci<-read.csv("InfiniteAllelesModel.csv")
 i.ci$filename<-gsub("(Nm\\d+.*.genepop).loci","\\1",i.ci$filename)
-proportions<-read.table("ProportionOutliers_WCC.txt")
+proportions<-read.table("SelectedProportionOutliers.24.02.2017.txt",header=T)
 proportions$filename<-rownames(proportions)
 
 #step
