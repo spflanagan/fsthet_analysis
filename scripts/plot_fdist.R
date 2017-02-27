@@ -707,8 +707,8 @@ ds<-c(".d2.",".d5.")
 sel.ci<-as.list(rep("",length(sel.gpop)))
 for(i in 1:length(sel.gpop)){
 	gpop<-sel.gpop[[i]]
-	fsts<-calc.actual.fst(gpop)
-	boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
+	fsts<-calc.actual.fst(gpop,"wcc")
+	boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"wcc", bootstrap = FALSE))))
 	avg.ci<-ci.means(boot.out[[3]])
 	outdat<-data.frame(Het=rownames(avg.ci),
 		Low=avg.ci$low,High=avg.ci$upp)
