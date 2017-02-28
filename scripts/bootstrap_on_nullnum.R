@@ -155,11 +155,15 @@ s.ci<-read.csv("StepwiseLositanOutliers.csv")
 s.ci$filename<-gsub("(Nm\\d+.*.genepop).step.loci","\\1",s.ci$filename)
 i.ci<-read.csv("InfiniteAllelesModel.csv")
 i.ci$filename<-gsub("(Nm\\d+.*.genepop).loci","\\1",i.ci$filename)
-proportions<-read.table("SelectedProportionOutliers.24.02.2017.txt",header=T)
-proportions$filename<-rownames(proportions)
+proportions<-read.table("ProportionOutliers_WCC.23.02.2017.txt",header=T)
+props<-data.frame(Demes=rep(proportions$Demes,4),Nm=rep(proportions$Nm,4),
+                  Samples=c(rep(2,nrow(proportions)),rep(5,nrow(proportions)),
+                            rep(10,nrow(proportions)),rep(20,nrow(proportions))),
+                  wcc.prop=c(proportions$Samples2,proportions$Samples5,proportions$Samples10,proportions$Samples20))
+props$filename<-paste("Nm",props$Nm,".d",props$Demes,".s",props$Samples,".genepop",sep="")
 
 #step
-step.prop<-merge(s.ci,proportions,by="filename")
+step.prop<-merge(s.ci,props,by="filename")
 t.test(x=step.prop$PropOutliers,y=step.prop$wcc.prop,paired=T,alternative="less")
 
 #        Paired t-test
@@ -183,12 +187,12 @@ f.plots<-list()
           #          stringsAsFactors = FALSE)
 nm1.files<-all.files[grep("Nm1\\..*",all.files)]
 png("Nm1_correlations_fst.png",height=10,width=7.5,units="in",res=300)
-par(mfrow=c(7,4),oma=c(1.5,1.5,1,1),mar=c(1,1,1,1))
+par(mfrow=c(7,4),oma=c(1.5,2,1,1),mar=c(1,1,1,1))
 for(i in 1:length(nm1.files))
 {
   gpop<-my.read.genepop(nm1.files[i])
   fsts.wcc<-calc.actual.fst(gpop,"WCC")
-  fsts<-calc.actual.fst(gpop)
+  fsts<-calc.actual.fst(gpop,"nei")
   #hp<-plot(fsts$Ht,fsts.wcc$Ht,plot=FALSE)
   plot(fsts$Fst,fsts.wcc$Fst,pch=19,axes=F,xlab="",ylab="")
   axis(1)
@@ -204,25 +208,27 @@ mtext(expression(italic(F)[HT]),1,outer=T,line=0.5)
 mtext(expression(italic(F)[HB]),2,outer=T,line=0.5)
 
 png("Nm1_correlations_ht.png",height=10,width=7.5,units="in",res=300)
-par(mfrow=c(7,4),oma=c(1.5,1.5,1,1),mar=c(1,1,1,1))
+par(mfrow=c(7,4),oma=c(1.5,2,1,1),mar=c(1,1,1,1))
 for(i in 1:length(nm1.files))
 {
   gpop<-my.read.genepop(nm1.files[i])
   fsts.wcc<-calc.actual.fst(gpop,"WCC")
-  fsts<-calc.actual.fst(gpop)
+  fsts<-calc.actual.fst(gpop,"nei")
   #hp<-plot(fsts$Ht,fsts.wcc$Ht,plot=FALSE)
-  plot(fsts$Ht,fsts.wcc$Ht,pch=19,axes=F,xlab="",ylab="")
+  ht.cor[[i]]<- rcorr(fsts$Ht,fsts.wcc$Ht)
+  plot(fsts$Ht,fsts.wcc$Ht,pch=19,axes=F,xlab="",ylab="",ylim=c(0,1))
   axis(1)
   axis(2)
-  text(0.35,0.8,nm1.files[i],col="red")
-  text(0.35,0.7,paste("r=",round(ht.cor[[i]][[1]][2],3),", p=",ht.cor[[i]][[3]][2]),col="red")
+  text(0.35,0.8,nm1.files[i],col="cornflowerblue")
+  text(0.35,0.7,paste("r=",round(ht.cor[[i]][[1]][2],3),", p=",ht.cor[[i]][[3]][2]),col="cornflowerblue")
   #h.plots[[i]]<-hp
   #  f.plots[[i]]<-fp
-  #  ht.cor[[i]]<- rcorr(fsts$Ht,fsts.wcc$Ht)
+  #  
   # fst.cor[[i]]<-rcorr(as.numeric(fsts$Fst[fsts$Fst != NaN]),fsts.wcc$Fst[fsts.wcc$Fst != NaN])
 }
 mtext(expression(italic(H)[T]),1,outer=T,line=0.5)
 mtext(expression(italic(H)[B]),2,outer=T,line=0.5)
+dev.off()
 #rcorr(fst.cor$Ht,fst.cor$Hb)
 #los.sig<-read.table("B:/ubuntushare/fst_outliers/results/numerical_analysis_genepop/sig.loci.sim.LOSITAN.txt",skip=1)
 #colnames(los.sig)<-c("file","bal","pos","total","balp","posp","totalp")

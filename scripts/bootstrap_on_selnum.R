@@ -242,10 +242,18 @@ ss.ci<-read.csv("StepwiseLositanOutliers_Selection.csv")
 ss.ci$filename<-gsub("(Nm\\d+.*.genepop).step.loci","\\1",ss.ci$filename)
 si.ci<-read.csv("InfiniteAllelesModel_Selection.csv")
 si.ci$filename<-gsub("(Nm\\d+.*.genepop).loci","\\1",si.ci$filename)
-sel.proportions<-read.table("SelectedProportionOutliers.txt")
-sel.proportions$filename<-rownames(sel.proportions)
+sel.proportions<-read.table("SelectedProportionOutliers.24.02.2017.txt",header=T)
+
+
+props<-data.frame(Demes=rep(sel.proportions$Demes,4),Nm=rep(sel.proportions$Nm,4),
+                  Selection=c(rep(0.01,nrow(sel.proportions)),rep(0.1,nrow(sel.proportions)),
+                            rep(0.5,nrow(sel.proportions)),rep(1,nrow(sel.proportions))),
+                  wcc.out=c(sel.proportions$Selection0.01.wcc.prop.out,sel.proportions$Selection0.1.wcc.prop.out,
+                            sel.proportions$Selection0.5.wcc.prop.out,sel.proportions$Selection1.wcc.prop.out))
+props$filename<-paste("Nm",props$Nm,".d",props$Demes,".s20.ds",props$Selection,".genepop",sep="")
+
 
 #step
-step.prop<-merge(si.ci,sel.proportions,by="filename")
-t.test(step.prop$PropOutliers,step.prop$wcc.prop.out)
+step.prop<-merge(ss.ci,props,by="filename")
+t.test(step.prop$PropOutliers,step.prop$wcc.out,"greater")
 #t = 76.727, df = 18, p-value < 2.2e-16
