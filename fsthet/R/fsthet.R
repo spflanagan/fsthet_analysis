@@ -544,19 +544,3 @@ fsthet<-function(gpop, fst.choice="WCC",alpha=0.05){
   return(fsts)
 }
 
-find.los.sig<-function(ci.dat,loci.dat){
-  bal<-NULL
-  pos<-NULL
-  loci.dat<-loci.dat[loci.dat$Het>0,]
-  for(ii in 1:(nrow(ci.dat)-1)){
-    fst.het<-loci.dat[loci.dat$Het >= ci.dat[ii,"Het"] & 
-                        loci.dat$Het <= ci.dat[(ii+1),"Het"],]
-    max.bound<-min(ci.dat[ii:(ii+1),4])
-    min.bound<-max(ci.dat[ii:(ii+1),2])
-    bal<-rbind(bal, fst.het[fst.het$Fst <= min.bound,]) 
-    pos<-rbind(pos, fst.het[fst.het$Fst >= max.bound,])
-  }
-  props<-c((nrow(bal)/nrow(loci.dat)), (nrow(pos)/nrow(loci.dat)),
-           ((nrow(bal)+nrow(pos))/nrow(loci.dat)))	
-  return(props)
-}

@@ -1,0 +1,150 @@
+---
+title: "Using fsthet"
+author: "Sarah P. Flanagan"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using fsthet}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** bootstraps across the existing dataset to generate confidence intervals that approximate the actual Fst-Ht distribution.  
+
+This package performs several tasks.  
+    - Parses genepop files into R.  
+    - Calculates allele frequencies, Ht, and Fst (three commonly-used Fst calculations).  
+    - Generates smoothed quantiles from the empirical distribution.  
+    - Generates customizable Fst-Ht plots with the quantiles.  
+    - Identifies loci lying outside of the quantiles.  
+	
+## Getting Started
+
+### Read in your data
+The first step is to organize your data in the genepop format. If you've been using LOSITAN, the format is identical. For details on the genepop format, refer to [this website](http://genepop.curtin.edu.au/help_input.html). **fsthet** accepts both haploid and diploid genepop files with alleles coded using either the 2- or 3-digit format.
+
+```{r}
+library(fsthet)
+gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+gpop<-my.read.genepop(gfile)
+```
+This function outputs any descriptors you've included in the header of your genepop file. This function was adapted from [adegenet]( http://adegenet.r-forge.r-project.org/).    
+
+### Calculate actual values
+Before getting into any bootstrapping analyses, you must calculate the actual Fst and Ht values.
+
+```{r}
+fsts<-calc.actual.fst(gpop)
+head(fsts)
+
+#Plot the actual values to see what your distribution looks like
+par(mar=c(4,4,1,1))
+plot(fsts$Ht, fsts$Fst,xlab="Ht",ylab="Fst",pch=19)
+```
+
+
+Since this distribution is not highly skewed, it should be fine for using the Fst-heterozygosity distribution to identify outliers. If you only have two demes (and/or your distribution is skewed highly to the right), you might consider using alternative approaches to identifying outliers (e.g. Arleqeuin, BayeScan, BayEnv, PCAdapt).
+
+## Understanding each step of the analysis
+
+The `fst.boot` function generates smoothed quantiles when you specify `bootstrap=FALSE`.       
+
+### Generating quantiles
+```{r}
+quant.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
+str(quant.out)
+head(quant.out[[3]][[1]])
+```
+From the results of `str(quant.out)`, you can see that `fst.boot()` returns a list data.frame with three elements: the bootstrapped values (Fsts), the bins used in the bootstrapping (Bins), and a list of the upper and lower smoothed quantiles (V3). 
+
+### Plotting the results
+If you want to visualize these results, you can use `plotting.cis`. Plotting.cis requires the raw datapoints (`fsts`) and a list with the smoothed quantiles.      
+```{r}
+#plot the results
+quant.list<-ci.means(quant.out[[3]])
+head(quant.list)
+par(mar=c(4,4,1,1))
+plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
+
+```
+
+
+### Identifying outliers
+We can also use the `find.outliers` function to pull out a data.frame containing the loci that lie outside of the quantiles.
+```{r}
+outliers<-find.outliers(fsts,boot.out=quant.out)
+head(outliers)
+
+```
+
+
+#### Using the empirical data without bootstrapping
+The above functions are all contained within the wrapper function `fsthet`, so you don't have to go through each step on its own. `fsthet` returns a data.frame with four columns: Locus ID, heterozygosity, Fst, and a True/False of whether it's an outlier
+```{r}
+out.dat<-fsthet(gpop)
+head(out.dat)
+```
+
+## Customizing the Figures
+The default `plotting.cis()` output may not be ideal for publication. Luckily, the function `plotting.cis()` has several built-in options for customizing the plot.   
+
+### The data you use
+As demonstrated in the two cases above, `plotting.cis()` requires the original data and a `ci.list`, which is actually a data.frame with Ht values as row names and two columns: low, and upp. These header names are requried for it to work, and the data in the columns are the lower and upper Fst values for each Ht value.     
+
+If your actual data (`df=<name>`, or `fsts` in the above examples) have different column names, you can specify those using `plotting.cis(Ht.name=<name>)` and `plotting.cis(Fst.name=<name>)`. Otherwise, the defaults are `plotting.cis(Ht.name="Ht",Fst.name="Fst")`.  
+
+### The look of the graph
+Several aspects of the graph can be controlled through `plotting.cis()`: the color of the quantile lines and the shape of the points. These are controlled by `ci.col` and `pt.pch`.     
+The default quantile color is red (`ci.col="red"`) and the defualt point shape is open circles (`pt.pch=1`). 
+You can also color-code some loci (for instance ones that are near genes of interest) using `sig.col`. The default setting for `sig.col` is to be identical to `ci.col`. 
+
+### Saving the graph to a file
+In the above examples, you may have noticed that `plotting.cis()` always contained the command `make.file=F`. This command allows you to automatically save the graph to a file or to print it to the default device in R. If `make.file=TRUE`, then the function generates a *.png file. The default file name is "OutlierLoci.png", but this can be changed using `file.name`. If you choose to designate a file.name, it must contain the ".png" extension. For example:
+```{r,eval=F}
+plotting.cis(df=fsts,boot.out=boot.out,make.file=T,file.name="ExampleOutliers.png")
+```
+
+
+## Other Functions
+
+I just want to take a moment to discuss what the other functions in **fsthet** do and some other ways to use the proram.
+
+### Saving the data and plotting it yourself.
+Although `plotting.cis` can be a useful tool, it is possible to save your quantiles and generate your own plots. First, you use the function `ci.means()` to calculate the mean confidence intervals across all of the bootstrap replicates, and then you can generate a plot and add the confidence intervals using `points()`.    
+
+```{r}
+#get the quantiles
+quant.list<-ci.means(quant.out[[3]])
+
+#create a data.frame of confidence intervals
+qs<-as.data.frame(do.call(cbind,quant.list))
+colnames(qs)<-c("low","upp")
+qs$Ht<-as.numeric(rownames(qs))
+
+#plot
+par(mar=c(4,4,1,1))
+plot(fsts$Ht, fsts$Fst,pch=19,xlab="Ht",ylab="Fst")
+points(qs$Ht,qs$low,type="l",col="red")
+points(qs$Ht,qs$upp,type="l",col="red")
+
+```
+
+### Look at the distribution of allele frequencies
+The analyses in **fsthet** use the function `calc.allele.freq` to calculate allele frequencies. If you're interested in examining the allele frequency distribution in your dataset, you can use this function on your actual data.    
+```{r}
+af.actual<-apply(gpop[,3:ncol(gpop)],2,calc.allele.freq)
+
+#extract the minimum allele frequency for each locus
+min.af<-unlist(lapply(af.actual,min))
+par(mar=c(2,2,2,2))
+hist(min.af)
+```
+
+## Conclusion
+Hopefully this package will be a useful tool for population geneticists and molecular ecologists. It's important to consider the assumptions of the tests you use as well as remembering that statistics should be used to describe your dataset. Use your common sense about when to use different methods and how to implement them. Good luck!
+
+***
+*If you run into any problems, find any bugs, or have other comments on fsthet please contact me: spflanagan.phd@gmail.com.*  
+
+***
+
