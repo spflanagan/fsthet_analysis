@@ -648,7 +648,7 @@ dev.off()
 #PLOT FIG 6-REVISIONS
 ############################################################################
 setwd("B://ubuntushare//fst_outliers//results//numerical_analysis_selection")
-source("../../fhetboot/R/fhetboot.R")
+library(fsthet)
 sel.list<-c("Nm1.d2.s20.ds0.genepop.step.loci",
             "Nm1.d2.s20.ds0.01.genepop.step.loci",
             "Nm1.d2.s20.ds0.1.genepop.step.loci",
@@ -684,7 +684,7 @@ sel.gpop.names<-list(
 	"Nm1.d5.s20.ds0.01.genepop",
 	"Nm1.d5.s20.ds0.1.genepop",
 	"Nm1.d5.s20.ds0.5.genepop")
-fsts<-lapply(sel.gpop,calc.actual.fst)
+fsts<-lapply(sel.gpop,calc.actual.fst, fst.choice="nei")
 names(fsts)<-sel.gpop.names
 names(fsts)<-c("Nm1.d2.s20.ds0.genepop","Nm1.d2.s20.ds0.01.genepop",
 	"Nm1.d2.s20.ds0.1.genepop","Nm1.d2.s20.ds0.5.genepop" ,
@@ -707,25 +707,24 @@ ds<-c(".d2.",".d5.")
 sel.ci<-as.list(rep("",length(sel.gpop)))
 for(i in 1:length(sel.gpop)){
 	gpop<-sel.gpop[[i]]
-	fsts<-calc.actual.fst(gpop,"wcc")
-	boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"wcc", bootstrap = FALSE))))
+	boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"nei", bootstrap = FALSE))))
 	avg.ci<-ci.means(boot.out[[3]])
 	outdat<-data.frame(Het=rownames(avg.ci),
 		Low=avg.ci$low,High=avg.ci$upp)
-	write.csv(outdat,paste(sel.gpop.names[i],"fsthet.ci.csv",sep="."))
+	write.csv(outdat,paste(sel.gpop.names[i],"fsthet.wright.ci.csv",sep="."))
 	sel.ci[[i]]<-avg.ci[,1:2]
 }
 names(sel.ci)<-sel.gpop.names
 
 
-ci.list<-c("Nm1.d2.s20.ds0.genepop.fsthet.ci.csv",
-	"Nm1.d2.s20.ds0.01.genepop.fsthet.ci.csv",
-	"Nm1.d2.s20.ds0.1.genepop.fsthet.ci.csv",
-	"Nm1.d2.s20.ds0.5.genepop.fsthet.ci.csv",
-	"Nm1.d5.s20.ds0.genepop.fsthet.ci.csv",
-	"Nm1.d5.s20.ds0.01.genepop.fsthet.ci.csv",
-	"Nm1.d5.s20.ds0.1.genepop.fsthet.ci.csv",
-	"Nm1.d5.s20.ds0.5.genepop.fsthet.ci.csv")
+ci.list<-c("Nm1.d2.s20.ds0.genepop.fsthet.wright.ci.csv",
+	"Nm1.d2.s20.ds0.01.genepop.fsthet.wright.ci.csv",
+	"Nm1.d2.s20.ds0.1.genepop.fsthet.wright.ci.csv",
+	"Nm1.d2.s20.ds0.5.genepop.fsthet.wright.ci.csv",
+	"Nm1.d5.s20.ds0.genepop.fsthet.wright.ci.csv",
+	"Nm1.d5.s20.ds0.01.genepop.fsthet.wright.ci.csv",
+	"Nm1.d5.s20.ds0.1.genepop.fsthet.wright.ci.csv",
+	"Nm1.d5.s20.ds0.5.genepop.fsthet.wright.ci.csv")
 
 png("../Fig6_fsthet.png",height=7,width=10.5,units="in",res=300)
 pdf("../Fig6_fsthet.pdf", height=7,width=10.5)
