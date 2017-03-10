@@ -14,7 +14,7 @@ fst.boot.onecol(df, fst.choice)
   \item{fst.choice}{
 	A character defining which fst calculation is to be used. 
 	The three options are:
-		Nei's Fst (nei,Nei,NEI,N)
+		Wright's Fst (Wright, wright, WRIGHT, W, w)
 		Weir and Cockerham 1993's beta (WeirCockerham,weircockerham,wc,WC)
 		Corrected Weir and Cockerham 1993's beta from Beaumont and Nichols 1996 (WeirCockerhamCorrected, weircockerhamcorrected,corrected,wcc,WCC)}
 }

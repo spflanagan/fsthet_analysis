@@ -2,34 +2,88 @@ source("B:/ubuntushare/fst_outliers/fhetboot/R/fhetboot.R")
 setwd("B:/ubuntushare/fst_outliers/results/numerical_analysis_selection")
 
 rm(list=ls())
-sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop$")
-ds0.files<-sel.all.files[grep("ds0.genepop",sel.all.files)]
 
-sel.proportions<-data.frame(wcc.prop.out=numeric(),wcc.prop.sig=numeric())
+#ANALYZE LOSITAN
+stp.ci<-list.files(pattern="step.ci")
+stp.loci<-list.files(pattern="step.loci")
+ss.ci<-data.frame(filename=character(),ParamSet=character(),
+                  Nm=numeric(),demes=numeric(),sampled=numeric(), 
+                  PropBal=numeric(),PropPos=numeric(),PropOutliers=numeric(),
+                  stringsAsFactors=F)
 
-#do.call(rbind,lapply(sel.all.files, function(x) {
-for(i in 1:length(sel.all.files)){
-	gpop<-my.read.genepop(sel.all.files[i])
-	fsts.wcc<-calc.actual.fst(gpop,"WCC")
-#	fsts<-calc.actual.fst(gpop)
-#	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
-	wcc.boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
-	plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(sel.all.files[i],"wcc.noboot.png",sep=""))
-#	outliers<-find.outliers(fsts,boot.out=boot.out, 
-#		file.name=sel.all.files[i])
-	wcc.outliers<-find.outliers(fsts.wcc,boot.out=wcc.boot.out, 
-		file.name=sel.all.files[i])
-	wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
-	wcc.prop.out<-nrow(wcc.outliers)/(ncol(gpop)-2)
-	if(sel.all.files[i] %in% ds0.files){
-	  wcc.prop.Sig<-0
-	} else {
-  	sig<-read.table(gsub("genepop","sigloci.txt",sel.all.files[i]))
-  	wcc.prop.Sig<-length(sig$V1[sig$V1 %in% wcc.outliers$Locus])/nrow(sig)
-	}
-	sel.proportions[i,]<-cbind(wcc.prop.out,wcc.prop.Sig)
-	#return(cbind(wcc.prop.out,wcc.prop.sig))
+for(i in 1:length(stp.ci)){
+  nm<-gsub("Nm(\\d.*).d.*","\\1",stp.ci[i])
+  d<-gsub("Nm\\d.*.d(\\d+).*","\\1",stp.ci[i])
+  s<-gsub("Nm\\d.*.d\\d+.*.s(\\d+).*","\\1",stp.ci[i])
+  params<-gsub("(.*).genepop.*","\\1",stp.ci[i])
+  dat<-read.delim(stp.ci[i])
+  low.ci<-dat[,c(1,2)]
+  upp.ci<-dat[,c(1,4)]
+  locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[i]),"loci",sep=".")
+  loc.name<-stp.loci[stp.loci %in% locus.name]
+  loc.dat<-read.delim(loc.name)
+  loc.dat<-loc.dat[loc.dat$Fst>0,]
+  out<-data.frame(t(apply(loc.dat,1,function(x){
+    pos<-0
+    bal<-0
+    #get the two confidence interval values closest to x
+    low.fst<-low.ci[which.min(abs(as.numeric(low.ci$Het)-as.numeric(x["Het"]))),]
+    upp.fst<-upp.ci[which.min(abs(as.numeric(upp.ci$Het)-as.numeric(x["Het"]))),]
+    if(as.numeric(x["Fst"]) > as.numeric(upp.fst[2])){
+      pos<-1
+    }
+    if(as.numeric(x["Fst"]) < as.numeric(low.fst[2])){
+      bal<-1
+    }
+    return(cbind(bal,pos))
+  })))
+  prop.bal<-sum(out$X1)/nrow(loc.dat)
+  prop.pos<-sum(out$X2)/nrow(loc.dat)
+  prop.out<-sum(out$X1,out$X2)/nrow(loc.dat)
+  ss.ci[i,]<-cbind(locus.name,params,nm,d,s,prop.bal,prop.pos,prop.out)
 }
+
+write.csv(ss.ci,"StepwiseLositanOutliersSelection.csv")
+
+##QUANTILES FROM FSTHET
+
+sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop.step.loci")
+ds0.files<-sel.all.files[grep("ds0.genepop",sel.all.files)]
+ss.ci<-read.csv("StepwiseLositanOutliersSelection.csv")
+
+sel.proportions<-data.frame(prop.out=numeric(),prop.sig=numeric(), prop.los=numeric())
+for(i in 1:length(sel.all.files)){
+  #get the lositan output
+  los<-read.delim(sel.all.files[i])
+  los<-los[los$Het >0,]
+  #find the bins and quantiles
+  bins<-make.bins(los,Ht.name = "Het")
+  cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
+  #plot
+  plotting.cis(los,ci.df = cis$CI0.95,make.file=T,file.name=paste(sel.all.files[i],"los.quant.png",sep=""),Ht.name = "Het")
+  #find outliers
+  outliers<-find.outliers(df=data.frame(Locus=as.numeric(los$Locus),Ht=as.numeric(los$Het),Fst=as.numeric(los$Fst)),
+                          boot.out=list(data.frame(Ht=as.numeric(los$Het),Fst=as.numeric(los$Fst)),
+                                        bins$bins,cis),
+                          file.name = sel.all.files[i])
+  if(nrow(outliers)>0){
+    outliers<-outliers[outliers$Ht != 0,]
+    prop<-nrow(outliers)/nrow(los)
+  } else {
+    prop<-0
+  }
+  if(sel.all.files[i] %in% ds0.files){
+    prop.sig<-0
+  } else {
+    sig<-read.table(gsub("genepop.step.loci","sigloci.txt",sel.all.files[i]))
+    prop.sig<-length(sig$V1[sig$V1 %in% outliers$Locus])/nrow(sig)
+  }
+  #find the lositan outliers
+  los.prop<-ss.ci[ss.ci$filename == sel.all.files[i],"PropOutliers"]
+  sel.proportions[i,]<-c(prop,prop.sig,los.prop)
+}
+t.test(as.numeric(sel.proportions$prop.out),as.numeric(proportions$prop.los),paired=T,alternative = "less")
+
 rownames(sel.proportions)<-sel.all.files
 sel.proportions$Demes<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\2",rownames(sel.proportions)))
 sel.proportions$Nm<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\1",rownames(sel.proportions)))
@@ -44,7 +98,7 @@ props.out<-data.frame(Demes=props$Selection0.01.Demes,Nm=props$Selection0.01.Nm,
 
 props.out<-props.out[order(props.out$Demes,props.out$Nm),]
 
-write.table(props.out,"SelectedProportionOutliers.24.02.2017.txt",sep="\t",quote=F,row.names=F,
+write.table(props.out,"SelectedProportionOutliers._LosQuant.10.03.2017.txt",sep="\t",quote=F,row.names=F,
 	col.names=T)
 
 ####If you already made the files:
@@ -140,50 +194,10 @@ mtext("Generation",1,outer=T)
 mtext("q",2,outer=T)
 dev.off()
 
-#LOSITAN FILES
+#DON'T USE- INFINITE ALLELES MODEL LOSITAN FILES
 
 iam.ci<-list.files(pattern="genepop.ci")
 iam.loci<-list.files(pattern="genepop.loci")
-stp.ci<-list.files(pattern="step.ci")
-stp.loci<-list.files(pattern="step.loci")
-ss.ci<-data.frame(filename=character(),ParamSet=character(),
-       Nm=numeric(),demes=numeric(),sampled=numeric(), 
-	PropBal=numeric(),PropPos=numeric(),PropOutliers=numeric(),
-	stringsAsFactors=F)
-
-for(i in 1:length(stp.ci)){
-  nm<-gsub("Nm(\\d.*).d.*","\\1",stp.ci[i])
-  d<-gsub("Nm\\d.*.d(\\d+).*","\\1",stp.ci[i])
-  s<-gsub("Nm\\d.*.d\\d+.*.s(\\d+).*","\\1",stp.ci[i])
-  params<-gsub("(.*).genepop.*","\\1",stp.ci[i])
-  dat<-read.delim(stp.ci[i])
-  low.ci<-dat[,c(1,2)]
-  upp.ci<-dat[,c(1,4)]
-  locus.name<-paste(gsub("(Nm\\d.*.genepop.step).ci","\\1",stp.ci[i]),"loci",sep=".")
-  loc.name<-stp.loci[stp.loci %in% locus.name]
-  loc.dat<-read.delim(loc.name)
-  loc.dat<-loc.dat[loc.dat$Fst>0,]
-  out<-data.frame(t(apply(loc.dat,1,function(x){
-	pos<-0
-	bal<-0
-    #get the two confidence interval values closest to x
-	low.fst<-low.ci[which.min(abs(as.numeric(low.ci$Het)-as.numeric(x["Het"]))),]
-	upp.fst<-upp.ci[which.min(abs(as.numeric(upp.ci$Het)-as.numeric(x["Het"]))),]
-   if(as.numeric(x["Fst"]) > as.numeric(upp.fst[2])){
-	pos<-1
-	}
-	if(as.numeric(x["Fst"]) < as.numeric(low.fst[2])){
-      	bal<-1
-    }
-    return(cbind(bal,pos))
-  })))
-  prop.bal<-sum(out$X1)/nrow(loc.dat)
-  prop.pos<-sum(out$X2)/nrow(loc.dat)
-	prop.out<-sum(out$X1,out$X2)/nrow(loc.dat)
-  ss.ci[i,]<-cbind(locus.name,params,nm,d,s,prop.bal,prop.pos,prop.out)
-}
-
-write.csv(ss.ci,"StepwiseLositanOutliersSelection.csv")
 
 si.ci<-data.frame(filename=character(),ParamSet=character(),
                  Nm=numeric(),demes=numeric(),s=numeric(), PropOutliers=numeric(),stringsAsFactors=F)
@@ -237,7 +251,55 @@ t.test(as.numeric(sis.ci$PropOutliers.x),as.numeric(sis.ci$PropOutliers.y),paire
 
 write.csv(si.ci,"InfiniteAllelesModel_Selection.csv")
 
-#compare to lositan analysis
+
+##OLD- QUANTILES FROM FSTHET
+
+sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop$")
+ds0.files<-sel.all.files[grep("ds0.genepop",sel.all.files)]
+
+sel.proportions<-data.frame(wcc.prop.out=numeric(),wcc.prop.sig=numeric())
+
+#do.call(rbind,lapply(sel.all.files, function(x) {
+for(i in 1:length(sel.all.files)){
+  gpop<-my.read.genepop(sel.all.files[i])
+  fsts.wcc<-calc.actual.fst(gpop,"WCC")
+  #	fsts<-calc.actual.fst(gpop)
+  #	boot.out<-as.data.frame(t(replicate(10,fst.boot(gpop))))
+  wcc.boot.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
+  plotting.cis(fsts.wcc,wcc.boot.out,make.file=T,file.name=paste(sel.all.files[i],"wcc.noboot.png",sep=""))
+  #	outliers<-find.outliers(fsts,boot.out=boot.out, 
+  #		file.name=sel.all.files[i])
+  wcc.outliers<-find.outliers(fsts.wcc,boot.out=wcc.boot.out, 
+                              file.name=sel.all.files[i])
+  wcc.outliers<-wcc.outliers[wcc.outliers$Ht != 0,]
+  wcc.prop.out<-nrow(wcc.outliers)/(ncol(gpop)-2)
+  if(sel.all.files[i] %in% ds0.files){
+    wcc.prop.Sig<-0
+  } else {
+    sig<-read.table(gsub("genepop","sigloci.txt",sel.all.files[i]))
+    wcc.prop.Sig<-length(sig$V1[sig$V1 %in% wcc.outliers$Locus])/nrow(sig)
+  }
+  sel.proportions[i,]<-cbind(wcc.prop.out,wcc.prop.Sig)
+  #return(cbind(wcc.prop.out,wcc.prop.sig))
+}
+rownames(sel.proportions)<-sel.all.files
+sel.proportions$Demes<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\2",rownames(sel.proportions)))
+sel.proportions$Nm<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\1",rownames(sel.proportions)))
+sel.proportions$Selection<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d+.*).genepop","\\4",rownames(sel.proportions)))
+props<-data.frame(#Selection0=sel.proportions[sel.proportions$Selection == 0,],
+  Selection0.01=sel.proportions[sel.proportions$Selection == 0.01,],
+  Selection0.1=sel.proportions[sel.proportions$Selection == 0.1,],
+  Selection0.5=sel.proportions[sel.proportions$Selection == 0.5,],
+  Selection1=sel.proportions[sel.proportions$Selection == 1,])
+props.out<-data.frame(Demes=props$Selection0.01.Demes,Nm=props$Selection0.01.Nm,
+                      props[,grep("wcc.prop",colnames(props))])
+
+props.out<-props.out[order(props.out$Demes,props.out$Nm),]
+
+write.table(props.out,"SelectedProportionOutliers.24.02.2017.txt",sep="\t",quote=F,row.names=F,
+            col.names=T)
+
+#OLD DO NOT USE- compare to lositan analysis
 ss.ci<-read.csv("StepwiseLositanOutliers_Selection.csv")
 ss.ci$filename<-gsub("(Nm\\d+.*.genepop).step.loci","\\1",ss.ci$filename)
 si.ci<-read.csv("InfiniteAllelesModel_Selection.csv")

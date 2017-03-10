@@ -200,11 +200,11 @@ wc.corr.fst<-function(df,i){
 }
 
 fst.boot.onecol<-function(df,fst.choice){
-  fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
+  fst.options<-c("Wright","WRIGHT","wright","W","w","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
   col<-sample(3:ncol(df),1)
-  if(fst.choice == "nei" | fst.choice == "Nei" | fst.choice == "NEI" | fst.choice == "N"){
+  if(fst.choice == "Wright" | fst.choice == "WRIGHT" | fst.choice == "wright" | fst.choice == "W" | fst.choice == "w"){
     ht.fst<-calc.fst(df,col) }
   if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
     ht.fst<-wc.fst(df,col) }
@@ -215,16 +215,86 @@ fst.boot.onecol<-function(df,fst.choice){
 }
 
 fst.options.print<-function(){
-  print("For Nei's Fst formulation: nei, Nei, NEI, N",quote=F)
+  print("For Wright's Fst formulation: Wright, wright, WRIGHT, w, W",quote=F)
   print("For Weir and Cockerham (1993)'s Fst formulation: WeirCockerham, WC, weircockerham, wc",quote=F)
   print("For Beaumont's sample-size-corrected version of Weir and Cockerhams (1993)'s Fst formulation:
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
-fst.boot<-function(df, fst.choice="WCC", ci=0.05,num.breaks=25,bootstrap=TRUE){	
+make.bins<-function(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
+{
+  breaks<-hist(fsts[,Ht.name],breaks=(num.breaks/2),plot=F)$breaks
+  low.breaks<-breaks[1:(length(breaks)-1)]
+  upp.breaks<-breaks[2:length(breaks)]
+  br.rate<-breaks[2]-breaks[1]
+  newbreaks<-breaks-(br.rate/2)
+  low.breaks<-c(low.breaks,newbreaks[1:(length(breaks)-1)])
+  upp.breaks<-c(upp.breaks,newbreaks[2:length(breaks)])
+  bins<-data.frame(low.breaks=sort(low.breaks),upp.breaks=sort(upp.breaks))
+  bins<-bins[bins[,1]>=0 & bins[,2]>=0,]
+  mids<-apply(bins,1,mean)
+  #bin fsts
+  bin.fst<-apply(bins, 1, function(x){ #this returns a list of Fst vectors
+    out<-fsts[fsts[,Ht.name] > x[1] &	fsts[,Ht.name] < x[2],Fst.name] })
+  names(bin.fst)<-bins$upp.breaks
+  #merge those with too few with the next bin up
+  rmvec<-NULL
+  for(i in 1:(length(bin.fst)-1)){
+    if(length(bin.fst[[i]]) < 20){	
+      bin.fst[[(i+1)]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
+      rmvec<-c(rmvec,i)
+    }
+    if((i+1)==length(bin.fst)){
+      if(length(bin.fst[[i+1]]) < 20){	
+        bin.fst[[i]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
+        rmvec<-c(rmvec,(i+1))
+      }
+    }
+  }
+  #remove bins with too few
+  if(!is.null(rmvec)){	bin.fst<-bin.fst[-rmvec] }
+  bin.fst<-lapply(bin.fst,sort)
+  for(i in 1:length(rmvec)){
+    bins[(rmvec[i]+1),1]<-bins[rmvec[i],1]
+  }
+  if(!is.null(rmvec)){ bins<-bins[-rmvec,] }
+  #final.bins<-bins[bins$breaks %in% as.numeric(names(bin.fst)),]#no good
+  return(list(bins=bins,bin.fst=bin.fst))
+}
+
+find.quantiles<-function(bins, bin.fst, ci=0.05)
+{
+  fst.CI<-list()
+  for(j in 1:length(ci)){
+    ci.min<-(ci[j]/2)
+    ci.max<-1-(ci[j]/2)
+    fstCI<-lapply(bin.fst, function(x){
+      keep.fst<-x[round(length(x)*ci.min):round(length(x)*ci.max)]
+      if(length(keep.fst)>0){
+        fst.thresh<-c(min(keep.fst),max(keep.fst))
+        names(fst.thresh)<-c("Low","Upp")
+      } else{
+        fst.thresh<-c("","")
+        names(fst.thresh)<-c("Low","Upp")
+      }
+      return(fst.thresh)
+    })		
+    ci.name<-paste("CI",(1-ci[j]),sep="")
+    cis<-data.frame(do.call(rbind,fstCI))
+    cis$UppHet<-as.numeric(rownames(cis))
+    cis<-apply(cis,c(1,2),round,3)
+    bins<-apply(bins,c(1,2),round,3)
+    cis<-merge(cis,bins,by.x="UppHet",by.y="upp.breaks",keep=T)
+    fst.CI[[j]]<-data.frame(Low=cis$Low,Upp=cis$Upp,LowHet=cis$low.breaks,UppHet=cis$UppHet)
+    names(fst.CI)[j]<-ci.name
+  }
+  return(fst.CI)
+}
+
+fst.boot<-function(df, fst.choice="wright", ci=0.05,num.breaks=25,bootstrap=TRUE){	
 		#updated 2 Dec 2016
-  #Fst options are Nei, WeirCockerham, or WeirCockerhamCorrected
-  fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
+  #Fst options are Wright, WeirCockerham, or WeirCockerhamCorrected
+  fst.options<-c("Wright", "wright","WRIGHT","W","w","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	nloci<-(ncol(df)-2)
@@ -245,71 +315,11 @@ fst.boot<-function(df, fst.choice="WCC", ci=0.05,num.breaks=25,bootstrap=TRUE){
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
-	breaks<-hist(boot.out$Ht,breaks=(num.breaks/2),plot=F)$breaks
-	low.breaks<-breaks[1:(length(breaks)-1)]
-	upp.breaks<-breaks[2:length(breaks)]
-	br.rate<-breaks[2]-breaks[1]
-	newbreaks<-breaks-(br.rate/2)
-	low.breaks<-c(low.breaks,newbreaks[1:(length(breaks)-1)])
-	upp.breaks<-c(upp.breaks,newbreaks[2:length(breaks)])
-	bins<-data.frame(low.breaks=sort(low.breaks),upp.breaks=sort(upp.breaks))
-	bins<-bins[bins[,1]>=0 & bins[,2]>=0,]
-	mids<-apply(bins,1,mean)
-	#bin fsts
-	bin.fst<-apply(bins, 1, function(x){ #this returns a list of Fst vectors
-		out<-boot.out[boot.out$Ht > x[1] &	boot.out$Ht < x[2],"Fst"] })
-	names(bin.fst)<-bins$upp.breaks
-	#merge those with too few with the next bin up
-	rmvec<-NULL
-	for(i in 1:(length(bin.fst)-1)){
-		if(length(bin.fst[[i]]) < 20){	
-			bin.fst[[(i+1)]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
-			rmvec<-c(rmvec,i)
-		}
-		if((i+1)==length(bin.fst)){
-			if(length(bin.fst[[i+1]]) < 20){	
-				bin.fst[[i]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
-				rmvec<-c(rmvec,(i+1))
-			}
-		}
-	}
-	#remove bins with too few
-	if(!is.null(rmvec)){	bin.fst<-bin.fst[-rmvec] }
-	bin.fst<-lapply(bin.fst,sort)
-	for(i in 1:length(rmvec)){
-		bins[(rmvec[i]+1),1]<-bins[rmvec[i],1]
-	}
-	if(!is.null(rmvec)){ bins<-bins[-rmvec,] }
-	#final.bins<-bins[bins$breaks %in% as.numeric(names(bin.fst)),]#no good
-
+  bins<-make.bins(boot.out,num.breaks)
 	#find quantile
-	fst.CI<-list()
-		for(j in 1:length(ci)){
-		ci.min<-(ci[j]/2)
-		ci.max<-1-(ci[j]/2)
-		fstCI<-lapply(bin.fst, function(x){
-			keep.fst<-x[round(length(x)*ci.min):round(length(x)*ci.max)]
-			if(length(keep.fst)>0){
-				fst.thresh<-c(min(keep.fst),max(keep.fst))
-				names(fst.thresh)<-c("Low","Upp")
-			} else{
-				fst.thresh<-c("","")
-				names(fst.thresh)<-c("Low","Upp")
-			}
-			return(fst.thresh)
-		})		
-		ci.name<-paste("CI",(1-ci[j]),sep="")
-		cis<-data.frame(do.call(rbind,fstCI))
-		cis$UppHet<-as.numeric(rownames(cis))
-		cis<-apply(cis,c(1,2),round,3)
-		bins<-apply(bins,c(1,2),round,3)
-		cis<-merge(cis,bins,by.x="UppHet",by.y="upp.breaks",keep=T)
-		fst.CI[[j]]<-data.frame(Low=cis$Low,Upp=cis$Upp,LowHet=cis$low.breaks,UppHet=cis$UppHet)
-		names(fst.CI)[j]<-ci.name
-		}
-	
+  fst.CI<-find.quantiles(bins$bins,bins$bin.fst,ci)
 
-	return(list(Fsts=boot.out,Bins=bins,fst.CI))
+	return(list(Fsts=boot.out,Bins=bins$bins,fst.CI))
 }
 
 fst.boot.means<-function(boot.out){ #boot.out[[1]]
@@ -492,14 +502,14 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	return(out)
 }
 
-calc.actual.fst<-function(df, fst.choice="WCC"){
-	fst.options<-c("nei", "Nei","NEI","N","WeirCockerham","WC", "weircockerham","wc",
+calc.actual.fst<-function(df, fst.choice="Wright"){
+	fst.options<-c("Wright", "wright","WRIGHT","W","w","WeirCockerham","WC", "weircockerham","wc",
 	               "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
 	if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),
 	                 stringsAsFactors=F)
 	
-	if(fst.choice == "nei" | fst.choice == "Nei" | fst.choice == "NEI" | fst.choice == "N"){
+	if(fst.choice == "Wright" | fst.choice == "WRIGHT" | fst.choice == "wright" | fst.choice == "W" | fst.choice == "w"){
 	  for(i in 3:ncol(df)){
 	    fsts[i-2,]<-c(colnames(df)[i],calc.fst(df,i))
 	  }
@@ -515,11 +525,12 @@ calc.actual.fst<-function(df, fst.choice="WCC"){
 	    fsts[i-2,]<-c(colnames(df)[i],wc.corr.fst(df,i))
 	  }
 	}
-	
+	fsts<-data.frame(Locus=as.character(fsts$Locus),Ht=as.numeric(fsts$Ht),Fst=as.numeric(fsts$Fst),
+	                 stringsAsFactors=F)
 	return(fsts)
 }
 
-fhetboot<-function(gpop, fst.choice,alpha=0.05,nreps=10){
+fhetboot<-function(gpop, fst.choice="wright",alpha=0.05,nreps=10){
   fsts<-calc.actual.fst(gpop,fst.choice)
   boot.out<-as.data.frame(t(replicate(nreps, fst.boot(gpop,fst.choice))))
   boot.pvals<-p.boot(fsts,boot.out=boot.out)
@@ -534,7 +545,7 @@ fhetboot<-function(gpop, fst.choice,alpha=0.05,nreps=10){
   return(fsts)
 }
 
-fsthet<-function(gpop, fst.choice="WCC",alpha=0.05){
+fsthet<-function(gpop, fst.choice="wright",alpha=0.05){
   fsts<-calc.actual.fst(gpop,fst.choice)
   quant.out<-as.data.frame(t(replicate(1, fst.boot(gpop,fst.choice=fst.choice,ci=alpha,bootstrap=FALSE))))
   plotting.cis(fsts,quant.out,make.file=F,pt.pch = 19)

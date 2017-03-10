@@ -9,7 +9,7 @@
 	Returns a data frame containing Locus ID, Ht, Fst, and a true/false value of whether it's an outlier.
 }
 \usage{
-	fsthet(gpop, fst.choice, alpha)
+	fsthet(gpop, fst.choice="wright", alpha)
 }
 \arguments{
   \item{gpop}{Provide the genepop dataframe (from my.read.genepop).}

@@ -2,7 +2,7 @@
 title: "Using fsthet"
 author: "Sarah P. Flanagan"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: rmarkdown::pdf_document
 vignette: >
   %\VignetteIndexEntry{Using fsthet}
   %\VignetteEngine{knitr::rmarkdown}
@@ -47,22 +47,49 @@ Since this distribution is not highly skewed, it should be fine for using the Fs
 
 ## Understanding each step of the analysis
 
-The `fst.boot` function generates smoothed quantiles when you specify `bootstrap=FALSE`.       
-
 ### Generating quantiles
+
+#### Using boot.out
+
+The `fst.boot` function generates smoothed quantiles when you specify `bootstrap=FALSE`.    
+
 ```{r}
-quant.out<-as.data.frame(t(replicate(1,fst.boot(gpop,"WCC", bootstrap = FALSE))))
+quant.out<-fst.boot(gpop,"wright", bootstrap = FALSE)
 str(quant.out)
 head(quant.out[[3]][[1]])
+
 ```
 From the results of `str(quant.out)`, you can see that `fst.boot()` returns a list data.frame with three elements: the bootstrapped values (Fsts), the bins used in the bootstrapping (Bins), and a list of the upper and lower smoothed quantiles (V3). 
+
+#### Directly binning and finding quantiles
+
+Alternatively, the functions wrapped into fst.boot can be used on their own. This is advantageous if you'd like to use Fst and heterozygosity values calculated by another program or in another analysis (e.g. output from LOSITAN)
+
+```{r}
+head(fsts)
+bins<-make.bins(fsts)
+cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
+str(cis)
+
+```
+
+You can also designate more than one confidence level
+```{r}
+cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst,ci=c(0.01,0.05))
+str(cis)
+
+```
 
 ### Plotting the results
 If you want to visualize these results, you can use `plotting.cis`. Plotting.cis requires the raw datapoints (`fsts`) and a list with the smoothed quantiles.      
 ```{r}
-#plot the results
+#extract the confidence interavls
 quant.list<-ci.means(quant.out[[3]])
 head(quant.list)
+#Alternatively
+quant.list<-cis$CI0.95
+head(quant.list)
+#plot the results
 par(mar=c(4,4,1,1))
 plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
 
