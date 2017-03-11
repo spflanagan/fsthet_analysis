@@ -705,7 +705,7 @@ for(i in 1:length(ds)){
 			sig<-read.delim(sig.loci[grep(ds[i],sig.loci,fixed=T)[
 				grep(ds[i], sig.loci,fixed=T) %in% 
 				grep(sels[j],sig.loci,fixed=T)]],header=F)
-			points(sig.dat[sig.dat$Locus %in% sig$V1,c("Ht","Fst")],
+			points(los[los$Locus %in% sig$V1,c("Het","Fst")],
 				col="red",pch=8)
 		}
 		axis(1)
@@ -762,7 +762,12 @@ sel.gpop.cis<-c("Nm10.d2.s20.ds0.genepop.ci",
 	"Nm10.d5.s20.ds0.1.genepop.ci",
 	"Nm10.d5.s20.ds0.5.genepop.ci")
 
-
+sig.loci<-c("","Nm10.d2.s20.ds0.01.sigloci.txt",
+            "Nm10.d2.s20.ds0.1.sigloci.txt",
+            "Nm10.d2.s20.ds0.5.sigloci.txt","",
+            "Nm10.d5.s20.ds0.01.sigloci.txt",
+            "Nm10.d5.s20.ds0.1.sigloci.txt",
+            "Nm10.d5.s20.ds0.5.sigloci.txt")
 
 sels<-c(".ds0.o",".ds0.01.",".ds0.1.",".ds0.5")
 selsg<-c(".ds0.g",".ds0.01.",".ds0.1.",".ds0.5")
@@ -798,7 +803,7 @@ for(i in 1:length(ds)){
 			sig<-read.delim(sig.loci[grep(ds[i],sig.loci,fixed=T)[
 				grep(ds[i], sig.loci,fixed=T) %in% 
 				grep(sels[j],sig.loci,fixed=T)]],header=F)
-			points(sig.dat[sig.dat$Locus %in% sig$V1,c("Ht","Fst")],
+			points(los[los$Locus %in% sig$V1,c("Het","Fst")],
 				col="red",pch=8)
 		}
 		axis(1)
@@ -1511,12 +1516,7 @@ names(fsts)<-c("Nm10.d2.s20.ds0.genepop","Nm10.d2.s20.ds0.01.genepop",
                "Nm10.d2.s20.ds0.1.genepop","Nm10.d2.s20.ds0.5.genepop" ,
                "Nm10.d5.s20.ds0.genepop","Nm10.d5.s20.ds0.01.genepop",
                "Nm10.d5.s20.ds0.1.genepop","Nm10.d5.s20.ds0.5.genepop")
-sig.loci<-c("","Nm10.d2.s20.ds0.01.sigloci.txt",
-            "Nm10.d2.s20.ds0.1.sigloci.txt",
-            "Nm10.d2.s20.ds0.5.sigloci.txt","",
-            "Nm10.d5.s20.ds0.01.sigloci.txt",
-            "Nm10.d5.s20.ds0.1.sigloci.txt",
-            "Nm10.d5.s20.ds0.5.sigloci.txt")
+
 
 
 

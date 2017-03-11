@@ -47,7 +47,7 @@ write.csv(ss.ci,"StepwiseLositanOutliersSelection.csv")
 
 ##QUANTILES FROM FSTHET
 
-sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop.step.loci")
+sel.all.files<-list.files(pattern="d*.s20.ds.*.genepop.step.loci$")
 ds0.files<-sel.all.files[grep("ds0.genepop",sel.all.files)]
 ss.ci<-read.csv("StepwiseLositanOutliersSelection.csv")
 
@@ -62,7 +62,7 @@ for(i in 1:length(sel.all.files)){
   #plot
   plotting.cis(los,ci.df = cis$CI0.95,make.file=T,file.name=paste(sel.all.files[i],"los.quant.png",sep=""),Ht.name = "Het")
   #find outliers
-  outliers<-find.outliers(df=data.frame(Locus=as.numeric(los$Locus),Ht=as.numeric(los$Het),Fst=as.numeric(los$Fst)),
+  outliers<-find.outliers(df=data.frame(Locus=as.character(los$Locus),Ht=as.numeric(los$Het),Fst=as.numeric(los$Fst)),
                           boot.out=list(data.frame(Ht=as.numeric(los$Het),Fst=as.numeric(los$Fst)),
                                         bins$bins,cis),
                           file.name = sel.all.files[i])
@@ -82,12 +82,12 @@ for(i in 1:length(sel.all.files)){
   los.prop<-ss.ci[ss.ci$filename == sel.all.files[i],"PropOutliers"]
   sel.proportions[i,]<-c(prop,prop.sig,los.prop)
 }
-t.test(as.numeric(sel.proportions$prop.out),as.numeric(proportions$prop.los),paired=T,alternative = "less")
+t.test(as.numeric(sel.proportions$prop.out),as.numeric(sel.proportions$prop.los),paired=T,alternative = "less")
 
 rownames(sel.proportions)<-sel.all.files
-sel.proportions$Demes<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\2",rownames(sel.proportions)))
-sel.proportions$Nm<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop","\\1",rownames(sel.proportions)))
-sel.proportions$Selection<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d+.*).genepop","\\4",rownames(sel.proportions)))
+sel.proportions$Demes<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop.step.loci","\\2",rownames(sel.proportions)))
+sel.proportions$Nm<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d.*).genepop.step.loci","\\1",rownames(sel.proportions)))
+sel.proportions$Selection<-as.numeric(gsub("Nm(\\d+.*).d(\\d+).s(\\d+).ds(\\d+.*).genepop.step.loci","\\4",rownames(sel.proportions)))
 props<-data.frame(#Selection0=sel.proportions[sel.proportions$Selection == 0,],
                   Selection0.01=sel.proportions[sel.proportions$Selection == 0.01,],
                   Selection0.1=sel.proportions[sel.proportions$Selection == 0.1,],
