@@ -180,7 +180,7 @@ jaggedci.ci<-read.delim("hebert.genepop.ci")
 skewed<-read.delim("dann.2012.traced.txt")
 
 pdf("../Fig1_literature.pdf",height=7,width=10)
-png("../Fig1_literature.png",height=10,width=7,units="in",res=300)
+png("../Fig1_literature_larger.png",height=10,width=7,units="in",res=300)
 par(mfrow=c(3,2),oma=c(2,2.75,2,2),mar=c(2,2.75,2,2),xpd=T)
 plot(normal.loci$Het, normal.loci$Fst,xlab="",ylab="",pch=19,las=1)
 clip(0,0.5,0,1)

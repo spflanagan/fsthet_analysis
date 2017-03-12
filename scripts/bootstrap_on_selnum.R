@@ -94,7 +94,7 @@ props<-data.frame(#Selection0=sel.proportions[sel.proportions$Selection == 0,],
                   Selection0.5=sel.proportions[sel.proportions$Selection == 0.5,],
                   Selection1=sel.proportions[sel.proportions$Selection == 1,])
 props.out<-data.frame(Demes=props$Selection0.01.Demes,Nm=props$Selection0.01.Nm,
-                      props[,grep("wcc.prop",colnames(props))])
+                      props[,grep("prop.[os]",colnames(props))])
 
 props.out<-props.out[order(props.out$Demes,props.out$Nm),]
 
