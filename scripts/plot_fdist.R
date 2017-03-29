@@ -592,9 +592,9 @@ ss<-c(".s2.",".s5.",".s10.",".s20")
 ds<-c(".d2.",".d5.",".d10.",".d50.")
 
 
-png("../Fig5_jaggedPattern_14Dec2016.png",height=225,width=225,units="mm",res=300)
-pdf("../Fig5_jaggedPattern_14Dec2016.pdf")
-par(mfrow=c(4,4), oma=c(2,3,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
+png("../Fig5_jaggedPattern_29Mar2017.png",height=225,width=225,units="mm",res=300)
+pdf("../Fig5_jaggedPattern_29Mar2017.pdf")
+par(mfrow=c(4,4), oma=c(2,3.5,1,1),mar=c(1,1,1,0),mgp=c(3,0.65,0),cex=0.5)
 for(i in 1:length(ds)){
 	for(j in 1:length(ss)){
 		ci.dat<-read.delim(ci.list[grep(ds[i], ci.list,fixed=T)[
@@ -602,48 +602,48 @@ for(i in 1:length(ds)){
 			grep(ss[j],ci.list,fixed=T)]])
 		sig.dat<-read.delim(loci.list[grep(ds[i],loci.list,fixed=T)[
 			grep(ds[i], loci.list,fixed=T) %in% 
-			grep(ss[j],loci.list,fixed=T)]])
+			grep(ss[j],loci.list,fixed=T)]][1])
 		plot(sig.dat$Het, sig.dat$Fst,las=1,ylim=c(0,1),
-			xlab="",ylab="",pch=19, xaxt="n",yaxt="n")
-		points(ci.dat$Het,ci.dat[,2],col="red",type="l")
-		points(ci.dat$Het, ci.dat[,4],col="red",type="l")
+			xlab="",ylab="",pch=19, xaxt="n",yaxt="n",cex.axis=1.25)
+		points(ci.dat$Het,ci.dat[,2],col="red",type="l",lwd=2)
+		points(ci.dat$Het, ci.dat[,4],col="red",type="l",lwd=2)
 
-		axis(1)
+		axis(1,cex.axis=1.25)
 		props<-find.los.sig(ci.dat,sig.dat)
-		legend("topleft",bty="n",
+		legend("topleft",bty="n",cex=1.25,
 			c(paste(round(props[1],3)," balancing"),
 			paste(round(props[2],3)," positive"),
 			paste(round(props[3],3)," total")))
 		if(i == 1 & j == 1){
-			mtext("2 Demes",2,cex=0.5,line=2)
-			mtext("2 Samples",3,cex=0.5)
+			mtext("2 Demes",2,cex=0.7,line=2)
+			mtext("2 Samples",3,cex=0.7)
 		}
 		if(i == 1 & j == 2){
-			mtext("5 Samples",3,cex=0.5)
+			mtext("5 Samples",3,cex=0.7)
 		}
 		if(i == 1 & j == 3){
-			mtext("10 Samples",3,cex=0.5)
+			mtext("10 Samples",3,cex=0.7)
 		}
 		if(i == 1 & j == 4){
-			mtext("20 Samples",3,cex=0.5)
+			mtext("20 Samples",3,cex=0.7)
 		}
 		if(i == 2 & j == 1){
-			mtext("5 Demes",2,cex=0.5,line=2)
+			mtext("5 Demes",2,cex=0.7,line=2)
 		}
 		if(i == 3 & j == 1){
-			mtext("10 Demes",2,cex=0.5,line=2)
+			mtext("10 Demes",2,cex=0.7,line=2)
 		}
 		if(i == 4 & j == 1){
-			mtext ("50 Demes",2,cex=0.5,line=2)
+			mtext ("50 Demes",2,cex=0.7,line=2)
 		}
 		#if(i == 4){
 		#	axis(1)}
 		if(j == 1)
-			axis(2,las=1)
+			axis(2,las=1,cex.axis=1.25)
 	}
 }
-mtext(expression(italic(H)[italic(B)]),1,line=0.5,outer=T,cex=0.5)
-mtext(expression(italic(hat(beta))),2,outer=T,line=1.5,cex=0.5)
+mtext(expression(italic(H)[italic(B)]),1,line=1,outer=T,cex=0.7)
+mtext(expression(italic(hat(beta))),2,outer=T,line=1.5,cex=0.7)
 dev.off()
 
 ############################################################################
