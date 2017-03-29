@@ -179,48 +179,50 @@ jaggedci.ci<-read.delim("hebert.genepop.ci")
 #skewed.ci <-read.delim("smith.genepop.ci")
 skewed<-read.delim("dann.2012.traced.txt")
 
-pdf("../Fig1_literature.pdf",height=7,width=10)
-png("../Fig1_literature_larger.png",height=10,width=7,units="in",res=300)
+pdf("../Fig1_literature.pdf",height=7,width=5)
+png("../Fig1_literature_larger.png",height=7,width=5,units="in",res=300)
 par(mfrow=c(3,2),oma=c(2,2.75,2,2),mar=c(2,2.75,2,2),xpd=T)
-plot(normal.loci$Het, normal.loci$Fst,xlab="",ylab="",pch=19,las=1)
+plot(normal.loci$Het, normal.loci$Fst,xlab="",ylab="",pch=19,las=1,bty="L")
 clip(0,0.5,0,1)
 points(normal.ci$Het,normal.ci[,2],col="red",type="l",lwd=2)
 points(normal.ci$Het, normal.ci[,4],col="red",type="l",lwd=2)
 #mtext(x=0.115,y=0.55,"A. Well-behaved")
 mtext("Well-behaved",2,outer=F,cex=0.8,line=2.25)
 
-bp<-barplot(t(count.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,
+bp<-barplot(t(count.normal[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,yaxs="i",xaxs="i",
 	border=NA,las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
-legend("topleft",legend=deme.order,col=color.scheme,bty='n',ncol=5,pch=15,title="Number of Demes")
+axis(1,at=seq(0,98.44,10.94),labels=rep("",9),pos=0)
+legend("topleft",legend=deme.order,col=color.scheme,bty='n',ncol=4,pch=15,title="Number of Demes")
 
 #plot(incline.loci$Het, incline.loci$Fst,xlab="",ylab="",pch=19,las=1)
 #points(incline.ci$Het,incline.ci[,2],col="red",type="l",lwd=2)
 #points(incline.ci$Het, incline.ci[,4],col="red",type="l",lwd=2)
 #text(x=0.05,y=0.21,"B. Incline")
 
-plot(jaggedci.loci$Het, jaggedci.loci$Fst,xlab="",	ylab="",pch=19,las=1)
+plot(jaggedci.loci$Het, jaggedci.loci$Fst,xlab="",	ylab="",pch=19,las=1,bty="L")
 clip(0,0.9,0,1)
 points(jaggedci.ci$Het,jaggedci.ci[,2],col="red",type="l",lwd=2)
 points(jaggedci.ci$Het, jaggedci.ci[,4],col="red",type="l",lwd=2)
 #text(x=0.25,y=0.85,"B. Incline, Jagged CI")
 mtext("Incline",2,outer=F,cex=0.8,line=2.25)
 
-bp<-barplot(t(count.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,
+bp<-barplot(t(count.incline[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,yaxs="i",xaxs="i",
 	border=NA,las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
+axis(1,at=seq(0,98.44,10.94),labels=rep("",9),pos=0)
 mtext("Number of Studies",2,outer=F,line=2,cex=0.8)
 
 
-plot(skewed$points.x, skewed$points.y,xlab="",	ylab="",pch=19,las=1)
+plot(skewed$points.x, skewed$points.y,xlab="",	ylab="",pch=19,las=1,bty="L")
 clip(0,0.5,0,1)
 points(skewed$lower.x,skewed$lower.y,col="red",type="l",lwd=2)
 points(skewed$upper.x, skewed$upper.y,col="red",type="l",lwd=2)
 #text(x=0.095,y=0.27,"C. Skewed")
-mtext("Skewed",2,outer=F,cex=0.8,line=2.25)
+mtext("Skewed",2,outer=F,cex=0.8,line=2.4)
 mtext(expression(italic(H)[B]),1,outer=F,line=2,cex=0.85)
 
 bp<-barplot(t(count.skew[c(2,3,4,5,6,7,9,"10orMore"),]),col=color.scheme,border=NA,
-	las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)))
-
+	las=1,beside=T,names.arg=c(2,3,4,5,6,7,9,expression("">=10)),xaxs="i",yaxs="i")
+axis(1,at=seq(0,98.44,10.94),labels=rep("",9),pos=0)
 mtext("Number of Populations",1,outer=F,line=2,cex=0.8)
 mtext(expression(italic(hat(beta))),2,line=0.8,outer=T,cex=0.85)
 
