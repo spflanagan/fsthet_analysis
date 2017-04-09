@@ -123,11 +123,63 @@ calc.fst<-function(df,i){
 	df.split<-split(df[,i],df[,1])
 	af<-do.call("rbind",lapply(df.split,calc.allele.freq))
 	hexp<-apply(af,1,calc.exp.het)
-	ns<-unlist(lapply(df.split,length))
-	hs<-sum(hexp*ns)/sum(ns)
-	ht<-calc.exp.het(calc.allele.freq(df[,i]))
-	fst<-(ht-hs)/ht
+	hs<-mean(hexp)
+	pbar<-mean(af[,1])
+	ht<-2*pbar*(1-pbar)
+	fst<-1-(hs/ht)
 	return(c(ht,fst))
+}
+
+var.fst<-function(df,i){
+  df.split<-split(df[,i],df[,1])
+  N<-length(df.split)
+  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+  pbar<-mean(af[,1])
+  vp<-(af[,1]-pbar)^2
+  varp<-(1/N)*sum(vp)
+  fst<-(varp/(pbar*(1-pbar)))-(1/(2*N))
+  return(c(varp,fst))
+}
+
+calc.theta<-function(df,i){
+  df.split<-split(df[,i],df[,1])
+  N<-length(df.split)
+  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+  pbar<-mean(af[,1])
+  vp<-(af[,1]-pbar)^2
+  ns<-unlist(lapply(df.split,length))
+  nbar<-mean(unlist(lapply(df.split,length)))
+  s2a<-(1/((N-1)*nbar))*sum(vp)
+  nc<-(1/(N-1))*(sum(ns)-(sum(ns^2)*(1/sum(ns))))
+  T1<-s2a-((1/(nbar-1))*((pbar*(1-pbar))-((N-1)/N)*s2a))
+  T2<-((nc-1)/(nbar-1))*(pbar*(1-pbar))+(s2a/N)*(1+(((N-1)*(nbar-nc))/(nbar-1)))
+  theta<-T1/T2
+  return(T2,theta)
+}
+
+calc.betahat<-function(df,i){
+  df.split<-split(df[,i],df[,1])
+  r<-length(df.split)
+  M<-mean(unlist(lapply(df.split,length)))
+  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+  Y<-sum(af[,1])*sum(af[,1])+sum(1-af[,1])*sum(1-af[,1])
+  X<-sum(af[,1]^2)+sum((1-af[,1])^2)
+  F0<-((2*M*X)-r)/(((2*M)-1)*r)
+  F1<-((Y-X)/(r*(r-1)))
+  HB<-1-F1
+  betahat<-(F0-F1)/HB
+  return(HB,betahat)
+}
+
+calc.weighted.fst<-function(df,i){
+  df.split<-split(df[,i],df[,1])
+  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
+  hexp<-apply(af,1,calc.exp.het)
+  ns<-unlist(lapply(df.split,length))
+  hs<-sum(hexp*ns)/sum(ns)
+  ht<-calc.exp.het(calc.allele.freq(df[,i]))
+  fst<-(ht-hs)/ht
+  return(c(ht,fst))
 }
 
 wc.fst<-function(df,i){
@@ -200,12 +252,26 @@ wc.corr.fst<-function(df,i){
 }
 
 fst.boot.onecol<-function(df,fst.choice){
-  fst.options<-c("Wright","WRIGHT","wright","W","w","WeirCockerham","WC", "weircockerham","wc",
+  fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
+                 "Betahat","BETAHAT","betahat",
+                  "Wright","WRIGHT","wright","W","w","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
   col<-sample(3:ncol(df),1)
+  if(fst.choice %in% c("Fst","FST","fst")){
+    ht.fst<-calc.fst(df,col)
+  }
+  if(fst.choice %in% c("VAR","var","Var")){
+    ht.fst<-var.fst(df,col)
+  }
+  if(fst.choice %in% c("Theta","theta","THETA")){
+    ht.fst<-calc.theta(df,col)
+  }
+  if(fst.choice %in% c("betahat","BETAHAT","Betahat")){
+    ht.fst<-calc.betahat(df,col)
+  }
   if(fst.choice == "Wright" | fst.choice == "WRIGHT" | fst.choice == "wright" | fst.choice == "W" | fst.choice == "w"){
-    ht.fst<-calc.fst(df,col) }
+    ht.fst<-calc.weighted.fst(df,col) }
   if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
     ht.fst<-wc.fst(df,col) }
   if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
@@ -215,9 +281,13 @@ fst.boot.onecol<-function(df,fst.choice){
 }
 
 fst.options.print<-function(){
-  print("For Wright's Fst formulation: Wright, wright, WRIGHT, w, W",quote=F)
-  print("For Weir and Cockerham (1993)'s Fst formulation: WeirCockerham, WC, weircockerham, wc",quote=F)
-  print("For Beaumont's sample-size-corrected version of Weir and Cockerhams (1993)'s Fst formulation:
+  print("For Wright's Fst: fst, FST, Fst",quote=F)
+  print("For a variance-based Fst (Lositan?): var, VAR, Var",quote=F)
+  print("For Cockerham and Weir's Theta: theta, Theta, THETA", quote=F)
+  print("For Beta-hat: Betahat, betahat, BETAHAT",quote=F)
+  print("[DEPRECATED: DON'T USE] For Wright's Fst formulation: Wright, wright, WRIGHT, w, W",quote=F)
+  print("[DEPRECATED: DON'T USE] For Weir and Cockerham (1993)'s Fst formulation: WeirCockerham, WC, weircockerham, wc",quote=F)
+  print("[DEPRECATED: DON'T USE] For Beaumont's sample-size-corrected version of Weir and Cockerhams (1993)'s Fst formulation:
         WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
 }
 
@@ -291,10 +361,12 @@ find.quantiles<-function(bins, bin.fst, ci=0.05)
   return(fst.CI)
 }
 
-fst.boot<-function(df, fst.choice="wright", ci=0.05,num.breaks=25,bootstrap=TRUE){	
+fst.boot<-function(df, fst.choice="fst", ci=0.05,num.breaks=25,bootstrap=TRUE){	
 		#updated 2 Dec 2016
   #Fst options are Wright, WeirCockerham, or WeirCockerhamCorrected
-  fst.options<-c("Wright", "wright","WRIGHT","W","w","WeirCockerham","WC", "weircockerham","wc",
+  fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
+                 "Betahat","BETAHAT","betahat",
+                 "Wright", "wright","WRIGHT","W","w","WeirCockerham","WC", "weircockerham","wc",
                  "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	nloci<-(ncol(df)-2)
@@ -502,16 +574,38 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 	return(out)
 }
 
-calc.actual.fst<-function(df, fst.choice="Wright"){
-	fst.options<-c("Wright", "wright","WRIGHT","W","w","WeirCockerham","WC", "weircockerham","wc",
-	               "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
-	if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
-	fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),
-	                 stringsAsFactors=F)
+calc.actual.fst<-function(df, fst.choice="fst"){
+  fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
+                 "Betahat","BETAHAT","betahat",
+                 "Wright","WRIGHT","wright","W","w","WeirCockerham","WC", "weircockerham","wc",
+                 "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+  if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
+  fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),
+                   stringsAsFactors=F)
+  if(fst.choice %in% c("Fst","FST","fst")){
+    for(i in 3:ncol(df)){
+      fsts[i-2,]<-c(colnames(df)[i],calc.fst(df,i))
+    }
+  }
+  if(fst.choice %in% c("VAR","var","Var")){
+    for(i in 3:ncol(df)){
+      fsts[i-2,]<-c(colnames(df)[i],var.fst(df,i))
+    }
+  }
+  if(fst.choice %in% c("Theta","theta","THETA")){
+    for(i in 3:ncol(df)){
+      fsts[i-2,]<-c(colnames(df)[i],calc.theta(df,i))
+    }
+  }
+  if(fst.choice %in% c("betahat","BETAHAT","Betahat")){
+    for(i in 3:ncol(df)){
+      fsts[i-2,]<-c(colnames(df)[i],calc.betahat(df,i))
+    }
+  }	
 	
 	if(fst.choice == "Wright" | fst.choice == "WRIGHT" | fst.choice == "wright" | fst.choice == "W" | fst.choice == "w"){
 	  for(i in 3:ncol(df)){
-	    fsts[i-2,]<-c(colnames(df)[i],calc.fst(df,i))
+	    fsts[i-2,]<-c(colnames(df)[i],calc.weighted.fst(df,i))
 	  }
 	}
 	if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
@@ -530,7 +624,7 @@ calc.actual.fst<-function(df, fst.choice="Wright"){
 	return(fsts)
 }
 
-fhetboot<-function(gpop, fst.choice="wright",alpha=0.05,nreps=10){
+fhetboot<-function(gpop, fst.choice="fst",alpha=0.05,nreps=10){
   fsts<-calc.actual.fst(gpop,fst.choice)
   boot.out<-as.data.frame(t(replicate(nreps, fst.boot(gpop,fst.choice))))
   boot.pvals<-p.boot(fsts,boot.out=boot.out)
@@ -545,7 +639,7 @@ fhetboot<-function(gpop, fst.choice="wright",alpha=0.05,nreps=10){
   return(fsts)
 }
 
-fsthet<-function(gpop, fst.choice="wright",alpha=0.05){
+fsthet<-function(gpop, fst.choice="fst",alpha=0.05){
   fsts<-calc.actual.fst(gpop,fst.choice)
   quant.out<-as.data.frame(t(replicate(1, fst.boot(gpop,fst.choice=fst.choice,ci=alpha,bootstrap=FALSE))))
   plotting.cis(fsts,quant.out,make.file=F,pt.pch = 19)

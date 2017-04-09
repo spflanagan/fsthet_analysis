@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** bootstraps across the existing dataset to generate confidence intervals that approximate the actual Fst-Ht distribution.  
+A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** calculates smoothed quantiles from the existing dataset to identify loci with extreme Fst values relative to their heterozygosity.  
 
 This package performs several tasks.  
     - Parses genepop files into R.  
@@ -54,7 +54,7 @@ Since this distribution is not highly skewed, it should be fine for using the Fs
 The `fst.boot` function generates smoothed quantiles when you specify `bootstrap=FALSE`.    
 
 ```{r}
-quant.out<-fst.boot(gpop,"wright", bootstrap = FALSE)
+quant.out<-fst.boot(gpop, bootstrap = FALSE)
 str(quant.out)
 head(quant.out[[3]][[1]])
 
