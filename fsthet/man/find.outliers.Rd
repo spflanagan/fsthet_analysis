@@ -1,8 +1,8 @@
 \name{find.outliers}
 \alias{find.outliers}
-\title{This identifies all of the SNPs outside of the confidence intervals in the dataset.}
+\title{This identifies all of the SNPs outside of the smoothed quantiles in the dataset.}
 \description{
-	This identifies all of the SNPs outside of the confidence intervals in the dataset.
+	This identifies all of the SNPs outside of the smoothed quantiles in the dataset.
 }
 \usage{
 find.outliers(df, boot.out, ci.df = NULL, file.name = NULL)

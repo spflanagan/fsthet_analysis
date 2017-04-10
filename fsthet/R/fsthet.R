@@ -104,6 +104,7 @@ allele.counts<-function(genotypes){
   }else{
     AlleleCounts<-obs
   }
+  AlleleCounts<-AlleleCounts[order(names(AlleleCounts))]
   return(AlleleCounts)
 }
 
@@ -114,8 +115,9 @@ calc.allele.freq<-function(genotypes){
 }
 
 calc.exp.het<-function(af){ 
-	sqaf<-af*af
-	ht<-1-sum(sqaf)
+	#sqaf<-af*af
+	#ht<-1-sum(sqaf)
+  ht<-2*af[1]*(1-af[1])
 	return(ht)
 }
 
@@ -138,7 +140,8 @@ var.fst<-function(df,i){
   vp<-(af[,1]-pbar)^2
   varp<-(1/N)*sum(vp)
   fst<-(varp/(pbar*(1-pbar)))-(1/(2*N))
-  return(c(varp,fst))
+  ht<-2*pbar*(1-pbar)
+  return(c(ht,fst))
 }
 
 calc.theta<-function(df,i){
@@ -154,7 +157,7 @@ calc.theta<-function(df,i){
   T1<-s2a-((1/(nbar-1))*((pbar*(1-pbar))-((N-1)/N)*s2a))
   T2<-((nc-1)/(nbar-1))*(pbar*(1-pbar))+(s2a/N)*(1+(((N-1)*(nbar-nc))/(nbar-1)))
   theta<-T1/T2
-  return(T2,theta)
+  return(c(T2,theta))
 }
 
 calc.betahat<-function(df,i){
@@ -168,7 +171,7 @@ calc.betahat<-function(df,i){
   F1<-((Y-X)/(r*(r-1)))
   HB<-1-F1
   betahat<-(F0-F1)/HB
-  return(HB,betahat)
+  return(c(HB,betahat))
 }
 
 calc.weighted.fst<-function(df,i){
@@ -182,80 +185,11 @@ calc.weighted.fst<-function(df,i){
   return(c(ht,fst))
 }
 
-wc.fst<-function(df,i){
-  ###ADAPTED FROM LOTTERHOS & WHITLOCK (2014) 
-  #Data from: Evaluation of demographic history and neutral parameterization on the performance of Fst outlier tests. 
-  #Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.v8d05
-  #FSTcalcs.R code
-  
-  #This is the calculation of beta from Weir and Cockerham (1993)
-  df.split<-split(df[,i],df[,1])
-  AllCounts<-do.call("rbind",lapply(df.split,allele.counts))
-  pops <- rownames(AllCounts)
-  numpops <- dim(AllCounts)[1]
-  numalleles <- dim(AllCounts)[2]	
-  sample.sizes <- rowSums(AllCounts)
-  num.inds<-unlist(lapply(df.split,length))
-  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
-  X <- sum(af^2)
-  Y <- sum(colSums(af)^2)
-  n<-unlist(lapply(df.split,length))
-  M <- mean(num.inds)	#uncorrected for sample size
-  F0 <- (M*X-numpops)/((M-1)*numpops) 
-  F1 <- (Y-X)/(numpops*(numpops-1))
-  He <- 1-F1
-  fst <- (F0-F1)/(1-F1)
-  #FST <- 1 - (1-F0)/(1-F1); an alternative way of writing the previous line
-  return(c(He, fst))
-}
 
-wc.corr.fst<-function(df,i){
-  ###ADAPTED FROM LOTTERHOS & WHITLOCK (2014) 
-  #Data from: Evaluation of demographic history and neutral parameterization on the performance of Fst outlier tests. 
-  #Dryad Digital Repository. http://dx.doi.org/10.5061/dryad.v8d05
-  #FSTcalcs.R code
-  
-  #This is the code implemented by FDIST2 in my.thetacal
-  #Beaumont & Nichols (1996) changed the calculation of beta from
-  #Cockerham & Weir (1993) by adding a sample size correction.
-  df.split<-split(df[,i],df[,1])
-  AllCounts<-do.call("rbind",lapply(df.split,allele.counts))
-  af<-do.call("rbind",lapply(df.split,calc.allele.freq))
-  sample.sizes <- rowSums(AllCounts) #these sample sizes are the number of alleles sampled.
-  pops <- rownames(AllCounts)
-  numpops <- dim(AllCounts)[1]
-  numalleles <- dim(AllCounts)[2]
-  X <- sum(af^2)
-  Y <- sum(colSums(af)^2)
-  n<-unlist(lapply(df.split,length))
-  x0 <- sum((rowSums(AllCounts^2)-sample.sizes)/(sample.sizes*(sample.sizes-1)))
-  yy=0
-  for (j in 1:(numpops-1)){
-    for (k in (j+1):numpops){
-      y1=0;
-      for (i in 1:numalleles){
-        y1 <- y1 + AllCounts[j,i]*AllCounts[k,i]
-        #print(y1)
-      }
-      yy <- yy + y1/(sample.sizes[j]*sample.sizes[k])
-    }
-  }
-  
-  q2<- x0/numpops
-  q3 <- 2*yy/(numpops*(numpops-1))
-  
-  het0 <- 1-q2
-  het1 <- 1-q3 #this is what is output as heterozygosity by fdist2
-  FST <- (q2-q3)/(1-q3)
-  #FST <- 1-het0/het1 #alternative way of writing    
-  return(c(het1, FST))
-}
 
 fst.boot.onecol<-function(df,fst.choice){
   fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
-                 "Betahat","BETAHAT","betahat",
-                  "Wright","WRIGHT","wright","W","w","WeirCockerham","WC", "weircockerham","wc",
-                 "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+                 "Betahat","BETAHAT","betahat")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
   col<-sample(3:ncol(df),1)
   if(fst.choice %in% c("Fst","FST","fst")){
@@ -270,25 +204,14 @@ fst.boot.onecol<-function(df,fst.choice){
   if(fst.choice %in% c("betahat","BETAHAT","Betahat")){
     ht.fst<-calc.betahat(df,col)
   }
-  if(fst.choice == "Wright" | fst.choice == "WRIGHT" | fst.choice == "wright" | fst.choice == "W" | fst.choice == "w"){
-    ht.fst<-calc.weighted.fst(df,col) }
-  if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
-    ht.fst<-wc.fst(df,col) }
-  if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
-     fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
-    ht.fst<-wc.corr.fst(df,col) }
   return(ht.fst)
 }
 
 fst.options.print<-function(){
   print("For Wright's Fst: fst, FST, Fst",quote=F)
-  print("For a variance-based Fst (Lositan?): var, VAR, Var",quote=F)
+  print("For a variance-based Fst (beta): var, VAR, Var",quote=F)
   print("For Cockerham and Weir's Theta: theta, Theta, THETA", quote=F)
-  print("For Beta-hat: Betahat, betahat, BETAHAT",quote=F)
-  print("[DEPRECATED: DON'T USE] For Wright's Fst formulation: Wright, wright, WRIGHT, w, W",quote=F)
-  print("[DEPRECATED: DON'T USE] For Weir and Cockerham (1993)'s Fst formulation: WeirCockerham, WC, weircockerham, wc",quote=F)
-  print("[DEPRECATED: DON'T USE] For Beaumont's sample-size-corrected version of Weir and Cockerhams (1993)'s Fst formulation:
-        WeirCockerhamCorrected, WCC, weircockerhamcorrected, wcc, corrected",quote=F)
+  print("For Beta-hat (LOSITAN): Betahat, betahat, BETAHAT",quote=F)
 }
 
 make.bins<-function(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
@@ -365,9 +288,7 @@ fst.boot<-function(df, fst.choice="fst", ci=0.05,num.breaks=25,bootstrap=TRUE){
 		#updated 2 Dec 2016
   #Fst options are Wright, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
-                 "Betahat","BETAHAT","betahat",
-                 "Wright", "wright","WRIGHT","W","w","WeirCockerham","WC", "weircockerham","wc",
-                 "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+                 "Betahat","BETAHAT","betahat")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
 	nloci<-(ncol(df)-2)
 	if(bootstrap == TRUE)
@@ -576,9 +497,7 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 
 calc.actual.fst<-function(df, fst.choice="fst"){
   fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
-                 "Betahat","BETAHAT","betahat",
-                 "Wright","WRIGHT","wright","W","w","WeirCockerham","WC", "weircockerham","wc",
-                 "WeirCockerhamCorrected","WCC", "weircockerhamcorrected","wcc", "corrected")
+                 "Betahat","BETAHAT","betahat")
   if(!(fst.choice %in% fst.options)) { stop("Fst choice not an option. Use fst.options.print() to see options.")}
   fsts<-data.frame(Locus=character(),Ht=numeric(),Fst=numeric(),
                    stringsAsFactors=F)
@@ -603,22 +522,6 @@ calc.actual.fst<-function(df, fst.choice="fst"){
     }
   }	
 	
-	if(fst.choice == "Wright" | fst.choice == "WRIGHT" | fst.choice == "wright" | fst.choice == "W" | fst.choice == "w"){
-	  for(i in 3:ncol(df)){
-	    fsts[i-2,]<-c(colnames(df)[i],calc.weighted.fst(df,i))
-	  }
-	}
-	if(fst.choice == "WeirCockerham" | fst.choice == "WC" | fst.choice == "weircockerham" | fst.choice == "wc"){
-	  for(i in 3:ncol(df)){
-	  fsts[i-2,]<-c(colnames(df)[i],wc.fst(df,i))
-	  }
-	}
-	if(fst.choice == "WeirCockerhamCorrected" | fst.choice == "WCC" | 
-	   fst.choice == "weircockerhamcorrected" | fst.choice == "wcc" | fst.choice == "corrected"){
-	  for(i in 3:ncol(df)){
-	    fsts[i-2,]<-c(colnames(df)[i],wc.corr.fst(df,i))
-	  }
-	}
 	fsts<-data.frame(Locus=as.character(fsts$Locus),Ht=as.numeric(fsts$Ht),Fst=as.numeric(fsts$Fst),
 	                 stringsAsFactors=F)
 	return(fsts)

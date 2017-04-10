@@ -743,7 +743,7 @@ legend("top",col=c("dodgerblue","red","red"),pch=c("","","*"),lty=c(1,2,0),
 dev.off()
 
 ############################################################################
-#DO NOT USE - OLD VERSION PLOT FIG 7-REVISIONS (HIGHER NM)
+#PLOT FIG 7-REVISIONS (HIGHER NM)
 ############################################################################
 setwd("B://ubuntushare//fst_outliers//results//numerical_analysis_selection")
 source("../../fhetboot/R/fhetboot.R")
@@ -841,7 +841,7 @@ dev.off()
 
 
 ############################################################################
-#PLOT FIG S2-REVISIONS (FORMER FIG 4)
+#PLOT FIG S3-REVISIONS (FORMER FIG 4)
 ############################################################################
 setwd("B://ubuntushare//fst_outliers//results//numerical_analysis")
 
@@ -902,7 +902,7 @@ mtext(expression(italic(hat(beta))),2,outer=T,line=2.5,cex=.75)
 dev.off()
 
 ############################################################################
-#PLOT FIGS S3-S6-REVISIONS (FORMER S1-S4)
+#PLOT FIGS S4-S7-REVISIONS (FORMER S1-S4)
 ############################################################################
 setwd("E://ubuntushare//fst_outliers//results//numerical_analysis_genepop")
 ci.files<-list.files(pattern="genepop.step.ci")
