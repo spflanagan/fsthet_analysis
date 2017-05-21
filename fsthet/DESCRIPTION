@@ -1,6 +1,6 @@
 Package: fsthet
 Version: 1.0
-Title: fsthet: Fst-heterozygosity bootstrapping
+Title: fsthet: Fst-heterozygosity smoothed quantiles
 Description: A program to generate smoothed quantiles for the Fst-heterozygosity distribution.
 Author: Sarah P. Flanagan and Adam G. Jones
 Maintainer: Sarah P. Flanagan <spflanagan.phd@gmail.com>

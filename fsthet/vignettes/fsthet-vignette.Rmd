@@ -9,7 +9,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** bootstraps across the existing dataset to generate confidence intervals that approximate the actual Fst-Ht distribution.  
+A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** calculates smoothed quantiles from the existing dataset to identify loci with extreme Fst values relative to their heterozygosity.  
 
 This package performs several tasks.  
     - Parses genepop files into R.  
@@ -31,7 +31,7 @@ gpop<-my.read.genepop(gfile)
 This function outputs any descriptors you've included in the header of your genepop file. This function was adapted from [adegenet]( http://adegenet.r-forge.r-project.org/).    
 
 ### Calculate actual values
-Before getting into any bootstrapping analyses, you must calculate the actual Fst and Ht values.
+Before calculating the smoothed quantiles, you must calculate the actual Fst and Ht values.
 
 ```{r}
 fsts<-calc.actual.fst(gpop)
@@ -54,7 +54,7 @@ Since this distribution is not highly skewed, it should be fine for using the Fs
 The `fst.boot` function generates smoothed quantiles when you specify `bootstrap=FALSE`.    
 
 ```{r}
-quant.out<-fst.boot(gpop,"wright", bootstrap = FALSE)
+quant.out<-fst.boot(gpop, bootstrap = FALSE)
 str(quant.out)
 head(quant.out[[3]][[1]])
 
@@ -75,8 +75,8 @@ str(cis)
 
 You can also designate more than one confidence level
 ```{r}
-cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst,ci=c(0.01,0.05))
-str(cis)
+cis.list<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst,ci=c(0.01,0.05))
+str(cis.list)
 
 ```
 
@@ -105,7 +105,7 @@ head(outliers)
 ```
 
 
-#### Using the empirical data without bootstrapping
+#### Using the wrapper function `fsthet`
 The above functions are all contained within the wrapper function `fsthet`, so you don't have to go through each step on its own. `fsthet` returns a data.frame with four columns: Locus ID, heterozygosity, Fst, and a True/False of whether it's an outlier
 ```{r}
 out.dat<-fsthet(gpop)
@@ -131,6 +131,50 @@ In the above examples, you may have noticed that `plotting.cis()` always contain
 plotting.cis(df=fsts,boot.out=boot.out,make.file=T,file.name="ExampleOutliers.png")
 ```
 
+## The various Fst calculations
+
+There are many different ways to calculate Fst, and **fsthet** contains four calculations. You can specify which one you want to use in the `calc.actual.fsts`, `fsthet`, and `fst.boot` with the fst.choice parameter. The choices can all be viewed with `fst.options.print`:
+```{r}
+fst.options.print()
+```
+
+### Wright's Fst (fst)
+Wright formulated Fst as 
+$$F_{ST} = \frac{H_T - H_S}{H_T}$$
+in 1943, and this classic estimation of Fst is implemented using the `fst.choice="fst"` option. This is the default choice. 
+
+```{r}
+fsts<-calc.actual.fst(gpop,"fst")
+```
+
+### Weir's $\theta$ (theta)
+In Weir's 1990 book, Genetic Data Analysis, he presents an Fst estimator termed $\theta$. This is an estimator calculated based on a number of estimators: 
+$$\theta = \frac{s2a-(\frac{1}{\overline{n}-1}\overline{p}(1-\overline{p})-\frac{N-1}{N}s2a)}{\frac{nc-1}{\overline{n}-1}\overline{p}(1-\overline{p}) + \frac{s2a}{N}(1+\frac{(N-1)(\overline{n}-nc)}{\overline{n}-1})}$$
+
+$$s2a = \frac{1}{\overline{n}(N-1)}\sum_{i=1}^N (p_i - \overline{p})^2$$
+$$nc = \frac{1}{N-1}\sum_{i=1}^N n_i - \frac{1}{\sum_{i=1}^N n_i}\sum_{i=1}^N n_i^2$$
+
+```{r}
+fsts.theta<-calc.actual.fst(gpop,"theta")
+```
+
+
+### A variance-based Fst, $\beta$ (var)
+This approach calculates Fst as the variance in allele frequencies, and is calculated as: 
+$$F_{ST} = \frac{1}{2N} \frac{\sum_{i=1}^N (p_i - \overline{p})^2}{\overline{p}(1 - \overline{p})}$$
+
+```{r}
+fsts.beta<-calc.actual.fst(gpop,"var")
+```
+
+### Cockerham and Weir's $\hat{\beta}$ (betahat)
+Cockerham and Weir (1993) formulated $\hat{\beta}$, which is the value used by FDIST2 (Beaumont and Nichols 1996) and LOSITAN (Antao et al. 2008). It is calculated as $$\hat{\beta}=\frac{\hat{f}_{0}-\hat{f}_{1}}{1-\hat{f}_{1}}$$
+In this formulation, $$\hat{f}_0 = \frac{2\overline{n}(\sum_{i=1}^N (p_i^2) + \sum_{i=1}^N ((1-p_i)^2))-N}{N(2\overline{n}-1)}$$ and $$\hat{f}_1 = \frac{(\sum_{i=1}^N p_i)^2+(\sum_{i=1}^N 1-p_i)^2 - (\sum_{i=1}^N (p_i^2) + \sum_{i=1}^N (1-p_i)^2)}{N(N-1)}$$
+In these formulas, N is the number of populations and $\overline{n}$ is the average number of individuals per population.
+
+```{r}
+fsts.betahat<-calc.actual.fst(gpop,"betahat")
+```
 
 ## Other Functions
 
