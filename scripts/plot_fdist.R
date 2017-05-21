@@ -604,7 +604,7 @@ for(i in 1:length(ds)){
 			grep(ds[i], loci.list,fixed=T) %in% 
 			grep(ss[j],loci.list,fixed=T)]])
 		plot(sig.dat$Het, sig.dat$Fst,las=1,ylim=c(0,1),
-			xlab="",ylab="",pch=19, xaxt="n",yaxt="n")
+			xlab="",ylab="",pch=19, xaxt="n",yaxt="n", col="grey")
 		points(ci.dat$Het,ci.dat[,2],col="red",type="l")
 		points(ci.dat$Het, ci.dat[,4],col="red",type="l")
 
