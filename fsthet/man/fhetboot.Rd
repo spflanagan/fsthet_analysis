@@ -9,7 +9,7 @@
 	Returns a data frame containing Locus ID, Ht, Fst, P-value, a Benjamini-Hochberg-corrected P-value, and a true/false value of whether it's an outlier.
 }
 \usage{
-	fhetboot(gpop, fst.choice="wright", alpha,nreps)
+	fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
 }
 \arguments{
   \item{gpop}{Provide the genepop dataframe (from my.read.genepop).}
