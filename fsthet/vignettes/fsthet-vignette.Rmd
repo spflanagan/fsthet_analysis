@@ -2,7 +2,7 @@
 title: "Using fsthet"
 author: "Sarah P. Flanagan"
 date: "`r Sys.Date()`"
-output: rmarkdown::pdf_document
+output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Using fsthet}
   %\VignetteEngine{knitr::rmarkdown}

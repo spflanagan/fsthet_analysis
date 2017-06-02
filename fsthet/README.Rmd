@@ -1,0 +1,33 @@
+---
+output:
+  md_document:
+    variant: markdown_github
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+# fsthet
+
+The goal of fsthet is to calculate smoothed quantiles from the existing dataset to identify loci with extreme Fst values relative to their heterozygosity. This allows the user to identify loci that have extreme Fst values without relying on a specific population genetics model. Please see Flanagan and Jones (2017) for details on this issue.
+
+Flanagan SP and Jones AG. 2017. Constraints on the Fst-heterozygosity outlier approach. Journal of Heredity esx048. doi: 10.1093/jhered/esx048
+
+## Example
+
+This is a basic example of how to use fsthet. Please see the vignette for more detail.
+
+```{r example}
+library(fsthet)
+gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+gpop<-my.read.genepop(gfile)
+out.dat<-fsthet(gpop)
+
+```
