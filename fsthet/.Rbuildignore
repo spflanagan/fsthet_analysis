@@ -4,3 +4,5 @@
 ^fsthet\.Rproj$
 ^README\.Rmd$
 ^README-.*\.png$
+^fsthet/*
+^extdata/*
