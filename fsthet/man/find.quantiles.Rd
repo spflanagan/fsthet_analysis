@@ -15,3 +15,9 @@ find.quantiles(bins,bin.fst,ci=0.05)
 \value{
 	\item{fst.CI}{A list of data.frames, one for each ci value with the upper and lower Fst quantiles for each Heterozygosity bin.}
 }
+\examples{
+\dontrun{
+load(bins)
+fst.CI<-find.quantiles(bins$bins,bins$bin.fst)
+}
+}

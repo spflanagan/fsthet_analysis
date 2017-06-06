@@ -13,3 +13,8 @@ allele.counts(genotypes)
 \value{
 	\item{AlleleCounts}{The number of times each allele is recorded at the locus.}
 }
+\examples{
+  #create a random sample of genotypes
+  genotypes<-sample(c("0101","0102","0202"),50,replace=TRUE)
+  counts<-allele.counts(genotypes)
+}

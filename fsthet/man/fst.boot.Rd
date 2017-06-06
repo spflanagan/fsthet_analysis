@@ -26,3 +26,11 @@ fst.boot(df,fst.choice="fst",ci=0.05,num.breaks=25, bootstrap = TRUE)
 	\item{Bins}{A dataframe containing the bins start and stop Ht values.}
 	\item{fst.CI}{A list of dataframes containing the lower and upper confidence intervals' Ht values.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  fsts<-calc.actual.fst(gpop)
+  quant.out<-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap=FALSE))))
+}
+}

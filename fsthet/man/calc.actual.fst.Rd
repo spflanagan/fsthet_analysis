@@ -15,3 +15,8 @@ calc.actual.fst(df, fst.choice="fst")
 \value{
 	\item{fsts}{This returns a dataframe with Locus, Ht, and Fst characters.}
 }
+\examples{
+\dontrun{gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+gpop<-my.read.genepop(gfile)
+fsts<-calc.actual.fst(gpop)}
+}

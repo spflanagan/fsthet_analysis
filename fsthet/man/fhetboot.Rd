@@ -20,3 +20,10 @@
 \value{
 	\item{fsts}{This returns a dataframe with Locus, Ht, Fst, P-value, correcte P-value, and True/False of whether it's an outlier.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
+}
+}

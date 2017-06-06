@@ -17,3 +17,10 @@ calc.betahat(df, i)
 	\item{ht}{HB (or 1-F1). This is a single numerical value.}
 	\item{fst}{The calculated betahat value ((F0-F1)/(1-F1))for this locus.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  beta1<-calc.betahat(gpop,3) #calculate betahat for the first SNP
+}
+}

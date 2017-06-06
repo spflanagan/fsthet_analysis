@@ -16,3 +16,10 @@ calc.theta(df, i)
 	\item{ht}{T2. This is a single numerical value.}
 	\item{fst}{The calculated theta value (T1/T2) for this locus.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  theta1<-calc.theta(gpop,3) #calculate theta for the first SNP
+}
+}

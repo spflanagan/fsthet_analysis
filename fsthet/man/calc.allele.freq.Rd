@@ -13,3 +13,8 @@ calc.allele.freq(genotypes)
 \value{
 	\item{obs.af}{A list of observed allele frequencies in the genotypes list.}
 }
+\examples{
+  #create a random sample of genotypes
+  genotypes<-sample(c("0101","0102","0202"),50,replace=TRUE)
+  af<-calc.allele.freq(genotypes)
+}

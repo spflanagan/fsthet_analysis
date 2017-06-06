@@ -21,3 +21,13 @@ fst.boot.onecol(df, fst.choice)
 \value{
 	\item{ht.fst}{A vector containin Ht and Fst}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  fsts<-calc.actual.fst(gpop)
+  nloci<-(ncol(gpop)-2)
+  boot.out<-boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(gpop))))
+  outliers<-find.outliers(fsts,boot.out)
+}
+}

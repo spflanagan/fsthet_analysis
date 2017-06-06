@@ -3,7 +3,10 @@
 * local ubuntu 16.04, R 3.4.0
 
 ## R CMD check results
-R CMD check --as-cran had no ERRORS, WARNINGS, or NOTES.
-* Using R CMD build --resave-data
+R CMD check --as-cran had no ERRORS or WARNINGS.
+There was 1 NOTE:
+* New submission
 
-This is the first submission of the package fsthet
+## Comments
+I have added examples to the Rd files
+

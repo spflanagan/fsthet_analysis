@@ -22,3 +22,9 @@ my.read.genepop(file, ncode = 2L, quiet = FALSE)
 \references{
 	\url{ http://adegenet.r-forge.r-project.org/ }
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  }
+}

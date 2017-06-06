@@ -16,3 +16,12 @@ find.outliers(df, boot.out, ci.df = NULL, file.name = NULL)
 \value{
 	\item{out}{A list of the outlier loci}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  fsts<-calc.actual.fst(gpop)
+  boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
+  outliers<-find.outliers(fsts,boot.out)
+}
+}

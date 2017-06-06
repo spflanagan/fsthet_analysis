@@ -19,3 +19,10 @@ calc.fst(df, i)
 	\item{ht}{The expected heterozygosity under Hardy-Weinberg expectations. This is a single numerical value.}
 	\item{fst}{The calculated Fst value for this locus.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  fst1<-calc.fst(gpop,3) #calculate fst for the first SNP
+}
+}

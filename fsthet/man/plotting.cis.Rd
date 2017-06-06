@@ -21,3 +21,11 @@ plotting.cis(df,boot.out,ci.df=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
   \item{file.name}{You can provide the filename. If not provided, default is "OutlierLoci" in the current directory.}
   \item{make.file}{A boolean value (TRUE or FALSE). If TRUE, a file will be created with the plot. If FALSE, the plot will be made in R only (and can be further annotated).}
 }
+\examples{
+\dontrun{
+load(fsts)
+cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
+quant.list<-cis$CI0.95
+plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
+}
+}

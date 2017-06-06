@@ -19,3 +19,13 @@ make.bins(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
 	\item{list(bins,bin.fst)}{A list with a data.frame called bins with the upper and lower Fst and Ht values
 	  and a list called bin.fst with the Fst values for each of the Het categories.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  fsts<-calc.actual.fst(gpop)
+  nloci<-(ncol(gpop)-2)
+  boot.out<-boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(gpop))))
+  make.bins(boot.out,25)
+}
+}

@@ -18,3 +18,12 @@ fst.boot.means(boot.out)
 		the lower Ht value for the bin
 		and the upper Ht value for the bin.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  fsts<-calc.actual.fst(gpop)
+  boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
+  outliers<-find.outliers(fsts,boot.out)
+}
+}

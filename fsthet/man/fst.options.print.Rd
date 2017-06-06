@@ -7,3 +7,6 @@
 \usage{
 fst.options.print()
 }
+\examples{
+fst.options.print()
+}

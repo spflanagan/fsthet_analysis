@@ -17,3 +17,10 @@ var.fst(df, i)
 	\item{ht}{2pbar(1-pbar). This is a single numerical value.}
 	\item{fst}{The calculated beta value for this locus.}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  var1<-var.fst(gpop,3) #calculate variance-based for the first SNP
+}
+}

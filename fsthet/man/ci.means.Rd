@@ -14,3 +14,11 @@ ci.means(boot.out.list)
 	\item{avg.cil}{A list of the average lower CI values}
 	\item{avg.ciu}{A list of the average upper CI values}
 }
+\examples{
+\dontrun{
+  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+  gpop<-my.read.gpop(gfile)
+  quant.out<-fst.boot(gpop, bootstrap = FALSE)
+  quant.list<-ci.means(quant.out[[3]])
+}
+}
