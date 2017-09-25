@@ -1,7 +1,7 @@
 Package: fsthet
 Version: 1.0.0
 Title: Fst-Heterozygosity Smoothed Quantiles
-Description: A program to generate smoothed quantiles for the Fst-heterozygosity distribution.
+Description: A program to generate smoothed quantiles for the Fst-heterozygosity distribution. See Flanagan & Jones (2017) <doi:10.1093/jhered/esx048>.
 Author: Sarah P. Flanagan and Adam G. Jones
 Maintainer: Sarah P. Flanagan <spflanagan.phd@gmail.com>
 License: GPL-2
