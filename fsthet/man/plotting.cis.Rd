@@ -22,10 +22,19 @@ plotting.cis(df,boot.out,ci.df=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
   \item{make.file}{A boolean value (TRUE or FALSE). If TRUE, a file will be created with the plot. If FALSE, the plot will be made in R only (and can be further annotated).}
 }
 \examples{
-\dontrun{
-load(fsts)
-cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
-quant.list<-cis$CI0.95
-plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
-}
+ gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20),
+                  loc0=sample(c("0101","0102","0202"),40,replace=TRUE),
+                  loc1=sample(c("0101","0102","0202"),40,replace=TRUE))
+  fsts<-calc.actual.fst(gpop)
+  bins<-make.bins(fsts)
+  cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
+  quant.list<-cis$CI0.95
+  plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
+  \dontrun{
+  load(fsts)
+  bins<-make.bins(fsts)
+  cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
+  quant.list<-cis$CI0.95
+  plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
+  }
 }

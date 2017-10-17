@@ -27,7 +27,7 @@ fst.boot.onecol(df, fst.choice)
   gpop<-my.read.gpop(gfile)
   fsts<-calc.actual.fst(gpop)
   nloci<-(ncol(gpop)-2)
-  boot.out<-boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(gpop))))
+  boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(gpop))))
   outliers<-find.outliers(fsts,boot.out)
 }
 }
