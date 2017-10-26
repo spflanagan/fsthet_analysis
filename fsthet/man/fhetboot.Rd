@@ -21,9 +21,17 @@
 	\item{fsts}{This returns a dataframe with Locus, Ht, Fst, P-value, correcte P-value, and True/False of whether it's an outlier.}
 }
 \examples{
-\dontrun{
-  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
-  gpop<-my.read.gpop(gfile)
-  out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
-}
+  \dontshow{
+   gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20))
+   for(i in 1:40){
+    gpop[1:20,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+    gpop[21:40,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+   }
+   out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
+  }
+  \donttest{
+    gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+    gpop<-my.read.gpop(gfile)
+    out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
+  }
 }

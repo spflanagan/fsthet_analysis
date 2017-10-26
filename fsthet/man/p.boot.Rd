@@ -16,11 +16,20 @@ p.boot(actual.fsts, boot.out,boot.means=NULL)
 	\item{pvals}{A numeric containing uncorrected p-values for each locus. The names attribute are the locus names.}
 }
 \examples{
-\dontrun{
-  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
-  gpop<-my.read.gpop(gfile)
-  fsts<-calc.actual.fst(gpop)
-  boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
-  boot.pvals<-p.boot(fsts,boot.out=boot.out)
-}
+  \dontshow{
+    gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20),
+      loc0=sample(c("0101","0102","0202"),40,replace=TRUE),
+      loc1=sample(c("0101","0102","0202"),40,replace=TRUE),
+      loc2=sample(c("0101","0102","0202"),40,replace=TRUE))
+    fsts<-calc.actual.fst(gpop)
+    boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop, num.breaks=20))))
+    boot.pvals<-p.boot(fsts,boot.out=boot.out)
+  }
+  \donttest{
+    gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+    gpop<-my.read.genepop(gfile)
+    fsts<-calc.actual.fst(gpop)
+    boot.out<-as.data.frame(t(replicate(10, fst.boot(gpop))))
+    boot.pvals<-p.boot(fsts,boot.out=boot.out)
+  }
 }

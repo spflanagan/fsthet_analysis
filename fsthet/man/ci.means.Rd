@@ -15,15 +15,10 @@ ci.means(boot.out.list)
 	\item{avg.ciu}{A list of the average upper CI values}
 }
 \examples{
-  gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20),
-    loc0=sample(c("0101","0102","0202"),40,replace=TRUE),
-    loc1=sample(c("0101","0102","0202"),40,replace=TRUE))
-  quant.out<-fst.boot(gpop, bootstrap = FALSE)
-  quant.list<-ci.means(quant.out[[3]])
-\dontrun{
-  gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
-  gpop<-my.read.gpop(gfile)
-  quant.out<-fst.boot(gpop, bootstrap = FALSE)
-  quant.list<-ci.means(quant.out[[3]])
-}
+  \donttest{
+    gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
+    gpop<-my.read.gpop(gfile)
+    quant.out<-fst.boot(gpop, bootstrap = FALSE)
+    quant.list<-ci.means(quant.out[[3]])
+  }
 }

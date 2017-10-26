@@ -17,9 +17,16 @@ find.outliers(df, boot.out, ci.df = NULL, file.name = NULL)
 	\item{out}{A list of the outlier loci}
 }
 \examples{
-  gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20),
-    loc0=sample(c("0101","0102","0202"),40,replace=TRUE),
-    loc1=sample(c("0101","0102","0202"),40,replace=TRUE))
+  \dontshow{
+    gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20))
+     for(i in 1:40){
+      gpop[1:20,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+      gpop[21:40,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+     }
+     fsts<-calc.actual.fst(gpop)
+      boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop))))
+      outliers<-find.outliers(fsts,boot.out)
+  }
   \dontrun{
     gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
     gpop<-my.read.gpop(gfile)
