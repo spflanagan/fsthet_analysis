@@ -20,13 +20,15 @@ make.bins(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
 	  and a list called bin.fst with the Fst values for each of the Het categories.}
 }
 \examples{
-  gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20),
-                 loc0=sample(c("0101","0102","0202"),40,replace=TRUE),
-                 loc1=sample(c("0101","0102","0202"),40,replace=TRUE))
+  gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20))
+     for(i in 1:40){
+      gpop[1:20,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+      gpop[21:40,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+     }
   fsts<-calc.actual.fst(gpop)
   nloci<-(ncol(gpop)-2)
-  boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(gpop))))
-  make.bins(boot.out,25)
+  boot.out<-as.data.frame(t(replicate(nloci, fst.boot.onecol(gpop,"fst"))))
+  bins<-make.bins(boot.out,25,Ht.name="V1",Fst.name="V2")
   \dontrun{
     gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
     gpop<-my.read.gpop(gfile)

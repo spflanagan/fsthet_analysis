@@ -27,14 +27,16 @@ fst.boot(df,fst.choice="fst",ci=0.05,num.breaks=25, bootstrap = TRUE)
 	\item{fst.CI}{A list of dataframes containing the lower and upper confidence intervals' Ht values.}
 }
 \examples{
-  gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20),
-    loc0=sample(c("0101","0102","0202"),40,replace=TRUE),
-    loc1=sample(c("0101","0102","0202"),40,replace=TRUE))
+  gpop<-data.frame(popinfo=c(rep("POP 1", 20),rep("POP 2", 20)),ind.names=c(1:20,1:20))
+   for(i in 1:40){
+    gpop[1:20,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+    gpop[21:40,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
+   }
   fsts<-calc.actual.fst(gpop)
   quant.out<-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap=FALSE))))
   \dontrun{
     gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
-    gpop<-my.read.gpop(gfile)
+    gpop<-my.read.genepop(gfile)
     fsts<-calc.actual.fst(gpop)
     quant.out<-as.data.frame(t(replicate(1, fst.boot(gpop,bootstrap=FALSE))))
   }

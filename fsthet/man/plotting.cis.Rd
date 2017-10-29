@@ -29,12 +29,12 @@ plotting.cis(df,boot.out,ci.df=NULL,sig.list=NULL,Ht.name="Ht",Fst.name="Fst",
   bins<-make.bins(fsts)
   cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
   quant.list<-cis$CI0.95
-  plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
+  plotting.cis(df=fsts,ci.df=quant.list,make.file=FALSE)
   \dontrun{
   load(fsts)
   bins<-make.bins(fsts)
   cis<-find.quantiles(bins = bins$bins,bin.fst = bins$bin.fst)
   quant.list<-cis$CI0.95
-  plotting.cis(df=fsts,ci.df=quant.list,make.file=F)
+  plotting.cis(df=fsts,ci.df=quant.list,make.file=FALSE)
   }
 }

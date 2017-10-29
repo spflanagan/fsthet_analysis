@@ -27,11 +27,11 @@
     gpop[1:20,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
     gpop[21:40,(i+2)]<-sample(c("0101","0102","0202"),20,replace=TRUE)
    }
-   out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
+   out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=1)
   }
   \donttest{
     gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
-    gpop<-my.read.gpop(gfile)
+    gpop<-my.read.genepop(gfile)
     out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)
   }
 }

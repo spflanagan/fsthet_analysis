@@ -14,7 +14,7 @@ LaTeX: pdfLaTeX
 
 BuildType: Package
 PackageUseDevtools: Yes
-PackageInstallArgs: --no-multiarch --with-keep.source
-PackageBuildArgs: --resave-data
-PackageBuildBinaryArgs: --no-multiarch --with-keep.source
-PackageCheckArgs: --as-cran
+PackageInstallArgs: --no-multiarch --with-keep.source --run-donttest
+PackageBuildArgs: --resave-data --run-donttest
+PackageBuildBinaryArgs: --no-multiarch --with-keep.source --resave-data --run-donttest
+PackageCheckArgs: --as-cran --with-keep.source --resave-data --run-donttest
