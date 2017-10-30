@@ -1,4 +1,8 @@
 ####################################################################################################
+### THIS IS THE BEST WAY TO DO IT
+#30 October 2017
+R CMD --resave-data --force fsthet
+R CMD check --run-donttest --as-cran fsthet_1.0.0.tar.gz
 
 #########OVERVIEW
 #THIS WORKED AS OF 7 Jan 2017
