@@ -27,7 +27,7 @@ fst.boot.means(boot.out)
     fsts<-calc.actual.fst(gpop)
   boot.out<-as.data.frame(t(replicate(1, fst.boot(gpop))))
   outliers<-find.outliers(fsts,boot.out)
-\donttest{
+\dontrun{
   gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
   gpop<-my.read.genepop(gfile)
   fsts<-calc.actual.fst(gpop)

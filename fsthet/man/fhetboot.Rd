@@ -29,7 +29,7 @@
    }
    out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=1)
   }
-  \donttest{
+  \dontrun{
     gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
     gpop<-my.read.genepop(gfile)
     out.dat<-fhetboot(gpop, fst.choice="fst", alpha=0.05,nreps=10)

@@ -24,7 +24,7 @@ ci.means(boot.out.list)
     quant.out<-fst.boot(gpop, bootstrap = FALSE)
     quant.list<-ci.means(quant.out[[3]])
   }
-  \donttest{
+  \dontrun{
     gfile<-system.file("extdata", "example.genepop.txt",package = 'fsthet')
     gpop<-my.read.genepop(gfile)
     quant.out<-fst.boot(gpop, bootstrap = FALSE)
