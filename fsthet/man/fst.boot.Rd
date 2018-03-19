@@ -11,7 +11,7 @@
 	This function can be slow. We recommend running it 10 times to generate confidence intervals for analysis.
 }
 \usage{
-fst.boot(df,fst.choice="fst",ci=0.05,num.breaks=25, bootstrap = TRUE)
+fst.boot(df,fst.choice="fst",ci=0.05,num.breaks=25, bootstrap = TRUE,min.per.bin=20)
 }
 \arguments{
   \item{df}{A dataframe containing the genepop information, where the first column is the population ID.}
@@ -20,6 +20,7 @@ fst.boot(df,fst.choice="fst",ci=0.05,num.breaks=25, bootstrap = TRUE)
   \item{ci}{A value for the confidence intervals alpha (default is 0.05).}
   \item{num.breaks}{The number of breaks used to create bins (default is 25)}
   \item{bootstrap}{A TRUE/FALSE statement telling the program whether to bootstrap and then determine the bins or to calculate bins and confidence intervals from the empirical dataset without bootstrapping. The default is TRUE, which means bootstrapping occurs.}
+  \item{min.per.bin}{The minimum number of loci that are required for a bin to be retained. Default is 20.}
 }
 \value{
 	\item{Fsts}{The bootstrapped Fst and Ht values}

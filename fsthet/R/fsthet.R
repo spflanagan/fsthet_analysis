@@ -214,7 +214,7 @@ fst.options.print<-function(){
   print("For Beta-hat (LOSITAN): Betahat, betahat, BETAHAT",quote=F)
 }
 
-make.bins<-function(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
+make.bins<-function(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst",min.per.bin=20)
 {
   breaks<-hist(fsts[,Ht.name],breaks=(num.breaks/2),plot=F)$breaks
   low.breaks<-breaks[1:(length(breaks)-1)]
@@ -233,12 +233,12 @@ make.bins<-function(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
   #merge those with too few with the next bin up
   rmvec<-NULL
   for(i in 1:(length(bin.fst)-1)){
-    if(length(bin.fst[[i]]) < 20){	
+    if(length(bin.fst[[i]]) < min.per.bin){	
       bin.fst[[(i+1)]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
       rmvec<-c(rmvec,i)
     }
     if((i+1)==length(bin.fst)){
-      if(length(bin.fst[[i+1]]) < 20){	
+      if(length(bin.fst[[i+1]]) < min.per.bin){	
         bin.fst[[i]]<-c(bin.fst[[i]],bin.fst[[(i+1)]])
         rmvec<-c(rmvec,(i+1))
       }
@@ -284,7 +284,7 @@ find.quantiles<-function(bins, bin.fst, ci=0.05)
   return(fst.CI)
 }
 
-fst.boot<-function(df, fst.choice="fst", ci=0.05,num.breaks=25,bootstrap=TRUE){	
+fst.boot<-function(df, fst.choice="fst", ci=0.05,num.breaks=25,bootstrap=TRUE,min.per.bin=20){	
 		#updated 2 Dec 2016
   #Fst options are Wright, WeirCockerham, or WeirCockerhamCorrected
   fst.options<-c("FST","Fst","fst","var","VAR","Var","theta","Theta","THETA",
@@ -308,7 +308,7 @@ fst.boot<-function(df, fst.choice="fst", ci=0.05,num.breaks=25,bootstrap=TRUE){
 	#order by het
 	boot.out<-as.data.frame(boot.out[order(boot.out$Ht),])
 	#create overlapping bins 
-  bins<-make.bins(boot.out,num.breaks)
+  bins<-make.bins(boot.out,num.breaks,min.per.bin=min.per.bin)
 	#find quantile
   fst.CI<-find.quantiles(bins$bins,bins$bin.fst,ci)
 

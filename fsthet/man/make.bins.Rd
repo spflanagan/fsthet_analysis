@@ -6,13 +6,14 @@
 	It returns a list containing a data.frame called bins a list called bin.fst with the Fst values for each of the Het categories.
 }
 \usage{
-make.bins(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst")
+make.bins(fsts,num.breaks=25, Ht.name="Ht", Fst.name="Fst",min.per.bin=20)
 }
 \arguments{
   \item{fsts}{A dataframe containing at least the columns with heterozygosity and Fst values.}
   \item{num.breaks}{ The number of breaks used to create bins (default is 25)}
   \item{Ht.name}{Provide the name of the column with the heterozygosity values, unless the column is named "Ht".}
   \item{Fst.name}{Provide the name of the column with the Fst values, unless the column is named "Fst".}
+  \item{min.per.bin}{If you have a smaller dataset, you can change the minimum number of loci required to be in each bin. Default is 20.}
 
 }
 \value{
