@@ -50,7 +50,7 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 	txt[length(txt) + 1] <- "POP"
 	pops<-txt[pop.idx]
 	nind<-diff(c(pop.idx,length(txt)))-1
-	if(pops[1] == "POP"){
+	if(pops[1] %in% c("POP","pop","Pop")){
 		for(i in 1:length(pops)){ #if there aren't pop names they're given
 			pops[i]<-paste("POP ",i,sep="") } #numbers
 	}
