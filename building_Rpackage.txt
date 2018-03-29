@@ -1,7 +1,8 @@
 ####################################################################################################
 ### THIS IS THE BEST WAY TO DO IT
 #30 October 2017
-R CMD --resave-data --force fsthet
+#in the folder containing fsthet directory:
+R CMD build --resave-data --force fsthet
 R CMD check --run-donttest --as-cran fsthet_1.0.0.tar.gz
 
 #########OVERVIEW
