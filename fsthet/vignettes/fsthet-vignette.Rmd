@@ -1,12 +1,12 @@
 ---
 title: "Using fsthet"
 author: "Sarah P. Flanagan"
-date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Using fsthet}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+date: '`r Sys.Date()`'
+output:
+  html_document: default
+  pdf_document: default
+vignette: |
+  %\VignetteIndexEntry{Using fsthet} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
 
 A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** calculates smoothed quantiles from the existing dataset to identify loci with extreme Fst values relative to their heterozygosity.  
@@ -206,9 +206,9 @@ The analyses in **fsthet** use the function `calc.allele.freq` to calculate alle
 af.actual<-apply(gpop[,3:ncol(gpop)],2,calc.allele.freq)
 
 #extract the minimum allele frequency for each locus
-min.af<-unlist(lapply(af.actual,min))
-par(mar=c(2,2,2,2))
-hist(min.af)
+maf<-apply(af.actual,2,min)
+par(mar=c(4,4,2,2))
+hist(maf,main = "",xlab="Minimum allele frequency",ylab="Number of Loci",col="grey",xlim=c(0,0.5))
 ```
 
 ## Conclusion
