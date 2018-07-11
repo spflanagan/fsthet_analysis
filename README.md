@@ -1,6 +1,6 @@
 # fsthet_analysis
 
-This repository contains the scripts and programs used in Flanagan & Jones (in review), "Constraints on the Fst-heterozygosity outlier approach".
+This repository contains the scripts and programs used in Flanagan & Jones (2017), "Constraints on the Fst-heterozygosity outlier approach".
 
 This document outlines the contents of each directory in the fst_outliers repository.
 
