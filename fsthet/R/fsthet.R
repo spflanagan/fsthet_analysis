@@ -76,7 +76,7 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
 }
 
 allele.counts<-function(genotypes){
-  obs.gen<-summary(as.factor(genotypes))
+  obs.gen<-table(as.factor(genotypes))
   obs.gen<-obs.gen[names(obs.gen) != "000000" & names(obs.gen) 
                    != "0000" & names(obs.gen) != "0"]
   if(nchar(names(obs.gen[1])) %% 2 == 0){
