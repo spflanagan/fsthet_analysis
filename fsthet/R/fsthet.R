@@ -448,8 +448,8 @@ plotting.cis<-function(df,boot.out=NULL,ci.df=NULL,sig.list=NULL,Ht.name="Ht",Fs
 	if(!is.null(sig.list)){
 	  points(df[df[,1] %in% sig.list,Ht.name],df[df[,1] %in% sig.list,Fst.name],col=sig.col,pch=pt.pch)
 	}
-	points(avg.ci$LowHet,avg.ci$low,type="l",col=ci.col)
-	points(avg.ci$UppHet,avg.ci$upp,type="l",col=ci.col)
+	points(avg.ci$LowHet,avg.ci$Low,type="l",col=ci.col)
+	points(avg.ci$UppHet,avg.ci$Upp,type="l",col=ci.col)
 	if(make.file==TRUE) dev.off()
 	
 }
