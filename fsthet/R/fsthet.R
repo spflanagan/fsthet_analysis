@@ -545,7 +545,7 @@ fhetboot<-function(gpop, fst.choice="fst",alpha=0.05,nreps=10){
 fsthet<-function(gpop, fst.choice="fst",alpha=0.05){
   fsts<-calc.actual.fst(gpop,fst.choice)
   quant.out<-as.data.frame(t(replicate(1, fst.boot(gpop,fst.choice=fst.choice,ci=alpha,bootstrap=FALSE))))
-  plotting.cis(fsts,quant.out,make.file=F,pt.pch = 19)
+  plotting.cis(fsts,boot.out=quant.out,make.file=F,pt.pch = 19)
   outliers<-find.outliers(fsts,quant.out)
   fsts$Outlier<-FALSE
   fsts[fsts$Locus %in% outliers$Locus,"Outlier"]<-TRUE
