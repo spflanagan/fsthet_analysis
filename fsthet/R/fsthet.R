@@ -405,7 +405,7 @@ ci.means<-function(boot.out.list){ #boot.out[[3]]
 	avg.cil<-tapply(boot.ci[,1],boot.ci$UppHet,mean)
 	avg.ciu<-tapply(boot.ci[,2],boot.ci$UppHet,mean)
 	low.het<-tapply(boot.ci$LowHet,boot.ci$UppHet,mean)
-	return(data.frame(low=avg.cil,upp=avg.ciu, LowHet=low.het,
+	return(data.frame(Low=avg.cil,Upp=avg.ciu, LowHet=low.het,
 		UppHet=as.numeric(levels(as.factor(boot.ci$UppHet)))))
 }
 
