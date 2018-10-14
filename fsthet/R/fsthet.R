@@ -475,8 +475,8 @@ find.outliers<-function(df,boot.out,ci.df=NULL,file.name=NULL){
 
 	for(i in 1:nrow(ci.df)){
 		out<-rbind(out,actual.bin[[i]][
-			as.numeric(actual.bin[[i]]$Fst) < as.numeric(ci.df[i,"low"]) | 
-			as.numeric(actual.bin[[i]]$Fst)> as.numeric(ci.df[i,"upp"]),])
+			as.numeric(actual.bin[[i]]$Fst) < as.numeric(ci.df[i,"Low"]) | 
+			as.numeric(actual.bin[[i]]$Fst)> as.numeric(ci.df[i,"Upp"]),])
 		
 	}
 	out<-out[!duplicated(out$Locus),]
