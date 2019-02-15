@@ -18,61 +18,58 @@ remove.spaces<-function (charvec)
 
 my.read.genepop<-function (file, ncode = 2L, quiet = FALSE) 
 {#modified from the adegenet function read.genepop
-	if (!quiet) 
-		cat("\nParsing Genepop file...\n\n")
-	prevcall <- match.call()
-	txt <- scan(file, sep = "\n", what = "character", quiet = TRUE)
-	if (!quiet) 
-		cat("\nFile description: ", txt[1], "\n")
-	txt <- txt[-1] #remove the file desription
-	txt <- gsub("\t", " ", txt)
-	#extract the locus info
-	locinfo.idx <- 1:(min(grep("POP", toupper(txt))) - 1)
-	locinfo <- txt[locinfo.idx]
-	locinfo <- paste(locinfo, collapse = ",")
-	loc.names <- unlist(strsplit(locinfo, "([,]|[\n])+"))
-	loc.names <- remove.spaces(loc.names)
-	nloc <- length(loc.names)
-	#Now discard the locus info.
-	txt <- txt[-locinfo.idx]
-	pop.idx <- grep("POP", toupper(txt))
-	npop <- length(pop.idx)
-	nocomma <- which(!(1:length(txt)) %in% grep(",", txt))
-	splited <- nocomma[which(!nocomma %in% pop.idx)]
-	if (length(splited) > 0) {
-		for (i in sort(splited, decreasing = TRUE)) {
-			txt[i - 1] <- paste(txt[i - 1], txt[i], sep = " ")
-		}
-		txt <- txt[-splited]
-	}
-	#extract the population information
-	pop.idx <- grep("POP", toupper(txt))
-	txt[length(txt) + 1] <- "POP"
-	pops<-txt[pop.idx]
-	nind<-diff(c(pop.idx,length(txt)))-1
-	if(pops[1] %in% c("POP","pop","Pop")){
-		for(i in 1:length(pops)){ #if there aren't pop names they're given
-			pops[i]<-paste("POP ",i,sep="") } #numbers
-	}
-	popinfo<-as.vector(unlist(apply(cbind(
-		as.character(pops),as.numeric(nind)),
-		1,function(x){ rep(x[1],x[2])})))	
-	#Now keep just the genotype info
-	txt <- txt[-c(pop.idx, length(txt))]
-	temp <- sapply(1:length(txt), function(i) strsplit(txt[i], ","))
-	ind.names <- sapply(temp, function(e) e[1])
-	ind.names <- remove.spaces(ind.names)
-	vec.genot <- sapply(temp, function(e) e[2])
-	vec.genot <- remove.spaces(vec.genot)	
-	X <- matrix(unlist(strsplit(vec.genot, "[[:space:]]+")), 
-		ncol = nloc, byrow = TRUE)
-	rownames(X) <- 1:nrow(X)
-	colnames(X) <- loc.names
-	#combine pop info, ind names, and genotypes
-	res<-data.frame(popinfo,ind.names,X)
-      if (!quiet) 
-		cat("\n...done.\n\n")
-	return(res)
+  if (!quiet) 
+    cat("\nParsing Genepop file...\n\n")
+  prevcall <- match.call()
+  txt <- scan(file, sep = "\n", what = "character", quiet = TRUE)
+  if (!quiet) 
+    cat("\nFile description: ", txt[1], "\n")
+  txt <- txt[-1]
+  txt <- gsub("\t", " ", txt)
+  locinfo.idx <- 1:(min(grep("POP", toupper(txt))) - 1)
+  locinfo <- txt[locinfo.idx]
+  locinfo <- paste(locinfo, collapse = ",")
+  loc.names <- unlist(strsplit(locinfo, "([,]|[\n])+"))
+  loc.names <- remove.spaces(loc.names)
+  nloc <- length(loc.names)
+  txt <- txt[-locinfo.idx]
+  pop.idx <- grep("POP$", toupper(txt))
+  npop <- length(pop.idx)
+  nocomma <- which(!(1:length(txt)) %in% grep(",", txt))
+  splited <- nocomma[which(!nocomma %in% pop.idx)]
+  if (length(splited) > 0) {
+    for (i in sort(splited, decreasing = TRUE)) {
+      txt[i - 1] <- paste(txt[i - 1], txt[i], sep = " ")
+    }
+    txt <- txt[-splited]
+  }
+  txt[length(txt) + 1] <- "POP"
+  pops <- txt[pop.idx]
+  nind <- diff(c(pop.idx, length(txt))) - 1
+  if (pops[1] %in% c("POP", "pop", "Pop")) {
+    for (i in 1:length(pops)) {
+      pops[i] <- paste("POP ", i, sep = "")
+    }
+  }
+  popinfo <- as.vector(unlist(apply(cbind(as.character(pops), 
+                                          as.numeric(nind)), 1, function(x) {
+                                            rep(x[1], x[2])
+                                          })))
+  txt <- txt[-c(pop.idx, length(txt))]
+  temp <- sapply(1:length(txt), function(i) strsplit(txt[i], 
+                                                     ","))
+  ind.names <- sapply(temp, function(e) e[1])
+  ind.names <- remove.spaces(ind.names)
+  vec.genot <- sapply(temp, function(e) e[2])
+  vec.genot <- remove.spaces(vec.genot)
+  X <- matrix(unlist(strsplit(vec.genot, "[[:space:]]+")), 
+              ncol = nloc, byrow = TRUE)
+  rownames(X) <- 1:nrow(X)
+  colnames(X) <- loc.names
+  res <- data.frame(popinfo, ind.names, X)
+  if (!quiet) 
+    cat("\n...done.\n\n")
+  return(res)
 }
 
 allele.counts<-function(genotypes){
