@@ -122,8 +122,11 @@ calc.fst<-function(df,i){
 	df.split<-split(df[,i],df[,1])
 	af<-do.call("rbind",lapply(df.split,calc.allele.freq))
 	hexp<-apply(af,1,calc.exp.het)
-	hs<-mean(hexp)
-	pbar<-mean(af[,1])
+	if(length(hexp[is.na(hexp)]) > 0){
+	  print(paste("WARNING:", length(hexp[is.na(hexp)]),"populations are missing locus",colnames(df)[i]))
+	}
+	hs<-mean(hexp,na.rm = TRUE)
+	pbar<-mean(af[,1],na.rm=TRUE)
 	ht<-2*pbar*(1-pbar)
 	fst<-1-(hs/ht)
 	return(c(ht,fst))
@@ -133,8 +136,12 @@ var.fst<-function(df,i){
   df.split<-split(df[,i],df[,1])
   N<-length(df.split)
   af<-do.call("rbind",lapply(df.split,calc.allele.freq))
-  pbar<-mean(af[,1])
-  vp<-(af[,1]-pbar)^2
+  if(length(af[is.na(af)]) > 0){
+    print(paste("WARNING:", nrow(af[is.na(af[,1]),]),"populations are missing locus",colnames(df)[i]))
+    N<-nrow(af[!is.na(af[,1]),])
+  }
+  pbar<-mean(af[,1],na.rm=TRUE)
+  vp<-(af[!is.na(af[,1]),1]-pbar)^2
   varp<-(1/N)*sum(vp)
   fst<-(varp/(pbar*(1-pbar)))-(1/(2*N))
   ht<-2*pbar*(1-pbar)
@@ -145,8 +152,12 @@ calc.theta<-function(df,i){
   df.split<-split(df[,i],df[,1])
   N<-length(df.split)
   af<-do.call("rbind",lapply(df.split,calc.allele.freq))
-  pbar<-mean(af[,1])
-  vp<-(af[,1]-pbar)^2
+  if(length(af[is.na(af)]) > 0){
+    print(paste("WARNING:", nrow(af[is.na(af[,1]),]),"populations are missing locus",colnames(df)[i]))
+    N<-nrow(af[!is.na(af[,1]),])
+  }
+  pbar<-mean(af[!is.na(af[,1]),1])
+  vp<-(af[!is.na(af[,1]),1]-pbar)^2
   ns<-unlist(lapply(df.split,length))
   nbar<-mean(unlist(lapply(df.split,length)))
   s2a<-(1/((N-1)*nbar))*sum(vp)
@@ -160,10 +171,15 @@ calc.theta<-function(df,i){
 calc.betahat<-function(df,i){
   df.split<-split(df[,i],df[,1])
   r<-length(df.split)
-  M<-mean(unlist(lapply(df.split,length)))
   af<-do.call("rbind",lapply(df.split,calc.allele.freq))
-  Y<-sum(af[,1])*sum(af[,1])+sum(1-af[,1])*sum(1-af[,1])
-  X<-sum(af[,1]^2)+sum((1-af[,1])^2)
+  if(length(af[is.na(af)]) > 0){
+    print(paste("WARNING:", nrow(af[is.na(af[,1]),]),"populations are missing locus",colnames(df)[i]))
+    N<-nrow(af[!is.na(af[,1]),])
+  }
+  M<-mean(unlist(lapply(df.split[which(!is.na(af[,1]))],length)))
+  
+  Y<-sum(af[!is.na(af[,1]),1])*sum(af[!is.na(af[,1]),1])+sum(1-af[!is.na(af[,1]),1])*sum(1-af[!is.na(af[,1]),1])
+  X<-sum(af[!is.na(af[,1]),1]^2)+sum((1-af[!is.na(af[,1]),1])^2)
   F0<-((2*M*X)-r)/(((2*M)-1)*r)
   F1<-((Y-X)/(r*(r-1)))
   HB<-1-F1
@@ -175,8 +191,11 @@ calc.weighted.fst<-function(df,i){
   df.split<-split(df[,i],df[,1])
   af<-do.call("rbind",lapply(df.split,calc.allele.freq))
   hexp<-apply(af,1,calc.exp.het)
-  ns<-unlist(lapply(df.split,length))
-  hs<-sum(hexp*ns)/sum(ns)
+  if(length(hexp[is.na(hexp)]) > 0){
+    print(paste("WARNING:", length(hexp[is.na(hexp)]),"populations are missing locus",colnames(df)[i]))
+  }
+  ns<-unlist(lapply(df.split[which(!is.na(hexp))],length))
+  hs<-sum(hexp[!is.na(hexp)]*ns)/sum(ns)
   ht<-calc.exp.het(calc.allele.freq(df[,i]))
   fst<-(ht-hs)/ht
   return(c(ht,fst))
