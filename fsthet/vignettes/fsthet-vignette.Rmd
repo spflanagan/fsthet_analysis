@@ -5,8 +5,8 @@ date: '`r Sys.Date()`'
 output:
   html_document: default
   pdf_document: default
-vignette: |
-  %\VignetteIndexEntry{Using fsthet} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+vignette: >
+  %\VignetteIndexEntry{Using fsthet} %\VignetteEngine{knitr::knitr} %\VignetteEncoding{UTF-8}
 ---
 
 A common way to identify loci putatively under selection in population genomics studies is to identify loci that have high differentiation Fst relative to their expected heterozygosity Ht, as described in Beaumont & Nichols (1996). However, the Fst-Ht distribution changes shape based on the demographics of the population, and some distribution shapes are less conducive to identifying outliers than others. The problem of different distribution shapes is exacerbated by the current implementation of analyses which assume the same  distribution for all demographic parameters. **fsthet** calculates smoothed quantiles from the existing dataset to identify loci with extreme Fst values relative to their heterozygosity.  
@@ -215,7 +215,7 @@ hist(maf,main = "",xlab="Minimum allele frequency",ylab="Number of Loci",col="gr
 Hopefully this package will be a useful tool for population geneticists and molecular ecologists. It's important to consider the assumptions of the tests you use as well as remembering that statistics should be used to describe your dataset. Use your common sense about when to use different methods and how to implement them. Good luck!
 
 ***
-*If you run into any problems, find any bugs, or have other comments on fsthet please contact me: spflanagan.phd@gmail.com.*  
+*If you run into any problems, find any bugs, or have other comments on fsthet please post an issue on github (or contact me at spflanagan.phd@gmail.com).*  
 
 ***
 
