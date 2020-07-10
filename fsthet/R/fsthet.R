@@ -33,7 +33,7 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
   loc.names <- remove.spaces(loc.names)
   nloc <- length(loc.names)
   txt <- txt[-locinfo.idx]
-  pop.idx <- grep("POP$", toupper(txt))
+  pop.idx <- grep("POP(\\s+)?$", toupper(txt))
   npop <- length(pop.idx)
   nocomma <- which(!(1:length(txt)) %in% grep(",", txt))
   splited <- nocomma[which(!nocomma %in% pop.idx)]
@@ -46,7 +46,7 @@ my.read.genepop<-function (file, ncode = 2L, quiet = FALSE)
   txt[length(txt) + 1] <- "POP"
   pops <- txt[pop.idx]
   nind <- diff(c(pop.idx, length(txt))) - 1
-  if (pops[1] %in% c("POP", "pop", "Pop")) {
+  if (remove.spaces(pops[1]) %in% c("POP", "pop", "Pop")) {
     for (i in 1:length(pops)) {
       pops[i] <- paste("POP ", i, sep = "")
     }
