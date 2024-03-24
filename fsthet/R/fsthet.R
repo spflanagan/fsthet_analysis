@@ -76,32 +76,39 @@ allele.counts<-function(genotypes){
   obs.gen<-table(as.factor(genotypes))
   obs.gen<-obs.gen[names(obs.gen) != "000000" & names(obs.gen) 
                    != "0000" & names(obs.gen) != "0"]
-  if(nchar(names(obs.gen[1])) %% 2 == 0){
-    splitnum<-nchar(names(obs.gen[1]))/2
-    allele.names<-levels(as.factor(c(substr(names(obs.gen),1,splitnum),
-                                     substr(names(obs.gen),splitnum+1,nchar(names(obs.gen[1]))))))
-    alleles<-cbind(substr(genotypes,1,splitnum),
-                   substr(genotypes,splitnum+1,nchar(names(obs.gen[1]))))
-    alleles<-alleles[alleles != "0" & alleles != "00" &
-                       alleles != "000" & alleles!= "0000" &  
-                       alleles != "00000" & alleles != "000000"]
-  } else { #assume it's haploid
-    allele.names<-levels(as.factor(names(obs.gen)))
-    alleles<-cbind(genotypes,genotypes)
-    alleles<-alleles[alleles != "0" & alleles != "00" &
-                       alleles != "000" & alleles!= "0000" &  
-                       alleles != "00000" & alleles != "000000"]
+  
+  if(length(obs.gen)<1){ 
+    AlleleCounts <- NA
+  } else{
+    
+  
+    if(nchar(names(obs.gen[1])) %% 2 == 0){
+      splitnum<-nchar(names(obs.gen[1]))/2
+      allele.names<-levels(as.factor(c(substr(names(obs.gen),1,splitnum),
+                                       substr(names(obs.gen),splitnum+1,nchar(names(obs.gen[1]))))))
+      alleles<-cbind(substr(genotypes,1,splitnum),
+                     substr(genotypes,splitnum+1,nchar(names(obs.gen[1]))))
+      alleles<-alleles[alleles != "0" & alleles != "00" &
+                         alleles != "000" & alleles!= "0000" &  
+                         alleles != "00000" & alleles != "000000"]
+    } else { #assume it's haploid
+      allele.names<-levels(as.factor(names(obs.gen)))
+      alleles<-cbind(genotypes,genotypes)
+      alleles<-alleles[alleles != "0" & alleles != "00" &
+                         alleles != "000" & alleles!= "0000" &  
+                         alleles != "00000" & alleles != "000000"]
+    }
+    obs<-summary(as.factor(alleles))
+    if(length(obs) < length(allele.names)){
+      num.missing<-length(allele.names[!(allele.names%in% names(obs))])
+      AlleleCounts<-c(obs,rep(0,num.missing))
+      names(AlleleCounts)<-c(names(obs)[names(obs) %in% allele.names],
+                             allele.names[!(allele.names%in% names(obs))])   
+    }else{
+      AlleleCounts<-obs
+    }
+    AlleleCounts<-AlleleCounts[order(names(AlleleCounts))]
   }
-  obs<-summary(as.factor(alleles))
-  if(length(obs) < length(allele.names)){
-    num.missing<-length(allele.names[!(allele.names%in% names(obs))])
-    AlleleCounts<-c(obs,rep(0,num.missing))
-    names(AlleleCounts)<-c(names(obs)[names(obs) %in% allele.names],
-                           allele.names[!(allele.names%in% names(obs))])   
-  }else{
-    AlleleCounts<-obs
-  }
-  AlleleCounts<-AlleleCounts[order(names(AlleleCounts))]
   return(AlleleCounts)
 }
 
